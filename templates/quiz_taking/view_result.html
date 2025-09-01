@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center p-4 mb-4 bg-light rounded-3">
+    <h1>Kết quả bài thi: {{ result.quiz.title }}</h1>
+    <h2 class="display-4">Điểm số: <span class="text-primary fw-bold">{{ result.score }} / 100</span></h2>
+    <p class="lead">Hoàn thành lúc: {{ result.completed_at|date:"H:i, d/m/Y" }}</p>
+    <a href="{% url 'home' %}" class="btn btn-info">Quay về trang chủ</a>
+    <a href="{% url 'quiz:test_history' %}" class="btn btn-secondary">Xem lịch sử thi</a>
+</div>
+
+<h3 class="mb-3">Xem lại bài làm chi tiết:</h3>
+
+{% for item in detailed_answers %}
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Câu hỏi {{ forloop.counter }}:</strong> {{ item.question_text }}
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for answer in item.all_answers %}
+            {% comment %} Logic để tô màu nền cho các đáp án {% endcomment %}
+            <li class="list-group-item 
+                {% if answer.id == item.correct_answer_id %}
+                    list-group-item-success  {% comment %} Nền xanh cho đáp án đúng {% endcomment %}
+                {% elif answer.id == item.student_answer_id %}
+                    list-group-item-danger   {% comment %} Nền đỏ cho đáp án sai mà học sinh chọn {% endcomment %}
+                {% endif %}
+            ">
+                {{ answer.text }}
+                
+                {% comment %} Thêm các nhãn chú thích {% endcomment %}
+                {% if answer.id == item.correct_answer_id %}
+                    <span class="badge bg-success float-end">Đáp án đúng</span>
+                {% endif %}
+                {% if answer.id == item.student_answer_id and answer.id != item.correct_answer_id %}
+                    <span class="badge bg-danger float-end">Bạn đã chọn</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+{% endblock %}

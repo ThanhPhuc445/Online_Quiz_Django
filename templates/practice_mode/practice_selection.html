@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-4 mb-4 bg-light rounded-3">
+    <h1 class="display-5">Chế độ Luyện tập</h1>
+    <p class="lead">Chọn một môn học bên dưới để bắt đầu làm một bài kiểm tra ngẫu nhiên. Chế độ này không tính giờ và không lưu vào kết quả chính thức.</p>
+</div>
+
+
+<h3 class="mb-3">Chọn môn học:</h3>
+<div class="list-group">
+    {% for subject in subjects %}
+        <a href="{% url 'quiz:start_practice' subject_id=subject.id %}" class="list-group-item list-group-item-action list-group-item-primary">
+            Luyện tập môn: <strong>{{ subject.name }}</strong>
+        </a>
+    {% empty %}
+        <div class="alert alert-info" role="alert">
+            Hiện tại chưa có môn học nào để luyện tập. Vui lòng quay lại sau.
+        </div>
+    {% endfor %}
+</div>
+
+<a href="{% url 'home' %}" class="btn btn-secondary mt-4">Quay về trang chủ</a>
+{% endblock %}

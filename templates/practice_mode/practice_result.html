@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center p-4 mb-4 bg-light rounded-3">
+    <h1>Kết quả Luyện tập</h1>
+    <h2 class="display-5">Bạn đã trả lời đúng: <span class="text-primary fw-bold">{{ correct_count }} / {{ total_questions }} câu</span></h2>
+    <p class="lead">Điểm tương đương: {{ score }} / 100</p>
+    <a href="{% url 'quiz:practice_selection' %}" class="btn btn-info mt-3">Luyện tập môn khác</a>
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Về trang chủ</a>
+</div>
+
+<h3 class="mb-3">Xem lại bài làm chi tiết:</h3>
+
+{% for item in results_data %}
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Câu hỏi {{ forloop.counter }}:</strong> {{ item.question.text }}
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for answer in item.all_answers %}
+            <li class="list-group-item 
+                {% if answer.id == item.correct_answer_id %}list-group-item-success{% elif answer.id == item.selected_answer_id %}list-group-item-danger{% endif %}
+            ">
+                {{ answer.text }}
+                {% if answer.id == item.correct_answer_id %}
+                    <span class="badge bg-success float-end">Đáp án đúng</span>
+                {% endif %}
+                {% if answer.id == item.selected_answer_id and not item.is_correct %}
+                    <span class="badge bg-danger float-end">Bạn đã chọn</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+{% endblock %}

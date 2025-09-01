@@ -1,5 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Dashboard Học sinh</h1>
-<p>Chào mừng bạn quay trở lại. Các bài thi có sẵn sẽ được hiển thị ở đây.</p>
+<p>Chào mừng bạn quay trở lại. Dưới đây là danh sách các bài thi đang diễn ra.</p>
+
+<div class="list-group mt-4">
+    {% for quiz in quizzes %}
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">{{ quiz.title }}</h5>
+                <p class="mb-1">Môn học: {{ quiz.subject.name }} | Thời gian: {{ quiz.duration_minutes }} phút</p>
+                <small>Kết thúc vào: {{ quiz.end_time|date:"H:i, d/m/Y" }}</small>
+            </div>
+            {% if quiz.id in taken_quiz_ids %}
+                <a href="{% url 'quiz:view_result' pk=quiz.result_set.first.pk %}" class="btn btn-success">Xem lại bài</a>
+            {% else %}
+                <a href="{% url 'quiz:take_quiz' pk=quiz.pk %}" class="btn btn-primary">Vào thi</a>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="text-center">Hiện tại không có bài thi nào đang diễn ra.</p>
+    {% endfor %}
+</div>
+
+<h3 class="mt-5">Các chức năng khác</h3>
+<div class="list-group">
+    <a href="{% url 'quiz:test_history' %}" class="list-group-item list-group-item-action">Xem lịch sử các bài đã làm</a>
+    <a href="{% url 'quiz:practice_selection' %}" class="list-group-item list-group-item-action">Vào chế độ Luyện tập</a>
+</div>
 {% endblock %}

@@ -1,6 +1,8 @@
+# config/urls.py
+
 from django.contrib import admin
 from django.urls import path, include
-from quiz import views as quiz_views # Import view từ app quiz
+from quiz import views as quiz_views # Dòng này vẫn giữ nguyên
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -9,7 +11,12 @@ urlpatterns = [
     path('accounts/', include('users.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # URL trang chủ, sẽ gọi đến view 'home' trong app 'quiz'
-    # Chúng ta sẽ tạo view này ngay sau đây
+    # URL trang chủ, vẫn trỏ đến view 'home' trong app 'quiz'
     path('', quiz_views.home, name='home'),
+    
+    # ===== DÒNG QUAN TRỌNG CẦN THÊM VÀO =====
+    # Dòng này sẽ kết nối TẤT CẢ các URL khác trong file quiz/urls.py
+    # và gán cho chúng namespace là 'quiz'.
+    # Ví dụ: /quiz/history/, /quiz/take/1/, /quiz/practice/
+    path('quiz/', include('quiz.urls', namespace='quiz')),
 ]

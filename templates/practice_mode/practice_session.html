@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Luyện tập môn: {{ subject.name }}</h1>
+<p>Hãy trả lời các câu hỏi dưới đây. Sẽ không có giới hạn thời gian.</p>
+<hr>
+
+<form action="{% url 'quiz:submit_practice' %}" method="post">
+    {% csrf_token %}
+    {% for item in shuffled_questions %}
+        <!-- Input ẩn này rất quan trọng để gửi danh sách các câu hỏi đã làm lên server -->
+        <input type="hidden" name="question_id" value="{{ item.question.id }}">
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <strong>Câu {{ forloop.counter }}:</strong>
+            </div>
+            <div class="card-body">
+                <p class="card-text fs-5">{{ item.question.text }}</p>
+                <hr>
+                {% for answer in item.answers %}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="question_{{ item.question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}" required>
+                    <label class="form-check-label" for="answer_{{ answer.id }}">
+                        {{ answer.text }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success btn-lg w-100 mt-3">HOÀN THÀNH & XEM KẾT QUẢ</button>
+</form>
+{% endblock %}

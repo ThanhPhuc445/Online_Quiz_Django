@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1>{{ quiz.title }}</h1>
+        <p class="lead">Môn học: {{ quiz.subject.name }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <h4>Thời gian còn lại:</h4>
+        <div id="timer" class="fs-2 fw-bold text-danger">--:--</div>
+    </div>
+</div>
+
+<hr>
+
+<form id="quizForm" action="{% url 'quiz:submit_quiz' pk=quiz.pk %}" method="post">
+    {% csrf_token %}
+    {% for item in shuffled_questions %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header">
+            <strong>Câu {{ forloop.counter }}:</strong>
+        </div>
+        <div class="card-body">
+            <p class="card-text fs-5">{{ item.question.text }}</p>
+            <hr>
+            {% for answer in item.answers %}
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="question_{{ item.question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}" required>
+                <label class="form-check-label" for="answer_{{ answer.id }}">
+                    {{ answer.text }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success btn-lg w-100 mt-3">NỘP BÀI</button>
+</form>
+
+<script>
+    // Lấy thời gian từ Django context và chuyển sang giây
+    const duration = {{ quiz.duration_minutes }} * 60; 
+    const timerElement = document.getElementById('timer');
+    const quizForm = document.getElementById('quizForm');
+    let timeLeft = duration;
+
+    // Cập nhật đồng hồ mỗi giây
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+
+        const minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        
+        // Thêm số 0 đằng trước nếu giây < 10 (ví dụ: 09, 08...)
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+
+        timerElement.textContent = `${minutes}:${seconds}`;
+
+        // Khi hết giờ
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timerElement.textContent = "Hết giờ!";
+            alert("Đã hết thời gian làm bài. Hệ thống sẽ tự động nộp bài của bạn.");
+            quizForm.submit(); // Tự động nộp form
+        }
+    }, 1000);
+</script>
+{% endblock %}
