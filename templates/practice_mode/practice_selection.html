@@ -1,24 +1,39 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="p-4 mb-4 bg-light rounded-3">
-    <h1 class="display-5">Chế độ Luyện tập</h1>
-    <p class="lead">Chọn một môn học bên dưới để bắt đầu làm một bài kiểm tra ngẫu nhiên. Chế độ này không tính giờ và không lưu vào kết quả chính thức.</p>
+<h1 class="mb-4">Lịch sử các bài thi đã làm</h1>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Tên bài thi</th>
+                    <th scope="col">Môn học</th>
+                    <th scope="col">Điểm số</th>
+                    <th scope="col">Ngày làm</th>
+                    <th scope="col">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                <tr>
+                    <td>{{ result.quiz.title }}</td>
+                    <td>{{ result.quiz.subject.name }}</td>
+                    <td><strong>{{ result.score }}</strong></td>
+                    <td>{{ result.completed_at|date:"H:i, d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'quiz:view_result' pk=result.pk %}" class="btn btn-sm btn-info">Xem chi tiết</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center p-4">Bạn chưa hoàn thành bài thi nào.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
-
-<h3 class="mb-3">Chọn môn học:</h3>
-<div class="list-group">
-    {% for subject in subjects %}
-        <a href="{% url 'quiz:start_practice' subject_id=subject.id %}" class="list-group-item list-group-item-action list-group-item-primary">
-            Luyện tập môn: <strong>{{ subject.name }}</strong>
-        </a>
-    {% empty %}
-        <div class="alert alert-info" role="alert">
-            Hiện tại chưa có môn học nào để luyện tập. Vui lòng quay lại sau.
-        </div>
-    {% endfor %}
-</div>
-
-<a href="{% url 'home' %}" class="btn btn-secondary mt-4">Quay về trang chủ</a>
+<!-- SỬA LỖI Ở ĐÂY: Thay 'home' bằng 'dashboard' -->
+<a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">Quay về Dashboard</a>
 {% endblock %}

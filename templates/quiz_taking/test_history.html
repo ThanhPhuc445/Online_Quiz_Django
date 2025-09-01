@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 <h1 class="mb-4">Lịch sử các bài thi đã làm</h1>
 <div class="card">
@@ -34,5 +33,7 @@
         </table>
     </div>
 </div>
-<a href="{% url 'home' %}" class="btn btn-primary mt-3">Quay về trang chủ</a>
+
+<!-- SỬA LỖI Ở ĐÂY: Thay 'home' bằng 'dashboard' -->
+<a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">Quay về Dashboard</a>
 {% endblock %}
