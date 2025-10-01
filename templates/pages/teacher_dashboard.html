@@ -1,5 +1,60 @@
-{% extends "base.html" %}
+{% extends "base.html" %} 
+{% load static %}
 {% block content %}
-<h1>Dashboard Giáo viên</h1>
-<p>Chào mừng bạn quay trở lại. Tại đây bạn có thể quản lý các câu hỏi và đề thi của mình.</p>
+<div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_questions }}</h3>
+                    <p class="card-text">Tổng số câu hỏi</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_quizzes }}</h3>
+                    <p class="card-text">Đề thi đã tạo</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <!-- Giả sử bạn đã truyền biến total_attempts -->
+                    <h3 class="card-title">0</h3> 
+                    <p class="card-text">Lượt thi hoàn thành</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="mb-4">
+        <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary btn-lg me-2">Tạo đề thi mới</a>
+        <a href="{% url 'quiz:question_list' %}" class="btn btn-secondary btn-lg">Ngân hàng câu hỏi</a>
+        <a href="{% url 'quiz:import_questions' %}" class="btn btn-success btn-lg ms-2">Import câu hỏi (Excel)</a>
+    </div>
+
+
+    <!-- Khu vực truy cập nhanh (Quick Access) -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Đề thi gần đây</h4>
+            <!-- NÚT XEM TẤT CẢ -->
+            <a href="{% url 'quiz:quiz_list' %}" class="btn btn-outline-primary">Xem tất cả đề thi</a>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for quiz in recent_quizzes %}
+                <!-- SỬA LẠI TÊN URL CHI TIẾT/SỬA ĐỀ THI -->
+                <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    {{ quiz.title }}
+                    <small class="text-muted">{{ quiz.start_time|date:"d/m/Y" }}</small>
+                </a>
+            {% empty %}
+                <div class="list-group-item">
+                    <p class="mb-0">Bạn chưa tạo đề thi nào.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}

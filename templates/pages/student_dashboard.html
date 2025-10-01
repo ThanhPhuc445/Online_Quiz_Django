@@ -1,70 +1,95 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Dashboard - Học sinh{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Chào, {{ user.first_name|default:user.username }}!</h1>
-        <p class="text-muted">Sẵn sàng để chinh phục những thử thách mới nào.</p>
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">Chào, {{ user.first_name|default:user.username }}!</h1>
+            <p class="text-muted">Sẵn sàng để chinh phục những thử thách mới nào.</p>
+        </div>
     </div>
-</div>
 
-<!-- Kỳ thi đang diễn ra -->
-<h3 class="mb-3"><i class="bi bi-card-heading me-2" style="color: var(--primary-color);"></i>Kỳ thi chính thức</h3>
-<div class="row">
-    {% for quiz in quizzes %}
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ quiz.title }}</h5>
-                <p class="card-subtitle mb-2 text-muted"><i class="bi bi-book"></i> {{ quiz.subject.name }}</p>
-                <ul class="list-unstyled mt-3">
-                    <li><i class="bi bi-clock text-primary"></i> <strong>Thời gian:</strong> {{ quiz.duration_minutes }} phút</li>
-                    <li><i class="bi bi-calendar-x text-danger"></i> <strong>Hạn chót:</strong> {{ quiz.end_time|date:"H:i, d/m/Y" }}</li>
-                </ul>
-                <div class="mt-auto pt-3">
-                    {% if quiz.id in taken_quiz_ids %}
-                        <a href="#" class="btn btn-success disabled w-100"><i class="bi bi-check-circle-fill me-2"></i>Đã hoàn thành</a>
-                    {% else %}
-                        <a href="{% url 'quiz:take_quiz' pk=quiz.pk %}" class="btn btn-primary w-100"><i class="bi bi-play-circle-fill me-2"></i>Bắt đầu làm bài</a>
-                    {% endif %}
+    <!-- === PHẦN THAM GIA BẰNG MÃ CODE === -->
+    <div class="card mb-5 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Tham gia kỳ thi bằng mã code</h5>
+            <form method="POST" action="{% url 'quiz:join_with_code' %}" class="row g-3 align-items-center">
+                {% csrf_token %}
+                <div class="col">
+                    <label for="access_code_input" class="visually-hidden">Mã tham gia</gabel>
+                    <input type="text" name="access_code" class="form-control form-control-lg" id="access_code_input" placeholder="Nhập mã tham gia..." required>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary btn-lg" type="submit">Tham gia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- === KỲ THI ĐANG DIỄN RA === -->
+    <h3 class="mb-3">Kỳ thi chính thức</h3>
+    <div class="row">
+        {# Vòng lặp này sử dụng biến 'quizzes' và 'taken_quiz_ids' từ view #}
+        {% for quiz in quizzes %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ quiz.title }}</h5>
+                    <p class="card-subtitle mb-2 text-muted">{{ quiz.subject.name }}</p>
+                    <ul class="list-unstyled mt-3 small">
+                        <li><strong>Thời gian:</strong> {{ quiz.duration_minutes }} phút</li>
+                        <li><strong>Hạn chót:</strong> {{ quiz.end_time|date:"H:i, d/m/Y" }}</li>
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        {% if quiz.id in taken_quiz_ids %}
+                            <a href="{% url 'quiz:view_results_by_quiz' quiz.pk %}" class="btn btn-success w-100">
+                                Đã hoàn thành - Xem kết quả
+                            </a>
+                        {% else %}
+                            <a href="{% url 'quiz:take_quiz' pk=quiz.pk %}" class="btn btn-primary w-100">
+                                Bắt đầu làm bài
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="alert alert-info text-center">
-            <i class="bi bi-info-circle fs-4 me-2"></i>Hiện tại không có kỳ thi chính thức nào đang diễn ra.
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                Hiện tại không có kỳ thi chính thức nào đang diễn ra.
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
-<!-- Các chức năng khác -->
-<h3 class="mt-5 mb-3"><i class="bi bi-tools me-2" style="color: var(--primary-color);"></i>Công cụ học tập</h3>
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <a href="{% url 'quiz:practice_selection' %}" class="text-decoration-none">
-            <div class="card h-100 text-center">
-                <div class="card-body py-5">
-                    <i class="bi bi-lightbulb-fill display-4 mb-3 text-warning"></i>
-                    <h4 class="card-title">Chế độ Luyện tập</h4>
-                    <p class="card-text text-muted">Ôn luyện không giới hạn theo từng môn học.</p>
+    <!-- === CÁC CHỨC NĂNG KHÁC (GIỮ NGUYÊN) === -->
+    <h3 class="mt-5 mb-3">Công cụ học tập</h3>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <a href="#" class="text-decoration-none"> {# Thay '#' bằng URL của bạn #}
+                <div class="card h-100 text-center card-hover">
+                    <div class="card-body py-5">
+                        <i class="bi bi-lightbulb-fill display-4 mb-3 text-warning"></i>
+                        <h4 class="card-title">Chế độ Luyện tập</h4>
+                        <p class="card-text text-muted">Ôn luyện không giới hạn theo từng môn học.</p>
+                    </div>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-6 mb-4">
-        <a href="{% url 'quiz:test_history' %}" class="text-decoration-none">
-            <div class="card h-100 text-center">
-                <div class="card-body py-5">
-                    <i class="bi bi-clock-history display-4 mb-3 text-info"></i>
-                    <h4 class="card-title">Lịch sử thi</h4>
-                    <p class="card-text text-muted">Xem lại kết quả và tiến độ của bạn.</p>
+            </a>
+        </div>
+        <div class="col-md-6 mb-4">
+            <a href="#" class="text-decoration-none"> {# Thay '#' bằng URL của bạn #}
+                <div class="card h-100 text-center card-hover">
+                    <div class="card-body py-5">
+                        <i class="bi bi-clock-history display-4 mb-3 text-info"></i>
+                        <h4 class="card-title">Lịch sử thi</h4>
+                        <p class="card-text text-muted">Xem lại kết quả và tiến độ của bạn.</p>
+                    </div>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

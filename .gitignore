@@ -1,0 +1,21 @@
+# Môi trường ảo
+venv/
+/venv/
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Các file media người dùng upload (nếu có)
+/media/
+
+# Các file static được gom lại (nếu có)
+/static_root/
+/staticfiles/
+
+# File môi trường chứa key bí mật (nếu có)
+.env

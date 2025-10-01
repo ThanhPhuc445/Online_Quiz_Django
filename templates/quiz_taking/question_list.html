@@ -1,0 +1,123 @@
+<!-- templates/quiz_taking/question_list.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Ngân hàng câu hỏi</h1>
+        <div>
+            <a href="{% url 'quiz:import_questions' %}" class="btn btn-success">Import (Excel)</a>
+            <a href="{% url 'quiz:create_question' %}" class="btn btn-primary">Thêm câu hỏi mới</a>
+        </div>
+    </div>
+
+    <!-- === KHU VỰC BỘ LỌC (GIỮ NGUYÊN) === -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{% url 'quiz:question_list' %}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="subject" class="form-label">Môn học</label>
+                        <select name="subject" id="subject" class="form-select">
+                            <option value="">Tất cả môn học</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if selected_subject == subject.id %}selected{% endif %}>
+                                    {{ subject.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="difficulty" class="form-label">Độ khó</label>
+                        <select name="difficulty" id="difficulty" class="form-select">
+                            <option value="">Tất cả độ khó</option>
+                            {% for value, label in difficulty_choices %}
+                                <option value="{{ value }}" {% if selected_difficulty == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-info w-100">Lọc</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- === KHU VỰC BẢNG DANH SÁCH CÂU HỎI (GIỮ NGUYÊN) === -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nội dung câu hỏi</th>
+                        <th>Môn học</th>
+                        <th>Độ khó</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in questions %}
+                        <tr>
+                            <td>{{ question.text|truncatechars:80 }}</td>
+                            <td>{{ question.subject.name }}</td>
+                            <td>{{ question.get_difficulty_display }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'quiz:edit_question' question.pk %}" class="btn btn-warning btn-sm">Sửa</a>
+                                <a href="{% url 'quiz:delete_question' question.pk %}" class="btn btn-danger btn-sm">Xóa</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                Không tìm thấy câu hỏi nào. <a href="{% url 'quiz:create_question' %}">Tạo câu hỏi đầu tiên?</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- === KHU VỰC PHÂN TRANG (PAGINATION) ĐÃ ĐƯỢC THÊM VÀO === -->
+    <!-- ======================================================= -->
+    {% if questions.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+      <ul class="pagination justify-content-center">
+
+        {# Nút "Trang trước" («) #}
+        {% if questions.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ questions.previous_page_number }}{% if request.GET.subject %}&subject={{ request.GET.subject }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}">&laquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        {% endif %}
+
+        {# Hiển thị các số trang #}
+        {% for i in questions.paginator.page_range %}
+          {% if questions.number == i %}
+            <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.subject %}&subject={{ request.GET.subject }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}">{{ i }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {# Nút "Trang sau" (») #}
+        {% if questions.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ questions.next_page_number }}{% if request.GET.subject %}&subject={{ request.GET.subject }}{% endif %}{% if request.GET.difficulty %}&difficulty={{ request.GET.difficulty }}{% endif %}">&raquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+
+      </ul>
+    </nav>
+    {% endif %}
+
+</div>
+{% endblock %}

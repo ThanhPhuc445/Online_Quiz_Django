@@ -1,6 +1,7 @@
 # quiz/models.py
 from django.db import models
 from django.conf import settings
+import uuid
 
 class Subject(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -40,6 +41,20 @@ class Quiz(models.Model):
     duration_minutes = models.PositiveIntegerField(help_text="Thời gian làm bài (phút)")
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
+    access_code = models.CharField(
+        max_length=8, 
+        unique=True, 
+        blank=True, 
+        null=True,
+        verbose_name="Mã tham gia"
+    )
+    def save(self, *args, **kwargs):
+        # Nếu đề thi chưa có mã code, hãy tạo một mã mới
+        if not self.access_code:
+            # Tạo một mã ngẫu nhiên, lấy 6 ký tự đầu và chuyển thành chữ hoa
+            self.access_code = str(uuid.uuid4()).upper().replace('-', '')[:6]
+        super().save(*args, **kwargs) # Gọi hàm save() gốc
     def __str__(self):
         return self.title

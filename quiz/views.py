@@ -1,5 +1,6 @@
 # quiz/views.py
-
+from django.core.paginator import Paginator
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
@@ -8,9 +9,12 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 import random
 
+from quiz.forms import AnswerForm, AnswerFormSet, QuestionForm,QuizForm
+
 from .models import Quiz, Answer, Subject, Question
 from results.models import Result, StudentAnswer
 from users.decorators import student_required, teacher_required
+from openpyxl import load_workbook
 
 # ===========================================================================
 # VIEW MỚI CHO TRANG CHỦ CÔNG KHAI
@@ -23,6 +27,7 @@ def landing_page(request):
 # ===========================================================================
 # VIEW PHÂN LUỒNG (ĐỔI TÊN TỪ home THÀNH dashboard)
 # ===========================================================================
+
 @login_required
 def dashboard(request): # Đã đổi tên từ 'home'
     user = request.user
@@ -39,6 +44,232 @@ def dashboard(request): # Đã đổi tên từ 'home'
         return render(request, 'pages/student_dashboard.html', context)
     else: # Admin
         return render(request, 'pages/admin_dashboard.html')
+
+@login_required
+@teacher_required
+def teacher_dashboard(request):
+    teacher = request.user
+    total_questions = Question.objects.filter(created_by=teacher).count()
+    total_quizzes = Quiz.objects.filter(created_by=teacher).count()
+    recent_quizzes = Quiz.objects.filter(created_by=teacher).order_by('created_at')[:5]
+    total_attempts = Result.objects.filter(quiz__created_by=teacher).count()
+    context = {'total_quizzes': total_quizzes, 'total_questions': total_questions, 'recent_quizzes': recent_quizzes, 'total_attempts': total_attempts}
+    return render(request, 'pages/teacher_dashboard.html', context)
+
+@login_required
+@teacher_required
+def quiz_list(request):
+    quizzes = Quiz.objects.filter(created_by=request.user)
+    return render(request, 'quiz_taking/quiz_list.html', {'quizzes': quizzes})
+
+@login_required
+@teacher_required
+def create_quiz(request):
+    if request.method == "POST":
+        form = QuizForm(request.POST, user=request.user)
+        if form.is_valid():
+            quiz = form.save(commit=False)
+            quiz.created_by = request.user
+            quiz.save()
+            form.save_m2m()
+            messages.success(request, "Quiz created.")
+            return redirect('quiz:quiz_list')
+    else:
+        form = QuizForm(user=request.user)
+    context = {
+        'form': form
+    }
+    return render(request, 'quiz_taking/create_quiz.html', context)
+
+
+@login_required
+@teacher_required
+def edit_quiz(request, pk):
+    quiz_instance = get_object_or_404(Quiz, pk=pk, created_by=request.user)
+    if request.method == 'POST':
+        form = QuizForm(request.POST, instance=quiz_instance, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Đề thi đã được cập nhật thành công!')
+            return redirect('quiz:quiz_list')
+    else:
+        form = QuizForm(instance=quiz_instance, user=request.user)
+        context = {
+        'form': form,
+        'quiz': quiz_instance 
+    }
+        return render(request, 'quiz_taking/create_quiz.html', context)
+def delete_quiz(request, pk):
+    quiz_instance = get_object_or_404(Quiz, pk=pk, created_by=request.user)
+    if request.method == 'POST':
+        quiz_instance.delete()
+        messages.success(request, 'Đề thi đã được xóa thành công!')
+        return redirect('quiz:quiz_list')
+    
+    context = {
+        'quiz': quiz_instance
+    }
+    return render(request, 'quiz_taking/quiz_confirm_delete.html', context)
+
+@login_required
+def question_list(request):
+    current_teacher = request.user
+    questions_list = Question.objects.filter(created_by=current_teacher)
+    subject_id = request.GET.get('subject')
+    difficulty_level = request.GET.get('difficulty')
+    if subject_id:
+        questions_list = questions_list.filter(subject_id=subject_id)
+    if difficulty_level:
+        questions_list = questions_list.filter(difficulty=difficulty_level)
+    paginator = Paginator(questions_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    subjects = Subject.objects.all()
+    difficulty_choices = Question.Difficulty.choices
+    context = {
+        'questions': page_obj,
+        'subjects': subjects,
+        'difficulty_choices': difficulty_choices,
+        'selected_subject': int(subject_id) if subject_id else None,
+        'selected_difficulty': difficulty_level,
+    }
+    return render(request, 'quiz_taking/question_list.html', context)
+
+@login_required
+@teacher_required
+def create_question(request):
+    if request.method == 'POST':
+        form = QuestionForm(request.POST)
+        if form.is_valid():
+            q = form.save(commit=False)
+            q.created_by = request.user
+            q.save()
+            formset = AnswerFormSet(request.POST, instance=q)
+            if formset.is_valid():
+                formset.save()
+                return redirect('quiz:question_list')
+    else:
+        form = QuestionForm()
+        formset = AnswerFormSet()
+    return render(request, 'quiz_taking/question_form.html', {'form': form, 'formset': formset})
+
+@login_required
+@teacher_required
+def edit_question(request, pk):
+    question_instance = get_object_or_404(Question, pk=pk, created_by=request.user)
+    if request.method == 'POST':
+        question_form = QuestionForm(request.POST, instance=question_instance)
+        answer_formset = AnswerFormSet(request.POST, instance=question_instance)
+
+        if question_form.is_valid() and answer_formset.is_valid():
+            question_form.save()
+            answer_formset.save()
+            messages.success(request, 'Câu hỏi đã được cập nhật thành công!')
+            return redirect('quiz:question_list')
+    else:
+        question_form = QuestionForm(instance=question_instance)
+        answer_formset = AnswerFormSet(instance=question_instance)
+
+        context = {
+        'form': question_form,
+        'formset': answer_formset,
+        'question': question_instance
+    }
+    return render(request, 'quiz_taking/question_form.html', context)
+
+@login_required
+@teacher_required
+def delete_question(request, pk):
+    question_instance = get_object_or_404(Question, pk=pk, created_by=request.user)
+    if request.method == 'POST':
+        question_instance.delete()
+        messages.success(request, 'Câu hỏi đã được xóa thành công!')
+        return redirect('quiz:question_list')
+    context = {
+        'question': question_instance
+    }
+    return render(request, 'quiz_taking/question_confirm_delete.html', context)
+
+@login_required
+@teacher_required
+def quiz_results(request, pk):
+    quiz = get_object_or_404(Quiz, pk=pk, created_by=request.user)
+    results = Result.objects.filter(quiz=quiz).order_by('-score')
+    context = {
+        'quiz': quiz,
+        'results': results
+    }
+    return render(request, 'pages/teacher_quiz_results.html', context)
+
+@login_required
+@teacher_required
+def import_questions_excel(request):
+    if request.method == 'POST':
+        excel_file = request.FILES.get('excel_file', None)
+
+        if not excel_file:
+            messages.error(request, "Vui lòng chọn một file để upload.")
+            return redirect('quiz:import_questions')
+
+        if not excel_file.name.endswith('.xlsx'):
+            messages.error(request, "File không hợp lệ. Hệ thống chỉ chấp nhận file .xlsx.")
+            return redirect('quiz:import_questions')
+
+        try:
+            workbook = load_workbook(filename=excel_file, data_only=True)
+            sheet = workbook.active
+            questions_created_count = 0
+
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                if len(row) < 8 or not row[1]:
+                    continue
+                
+                subject_name, question_text, difficulty, *options, correct_idx = row[:8]
+                subject_name = row[0]
+                difficulty = row[1]
+                question_text = row[2]
+                options = row[3:7]
+                subject, _ = Subject.objects.get_or_create(name=str(subject_name).strip())
+                
+                difficulty_processed = (str(difficulty).strip().upper() or 'MEDIUM')
+                valid_difficulties = [choice[0] for choice in Question.Difficulty.choices]
+                if difficulty_processed not in valid_difficulties:
+                    continue
+
+                try:
+                    correct_answer_index = int(correct_idx)
+                    if not (1 <= correct_answer_index <= 4):
+                        continue
+                except (ValueError, TypeError):
+                    continue
+                
+                question = Question.objects.create(
+                    subject=subject,
+                    text=str(question_text).strip(),
+                    difficulty=difficulty_processed,
+                    created_by=request.user
+                )
+
+                for index, option_text in enumerate(options, start=1):
+                    if option_text:
+                        is_correct = (index == correct_answer_index)
+                        Answer.objects.create(
+                            question=question,
+                            text=str(option_text).strip(),
+                            is_correct=is_correct
+                        )
+                
+                questions_created_count += 1
+
+            messages.success(request, f'Đã import thành công {questions_created_count} câu hỏi.')
+            return redirect('quiz:question_list')
+
+        except Exception as e:
+            messages.error(request, f"Đã có lỗi xảy ra: {e}")
+            return redirect('quiz:import_questions')
+
+    return render(request, 'quiz_taking/import_questions.html')
+        
 
 # ===========================================================================
 # CÁC VIEW CỦA HỌC SINH (GIỮ NGUYÊN)
@@ -176,3 +407,27 @@ def submit_practice(request):
         'total_questions': total_questions, 'score': round(score, 2),
     }
     return render(request, 'practice_mode/practice_result.html', context)
+# quiz/views.py
+
+@login_required
+@student_required
+def join_with_code(request):
+    if request.method == 'POST':
+        code = request.POST.get('access_code', '').strip().upper()
+        if not code:
+            messages.error(request, "Vui lòng nhập mã tham gia.")
+            return redirect('quiz:student_dashboard')
+
+        try:
+            # Tìm đề thi có mã code tương ứng
+            quiz_to_join = Quiz.objects.get(access_code=code)
+            
+            # Thêm học sinh hiện tại vào danh sách allowed_students
+            quiz_to_join.allowed_students.add(request.user)
+            
+            messages.success(request, f"Bạn đã tham gia thành công vào đề thi '{quiz_to_join.title}'.")
+
+        except Quiz.DoesNotExist:
+            messages.error(request, "Mã tham gia không hợp lệ hoặc không tồn tại.")
+
+    return redirect('quiz:student_dashboard')

@@ -1,0 +1,128 @@
+{% extends "base.html" %} {% load tz %} {% block content %}
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Quản lý Đề thi</h1>
+    <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary">
+      Tạo đề thi mới
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-3">Tiêu đề Đề thi</th>
+              <th scope="col">Môn học</th>
+              <th scope="col">Mã tham gia</th>
+              <th scope="col">Trạng thái</th>
+              <th scope="col" class="text-end pe-3">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for quiz in quizzes %}
+            <tr>
+              <td class="ps-3">
+                <a
+                  href="{% url 'quiz:quiz_edit' quiz.pk %}"
+                  class="text-decoration-none fw-bold"
+                  >{{ quiz.title }}</a
+                >
+                <div class="small text-muted">
+                  {{ quiz.questions.count }} câu hỏi | {{ quiz.duration_minutes
+                  }} phút
+                </div>
+              </td>
+              <td>{{ quiz.subject.name }}</td>
+              <td>
+                {% if quiz.access_code %}
+                <span class="badge bg-secondary fs-6 font-monospace"
+                  >{{ quiz.access_code }}</span
+                >
+                {% else %}
+                <span class="text-muted small">N/A</span>
+                {% endif %}
+              </td>
+              <td>
+                {% timezone "Asia/Ho_Chi_Minh" %} {% now "U" as
+                current_timestamp %} {% endtimezone %} {% if
+                quiz.start_time.timestamp > current_timestamp|add:0 %}
+                <span class="badge bg-info">Sắp diễn ra</span>
+                {% elif quiz.end_time.timestamp < current_timestamp|add:0 %}
+                <span class="badge bg-light text-dark border">Đã kết thúc</span>
+                {% else %}
+                <span class="badge bg-success">Đang diễn ra</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-3">
+                <a
+                  href="{% url 'quiz:quiz_edit' quiz.pk %}"
+                  class="btn btn-warning btn-sm"
+                  title="Sửa"
+                  >Sửa</a
+                >
+                <a
+                  href="{% url 'quiz:quiz_results' quiz.pk %}"
+                  class="btn btn-info btn-sm"
+                  title="Xem kết quả"
+                  >Kết quả</a
+                >
+                <a
+                  href="{% url 'quiz:quiz_delete' quiz.pk %}"
+                  class="btn btn-danger btn-sm"
+                  title="Xóa"
+                  >Xóa</a
+                >
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-5">
+                <p class="mb-2 fs-5 text-muted">Chưa có đề thi nào.</p>
+                <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary"
+                  >Tạo đề thi đầu tiên của bạn?</a
+                >
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if quizzes.has_other_pages %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if quizzes.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ quizzes.previous_page_number }}"
+          >&laquo;</a
+        >
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+      {% endif %} {% for i in quizzes.paginator.page_range %} {% if
+      quizzes.number == i %}
+      <li class="page-item active" aria-current="page">
+        <span class="page-link">{{ i }}</span>
+      </li>
+      {% else %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+      </li>
+      {% endif %} {% endfor %} {% if quizzes.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ quizzes.next_page_number }}"
+          >&raquo;</a
+        >
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

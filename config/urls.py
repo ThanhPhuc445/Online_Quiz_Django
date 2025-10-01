@@ -7,7 +7,6 @@ from quiz import views as quiz_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-# THÊM DÒNG NÀY VÀO ĐẦU FILE
 import os
 
 urlpatterns = [
