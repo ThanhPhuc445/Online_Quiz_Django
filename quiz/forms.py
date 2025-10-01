@@ -1,53 +1,19 @@
 # quiz/forms.py
+
 from django import forms
 from django.forms import inlineformset_factory
-
-from users.models import User
 from .models import Question, Answer, Subject, Quiz
 
-class QuizForm(forms.ModelForm):
-    questions = forms.ModelMultipleChoiceField(
-        queryset=Question.objects.none(),  # Ban đầu không có câu hỏi nào
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
-        label="Chọn các câu hỏi cho đề thi"
-    )
-    allowed_students = forms.ModelMultipleChoiceField(
-        queryset=User.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        label="Chọn học sinh được phép làm bài"
-    )
-    class Meta:
-        model = Quiz
-        fields = ['title', 'subject', 'duration_minutes', 'start_time', 'end_time', 'questions']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'subject': forms.Select(attrs={'class': 'form-select'}),
-            'duration_minutes': forms.NumberInput(attrs={'class': 'form-control'}),
-            'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
-            'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
-        }
-        labels = {
-            'title': 'Tiêu đề bài kiểm tra',
-            'subject': 'Môn học',
-            'duration_minutes': 'Thời lượng (phút)',
-            'start_time': 'Thời gian bắt đầu',
-            'end_time': 'Thời gian kết thúc',
-        }
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super(QuizForm, self).__init__(*args, **kwargs)
-        if user:
-            self.fields['questions'].queryset = Question.objects.filter(created_by=user)
-        self.fields['allowed_students'].queryset = User.objects.filter(is_staff=False)
+# ===========================================================================
+# FORMSET CHO CÂU HỎI VÀ ĐÁP ÁN (Question & Answer)
+# ===========================================================================
+
 class QuestionForm(forms.ModelForm):
     subject = forms.ModelChoiceField(
         queryset=Subject.objects.all(),
         widget=forms.Select(attrs={'class': 'form-select'}),
         label="Môn học"
     )
-
     class Meta:
         model = Question
         fields = ['subject', 'text', 'difficulty']
@@ -64,22 +30,80 @@ class AnswerForm(forms.ModelForm):
     class Meta:
         model = Answer
         fields = ['text', 'is_correct']
+        widgets = {
+            'text': forms.TextInput(attrs={'class': 'form-control'}),
+            'is_correct': forms.CheckboxInput(attrs={'class': 'form-check-input ms-2'}),
+        }
         labels = {
             'text': 'Nội dung đáp án',
             'is_correct': 'Là đáp án đúng?',
         }
-        widgets = {
-            'text': forms.TextInput(attrs={'class': 'form-control'}),
-            'is_correct': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
 
-# Formset để quản lý nhiều Answer cùng lúc cho một Question
 AnswerFormSet = inlineformset_factory(
-    Question,  # Model cha
-    Answer,    # Model con
-    form=AnswerForm,
-    extra=4,   # Hiển thị 4 form trống
-    max_num=4, # Tối đa 4 đáp án
+    Question, 
+    Answer, 
+    form=AnswerForm, 
+    extra=4, 
+    max_num=4, 
     can_delete=False,
-    validate_min=True, # Bắt buộc phải có ít nhất 1 đáp án
+    validate_min=True,
+    min_num=1
 )
+
+
+# ===========================================================================
+# FORM CHO ĐỀ THI (QUIZ) - ĐÃ ĐƯỢC THIẾT KẾ LẠI
+# ===========================================================================
+
+class QuizForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        # Lấy 'user' được truyền từ view
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            # Lọc danh sách câu hỏi để giáo viên chỉ thấy câu hỏi của mình
+            self.fields['questions'].queryset = Question.objects.filter(created_by=user)
+
+    # Lựa chọn chế độ Công khai / Riêng tư
+    PRIVACY_CHOICES = [
+        ('True', 'Công khai (Tất cả học sinh đều có thể thấy và tham gia)'),
+        ('False', 'Riêng tư (Học sinh cần nhập mã code để được tham gia)'),
+    ]
+    is_public = forms.ChoiceField(
+        choices=PRIVACY_CHOICES,
+        widget=forms.RadioSelect,
+        label="Chế độ hiển thị",
+        initial='True', # Mặc định là 'Công khai'
+        help_text="Chọn chế độ hiển thị cho đề thi của bạn."
+    )
+
+    # Các trường hiển thị thời gian với widget phù hợp
+    start_time = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        label="Thời gian bắt đầu"
+    )
+    end_time = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        label="Thời gian kết thúc"
+    )
+
+    class Meta:
+        model = Quiz
+        # Xóa 'allowed_students', thêm 'is_public'
+        fields = ['title', 'subject', 'duration_minutes', 'start_time', 'end_time', 'is_public', 'questions']
+        labels = {
+            'title': 'Tiêu đề đề thi',
+            'subject': 'Môn học',
+            'duration_minutes': 'Thời gian làm bài (phút)',
+            'questions': 'Chọn câu hỏi từ ngân hàng'
+        }
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'subject': forms.Select(attrs={'class': 'form-select'}),
+            'duration_minutes': forms.NumberInput(attrs={'class': 'form-control'}),
+            'questions': forms.CheckboxSelectMultiple, # Hiển thị câu hỏi dưới dạng checkbox
+        }
+        
+    def clean_is_public(self):
+        # Chuyển đổi giá trị chuỗi ('True'/'False') từ radio button thành boolean
+        return self.cleaned_data['is_public'] == 'True'

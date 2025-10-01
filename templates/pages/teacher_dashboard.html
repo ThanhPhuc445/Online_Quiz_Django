@@ -1,60 +1,84 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% load static %}
+
+{% block title %}Dashboard - Giáo viên{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="card-title">{{ total_questions }}</h3>
-                    <p class="card-text">Tổng số câu hỏi</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="card-title">{{ total_quizzes }}</h3>
-                    <p class="card-text">Đề thi đã tạo</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <!-- Giả sử bạn đã truyền biến total_attempts -->
-                    <h3 class="card-title">0</h3> 
-                    <p class="card-text">Lượt thi hoàn thành</p>
-                </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title"><i class="bi bi-person-workspace me-2"></i>Dashboard Giáo viên</h1>
+    <span class="text-muted">Chào, {{ user.username }}!</span>
+</div>
+
+<!-- Hàng thống kê -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-patch-question-fill display-4 mb-2" style="color: var(--primary-color);"></i>
+                <h2 class="card-title display-5 fw-bold">{{ total_questions }}</h2>
+                <p class="card-text text-muted">Câu hỏi trong ngân hàng</p>
             </div>
         </div>
     </div>
-<div class="mb-4">
-        <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary btn-lg me-2">Tạo đề thi mới</a>
-        <a href="{% url 'quiz:question_list' %}" class="btn btn-secondary btn-lg">Ngân hàng câu hỏi</a>
-        <a href="{% url 'quiz:import_questions' %}" class="btn btn-success btn-lg ms-2">Import câu hỏi (Excel)</a>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-file-earmark-text-fill display-4 mb-2 text-primary"></i>
+                <h2 class="card-title display-5 fw-bold">{{ total_quizzes }}</h2>
+                <p class="card-text text-muted">Đề thi đã tạo</p>
+            </div>
+        </div>
     </div>
-
-
-    <!-- Khu vực truy cập nhanh (Quick Access) -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>Đề thi gần đây</h4>
-            <!-- NÚT XEM TẤT CẢ -->
-            <a href="{% url 'quiz:quiz_list' %}" class="btn btn-outline-primary">Xem tất cả đề thi</a>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-people-fill display-4 mb-2 text-success"></i>
+                <h2 class="card-title display-5 fw-bold">{{ total_attempts }}</h2>
+                <p class="card-text text-muted">Tổng lượt thi</p>
+            </div>
         </div>
-        <div class="list-group list-group-flush">
-            {% for quiz in recent_quizzes %}
-                <!-- SỬA LẠI TÊN URL CHI TIẾT/SỬA ĐỀ THI -->
-                <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                    {{ quiz.title }}
-                    <small class="text-muted">{{ quiz.start_time|date:"d/m/Y" }}</small>
-                </a>
-            {% empty %}
-                <div class="list-group-item">
-                    <p class="mb-0">Bạn chưa tạo đề thi nào.</p>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-bar-chart-fill display-4 mb-2 text-info"></i>
+                <!-- ĐÃ THAY THẾ DỮ LIỆU GIẢ BẰNG BIẾN TỪ VIEW -->
+                <h2 class="card-title display-5 fw-bold">{{ average_correct_rate }}%</h2>
+                <p class="card-text text-muted">Tỉ lệ đúng trung bình</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hàng nút hành động chính -->
+<div class="mb-4 p-4 bg-light rounded-3">
+    <h4 class="mb-3">Tác vụ nhanh</h4>
+    <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary btn-lg me-2"><i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới</a>
+    <a href="{% url 'quiz:question_list' %}" class="btn btn-secondary btn-lg me-2"><i class="bi bi-bank me-2"></i>Ngân hàng câu hỏi</a>
+    <a href="{% url 'quiz:question_import' %}" class="btn btn-success btn-lg"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i>Import từ Excel</a>
+</div>
+
+<!-- Bảng đề thi gần đây -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4><i class="bi bi-clock-history me-2"></i>Đề thi gần đây</h4>
+        <a href="{% url 'quiz:quiz_list' %}" class="btn btn-outline-primary btn-sm">Xem tất cả đề thi</a>
+    </div>
+    <div class="list-group list-group-flush">
+        {% for quiz in recent_quizzes %}
+            <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="fw-bold">{{ quiz.title }}</span>
+                    <br>
+                    <small class="text-muted">Môn: {{ quiz.subject.name }}</small>
                 </div>
-            {% endfor %}
-        </div>
+                <small class="text-muted">{{ quiz.created_at|date:"d/m/Y" }}</small>
+            </a>
+        {% empty %}
+            <div class="list-group-item p-4 text-center">
+                <p class="mb-0 text-muted">Bạn chưa tạo đề thi nào.</p>
+            </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

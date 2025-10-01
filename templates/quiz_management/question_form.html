@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}
+    {% if is_edit %}Chỉnh sửa câu hỏi{% else %}Thêm câu hỏi mới{% endif %}
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+    {% if is_edit %}
+        <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa câu hỏi
+    {% else %}
+        <i class="bi bi-plus-circle-fill me-2"></i>Thêm câu hỏi mới
+    {% endif %}
+</h1>
+
+<!-- Vùng hiển thị các lỗi không thuộc về trường cụ thể nào của form chính -->
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+{% endif %}
+
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <!-- Card chứa thông tin câu hỏi -->
+    <div class="card mb-4">
+        <div class="card-header">Thông tin chung</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="{{ form.subject.id_for_label }}" class="form-label fw-bold">{{ form.subject.label }}</label>
+                {{ form.subject }}
+                {% if form.subject.errors %}<div class="text-danger small mt-1">{{ form.subject.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.text.id_for_label }}" class="form-label fw-bold">{{ form.text.label }}</label>
+                {{ form.text }}
+                {% if form.text.errors %}<div class="text-danger small mt-1">{{ form.text.errors|striptags }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.difficulty.id_for_label }}" class="form-label fw-bold">{{ form.difficulty.label }}</label>
+                {{ form.difficulty }}
+                {% if form.difficulty.errors %}<div class="text-danger small mt-1">{{ form.difficulty.errors|striptags }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Card chứa các form đáp án (formset) -->
+    <div class="card">
+        <div class="card-header">Các đáp án <small class="text-muted">(Cần chọn chính xác 1 đáp án đúng)</small></div>
+        <div class="card-body">
+            <!-- Dòng này render ra các thẻ input hidden quản lý của formset (ví dụ: tổng số form) -->
+            {{ formset.management_form }}
+            
+            <!-- Vùng hiển thị các lỗi chung của formset -->
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+            {% endif %}
+
+            {% for answer_form in formset %}
+                <!-- === DÒNG SỬA LỖI QUAN TRỌNG NHẤT === -->
+                <!-- Render thẻ input hidden chứa ID của mỗi đáp án, cần thiết cho việc cập nhật -->
+                {{ answer_form.id }}
+                
+                <div class="input-group has-validation mb-3">
+                    {{ answer_form.text }}
+                    <div class="input-group-text">
+                        {{ answer_form.is_correct }}
+                        <label for="{{ answer_form.is_correct.id_for_label }}" class="form-check-label ms-2">Đúng</label>
+                    </div>
+                </div>
+
+                <!-- Hiển thị lỗi của từng form đáp án (nếu có) -->
+                {% if answer_form.errors %}
+                    <div class="alert alert-warning p-2 small" role="alert">
+                        {{ answer_form.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Nút bấm hành động -->
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-save me-2"></i>Lưu lại</button>
+        <a href="{% url 'quiz:question_list' %}" class="btn btn-secondary btn-lg">Hủy bỏ</a>
+    </div>
+</form>
+{% endblock %}

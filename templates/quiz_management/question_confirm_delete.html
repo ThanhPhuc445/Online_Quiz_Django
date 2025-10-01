@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Xác nhận xóa đề thi{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card text-center border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Hành động nguy hiểm</h4>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Bạn có chắc chắn muốn xóa đề thi này?</h5>
+                <p class="text-muted">Toàn bộ kết quả thi của học sinh liên quan đến đề thi này cũng sẽ bị xóa vĩnh viễn.</p>
+                <div class="alert alert-secondary">
+                    <strong>"{{ quiz.title }}"</strong>
+                </div>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill me-2"></i>Vâng, Tôi chắc chắn, Xóa!</button>
+                    <a href="{% url 'quiz:quiz_list' %}" class="btn btn-secondary">Không, quay lại</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

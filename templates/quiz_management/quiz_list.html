@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Quản lý Đề thi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title"><i class="bi bi-file-earmark-text me-2"></i>Quản lý Đề thi</h1>
+    <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Tiêu đề</th>
+                        <th>Môn học</th>
+                        <th>Mã tham gia</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quiz in quizzes %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="text-decoration-none fw-bold">{{ quiz.title }}</a>
+                            <div class="small text-muted">{{ quiz.questions.count }} câu hỏi | {{ quiz.duration_minutes }} phút</div>
+                        </td>
+                        <td>{{ quiz.subject.name }}</td>
+                        <td>
+                            {% if quiz.access_code %}
+                                <span class="badge bg-dark font-monospace">{{ quiz.access_code }}</span>
+                            {% else %}
+                                <span class="text-muted small">--</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- === LOGIC ĐÃ ĐƯỢC SỬA LẠI CHO ĐÚNG === -->
+                            {% if quiz.start_time > now %}
+                                <span class="badge bg-info">Sắp diễn ra</span>
+                            {% elif quiz.end_time < now %}
+                                <span class="badge bg-secondary">Đã kết thúc</span>
+                            {% else %}
+                                <span class="badge bg-success">Đang diễn ra</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'quiz:quiz_results' quiz.pk %}" class="btn btn-sm btn-outline-success" title="Xem Kết quả"><i class="bi bi-bar-chart-line"></i></a>
+                            <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
+                            <a href="{% url 'quiz:quiz_delete' quiz.pk %}" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center p-5">
+                            <h4 class="text-muted">Bạn chưa tạo đề thi nào.</h4>
+                            <p><a href="{% url 'quiz:quiz_create' %}">Hãy tạo đề thi đầu tiên!</a></p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

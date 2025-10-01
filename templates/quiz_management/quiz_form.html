@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if is_edit %}Chỉnh sửa đề thi{% else %}Tạo đề thi mới{% endif %}
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">
+    {% if is_edit %}
+        <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa: {{ quiz.title }}
+    {% else %}
+        <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
+    {% endif %}
+</h1>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="row gx-4">
+        
+        <!-- ======================= CỘT TRÁI (THÔNG TIN CHÍNH) ======================= -->
+        <div class="col-lg-8">
+            
+            <!-- Card Thông tin cơ bản -->
+            <div class="card mb-4">
+                <div class="card-header">Thông tin cơ bản</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label fw-bold">{{ form.subject.label }}</label>
+                        {{ form.subject }}
+                         {% if form.subject.errors %}<div class="text-danger small mt-1">{{ form.subject.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.duration_minutes.id_for_label }}" class="form-label fw-bold">{{ form.duration_minutes.label }}</label>
+                            {{ form.duration_minutes }}
+                             {% if form.duration_minutes.errors %}<div class="text-danger small mt-1">{{ form.duration_minutes.errors|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.start_time.id_for_label }}" class="form-label fw-bold">{{ form.start_time.label }}</label>
+                            {{ form.start_time }}
+                             {% if form.start_time.errors %}<div class="text-danger small mt-1">{{ form.start_time.errors|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.end_time.id_for_label }}" class="form-label fw-bold">{{ form.end_time.label }}</label>
+                            {{ form.end_time }}
+                             {% if form.end_time.errors %}<div class="text-danger small mt-1">{{ form.end_time.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Chọn câu hỏi -->
+            <div class="card">
+                <div class="card-header">{{ form.questions.label }} <small class="text-muted">(Chọn từ ngân hàng câu hỏi của bạn)</small></div>
+                <div class="card-body p-4 border rounded" style="max-height: 500px; overflow-y: auto;">
+                    {{ form.questions }}
+                    {% if form.questions.errors %}
+                        <div class="text-danger small mt-2">{{ form.questions.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= CỘT PHẢI (TÙY CHỌN PHỤ) ======================= -->
+        <div class="col-lg-4">
+            <!-- Card Chế độ hiển thị -->
+            <div class="card">
+                 <div class="card-header">{{ form.is_public.label }}</div>
+                 <div class="card-body">
+                    {% for radio in form.is_public %}
+                        <div class="form-check">
+                            {{ radio.tag }}
+                            <label for="{{ radio.id_for_label }}" class="form-check-label">
+                                {{ radio.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                 </div>
+            </div>
+            
+            <!-- Hiển thị Mã tham gia (chỉ khi là đề riêng tư và đã được lưu) -->
+            {% if form.instance.pk and form.instance.is_public == False %}
+            <div class="card mt-4">
+                <div class="card-header">Mã tham gia</div>
+                <div class="card-body text-center">
+                    <p>Chia sẻ mã này cho học sinh để tham gia kỳ thi:</p>
+                    <h3 class="font-monospace p-2 bg-light border rounded">{{ form.instance.access_code }}</h3>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Nút bấm hành động -->
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-save me-2"></i>
+            {% if is_edit %}Cập nhật đề thi{% else %}Lưu đề thi{% endif %}
+        </button>
+        <a href="{% url 'quiz:quiz_list' %}" class="btn btn-secondary btn-lg">Hủy bỏ</a>
+    </div>
+</form>
+{% endblock %}

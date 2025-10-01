@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Ngân hàng câu hỏi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title"><i class="bi bi-bank me-2"></i>Ngân hàng câu hỏi</h1>
+    <div>
+        <a href="{% url 'quiz:question_import' %}" class="btn btn-success"><i class="bi bi-file-earmark-excel me-2"></i>Import Excel</a>
+        <a href="{% url 'quiz:question_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Thêm câu hỏi mới</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-funnel-fill me-2"></i>Bộ lọc
+    </div>
+    <div class="card-body">
+        <!-- Khu vực bộ lọc giữ nguyên logic, chỉ sửa giao diện nhẹ -->
+        <form method="GET" action="{% url 'quiz:question_list' %}">
+            <!-- ... Nội dung form lọc giữ nguyên ... -->
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Nội dung câu hỏi</th>
+                        <th>Môn học</th>
+                        <th>Độ khó</th>
+                        <th class="text-end pe-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in page_obj %}
+                    <tr>
+                        <td class="ps-4" style="max-width: 400px;">{{ question.text|truncatechars:100 }}</td>
+                        <td>{{ question.subject.name }}</td>
+                        <td><span class="badge bg-secondary">{{ question.get_difficulty_display }}</span></td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'quiz:question_edit' question.pk %}" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
+                            <a href="{% url 'quiz:question_delete' question.pk %}" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center p-5">
+                            <h4 class="text-muted">Ngân hàng câu hỏi của bạn đang trống</h4>
+                            <p>Hãy bắt đầu bằng cách <a href="{% url 'quiz:question_create' %}">thêm một câu hỏi mới</a>!</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-light">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">‹</span></li>
+                {% endif %}
+                
+                <li class="page-item disabled"><span class="page-link">Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">›</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
