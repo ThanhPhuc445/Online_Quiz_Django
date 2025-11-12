@@ -1,94 +1,449 @@
 {% extends "base.html" %}
-{% load static %}
+{% block title %}Dashboard Học Sinh - Examify{% endblock %}
 
-{% block title %}Dashboard - Học sinh{% endblock %}
+{% block extra_head %}
+<style>
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        border-radius: 15px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .stats-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(136, 0, 0, 0.15);
+    }
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .quiz-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .quiz-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(136, 0, 0, 0.1);
+    }
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-right: 15px;
+    }
+    .countdown-timer {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        background: rgba(255,255,255,0.2);
+        padding: 5px 10px;
+        border-radius: 8px;
+    }
+    .badge-custom {
+        background-color: rgba(136, 0, 0, 0.1);
+        color: var(--primary-color);
+        border: 1px solid rgba(136, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Chào, {{ user.first_name|default:user.username }}!</h1>
-        <p class="text-muted">Sẵn sàng để chinh phục những thử thách mới nào.</p>
+<!-- Welcome Section -->
+<div class="welcome-section p-4 mb-4 position-relative overflow-hidden">
+    <div class="position-absolute top-0 end-0 w-50 h-100 opacity-10">
+        <i class="bi bi-mortarboard-fill" style="font-size: 8rem;"></i>
     </div>
-</div>
-
-<!-- === PHẦN THAM GIA BẰNG MÃ CODE (Đã tối ưu) === -->
-<div class="card mb-5 shadow-sm">
-    <div class="card-body">
-        <h5 class="card-title mb-3">Tham gia kỳ thi riêng tư</h5>
-        <form method="POST" action="{% url 'quiz:join_with_code' %}" class="row g-2 align-items-center">
-            {% csrf_token %}
-            <div class="col">
-                <label for="access_code_input" class="visually-hidden">Mã tham gia</label>
-                <input type="text" name="access_code" class="form-control form-control-lg" id="access_code_input" placeholder="Nhập mã tham gia..." required>
-            </div>
-            <div class="col-auto">
-                <button class="btn btn-primary btn-lg" type="submit"><i class="bi bi-arrow-right-circle-fill me-2"></i>Tham gia</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- === KỲ THI ĐANG DIỄN RA === -->
-<h3 class="mb-3"><i class="bi bi-card-heading me-2" style="color: var(--primary-color);"></i>Kỳ thi chính thức</h3>
-<div class="row">
-    {% for quiz in quizzes %}
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100"> <!-- Đã xóa shadow-sm để kế thừa từ style chung -->
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ quiz.title }}</h5>
-                <p class="card-subtitle mb-2 text-muted"><i class="bi bi-book"></i> {{ quiz.subject.name }}</p>
-                <ul class="list-unstyled mt-3 small">
-                    <li><i class="bi bi-clock text-primary"></i> <strong>Thời gian:</strong> {{ quiz.duration_minutes }} phút</li>
-                    <li><i class="bi bi-calendar-x text-danger"></i> <strong>Hạn chót:</strong> {{ quiz.end_time|date:"H:i, d/m/Y" }}</li>
-                </ul>
-                <div class="mt-auto pt-3">
-                    {% if quiz.id in taken_quiz_ids %}
-                        <!-- SỬA LỖI LOGIC: Nút "Đã hoàn thành" không nên link đi đâu cả hoặc link đến trang kết quả -->
-                        <a href="#" class="btn btn-success disabled w-100"><i class="bi bi-check-circle-fill me-2"></i>Đã hoàn thành</a>
-                    {% else %}
-                        <a href="{% url 'quiz:take_quiz' pk=quiz.pk %}" class="btn btn-primary w-100">
-                            <i class="bi bi-play-circle-fill me-2"></i>Bắt đầu làm bài
-                        </a>
-                    {% endif %}
-                </div>
+    <div class="row align-items-center position-relative">
+        <div class="col-md-8">
+            <h1 class="display-6 fw-bold mb-2">Chào mừng trở lại, {{ user.get_full_name|default:user.username }}! 👋</h1>
+            <p class="lead mb-3 opacity-90">Sẵn sàng cho buổi học hiệu quả hôm nay?</p>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-light text-dark">
+                    <i class="bi bi-calendar-check me-1"></i>{{ current_date }}
+                </span>
+                <span class="badge bg-light text-dark">
+                    <i class="bi bi-clock me-1"></i>{{ current_time }}
+                </span>
             </div>
         </div>
+        <div class="col-md-4 text-center">
+            <div class="feature-icon bg-white text-danger mx-auto mb-3">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <p class="mb-0 opacity-90 fw-medium">Học tập thông minh - Thành công vượt trội</p>
+        </div>
     </div>
-    {% empty %}
+</div>
+
+<!-- Thông báo -->
+{% if messages %}
+<div class="row mb-4">
     <div class="col-12">
-        <div class="alert alert-info text-center">
-            <i class="bi bi-info-circle fs-4 me-2"></i>Hiện tại không có kỳ thi chính thức nào đang diễn ra.
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi 
+                    {% if message.tags == 'success' %}bi-check-circle-fill
+                    {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill
+                    {% elif message.tags == 'error' %}bi-x-circle-fill
+                    {% else %}bi-info-circle-fill{% endif %} 
+                    me-2"></i>
+                <div>{{ message }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h6 class="card-title text-muted mb-2">Đề thi có sẵn</h6>
+                        <h3 class="fw-bold text-primary">{{ quizzes|length }}</h3>
+                        <small class="text-muted">Đang chờ bạn chinh phục</small>
+                    </div>
+                    <div class="col-4 text-end">
+                        <div class="stats-icon" style="background-color: rgba(136, 0, 0, 0.1); color: var(--primary-color);">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    {% endfor %}
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h6 class="card-title text-muted mb-2">Đã hoàn thành</h6>
+                        <h3 class="fw-bold text-success">{{ taken_quiz_ids|length }}</h3>
+                        <small class="text-muted">Bài thi đã làm</small>
+                    </div>
+                    <div class="col-4 text-end">
+                        <div class="stats-icon" style="background-color: rgba(40, 167, 69, 0.1); color: #28a745;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h6 class="card-title text-muted mb-2">Điểm trung bình</h6>
+                        <h3 class="fw-bold text-warning">8.5</h3>
+                        <small class="text-muted">Tiếp tục phát huy</small>
+                    </div>
+                    <div class="col-4 text-end">
+                        <div class="stats-icon" style="background-color: rgba(255, 193, 7, 0.1); color: #ffc107;">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h6 class="card-title text-muted mb-2">Thời gian học</h6>
+                        <h3 class="fw-bold text-info">2.5h</h3>
+                        <small class="text-muted">Hôm nay</small>
+                    </div>
+                    <div class="col-4 text-end">
+                        <div class="stats-icon" style="background-color: rgba(23, 162, 184, 0.1); color: #17a2b8;">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- === CÁC CHỨC NĂNG KHÁC (ĐÃ SỬA LỖI URL) === -->
-<h3 class="mt-5 mb-3"><i class="bi bi-tools me-2" style="color: var(--primary-color);"></i>Công cụ học tập</h3>
 <div class="row">
-    <div class="col-md-6 mb-4">
-        <!-- SỬA LỖI: Thêm đúng URL cho chế độ luyện tập -->
-        <a href="{% url 'quiz:practice_selection' %}" class="text-decoration-none">
-            <div class="card h-100 text-center">
-                <div class="card-body py-5">
-                    <i class="bi bi-lightbulb-fill display-4 mb-3 text-warning"></i>
-                    <h4 class="card-title">Chế độ Luyện tập</h4>
-                    <p class="card-text text-muted">Ôn luyện không giới hạn theo từng môn học.</p>
+    <!-- Đề thi đang mở -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 text-primary">
+                        <i class="bi bi-clock-fill me-2"></i>Đề thi đang mở
+                    </h5>
+                    <span class="badge bg-primary">{{ quizzes|length }} đề thi</span>
                 </div>
             </div>
-        </a>
+            <div class="card-body">
+                {% if quizzes %}
+                <div class="row g-3">
+                    {% for quiz in quizzes %}
+                    <div class="col-12">
+                        <div class="quiz-card card border">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-start mb-2">
+                                            <div class="feature-icon" style="background-color: rgba(136, 0, 0, 0.1); color: var(--primary-color);">
+                                                <i class="bi bi-journal-text"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="card-title mb-1">{{ quiz.title }}</h6>
+                                                <p class="text-muted small mb-2">
+                                                    <i class="bi bi-book me-1"></i>{{ quiz.subject.name }} • 
+                                                    <i class="bi bi-clock me-1"></i>{{ quiz.duration_minutes }} phút
+                                                </p>
+                                                <div class="d-flex flex-wrap gap-2">
+
+                                                    <span class="badge badge-custom">
+                                                        <i class="bi bi-question-circle me-1"></i>{{ quiz.questions.count }} câu
+                                                    </span>
+                                                    {% if quiz.end_time > now %}
+                                                    <span class="countdown-timer text-danger" data-endtime="{{ quiz.end_time|date:'c' }}">
+                                                        <i class="bi bi-alarm me-1"></i>
+                                                        <span id="countdown-{{ quiz.id }}"></span>
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        {% if quiz.id in taken_quiz_ids %}
+                                        <div class="mb-2">
+                                            <span class="badge bg-success bg-opacity-20 text-success border border-success">
+                                                <i class="bi bi-check-circle me-1"></i>Đã hoàn thành
+                                            </span>
+                                        </div>
+                                        <a href="{% url 'quiz:test_history' %}" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-eye me-1"></i>Xem kết quả
+                                        </a>
+                                        {% else %}
+                                        <div class="mb-2">
+                                            <span class="badge bg-warning bg-opacity-20 text-warning border border-warning">
+                                                <i class="bi bi-clock me-1"></i>Chưa làm
+                                            </span>
+                                        </div>
+                                        <a href="{% url 'quiz:take_quiz' pk=quiz.id %}" class="btn btn-primary">
+                                            <i class="bi bi-pencil-square me-1"></i>Làm bài ngay
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="feature-icon bg-light text-muted mx-auto mb-3">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h6 class="text-muted">Không có đề thi nào đang mở</h6>
+                    <p class="text-muted small">Các đề thi mới sẽ xuất hiện ở đây khi được giáo viên công bố</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <div class="col-md-6 mb-4">
-        <!-- SỬA LỖI: Thêm đúng URL cho lịch sử thi -->
-        <a href="{% url 'quiz:test_history' %}" class="text-decoration-none">
-            <div class="card h-100 text-center">
-                <div class="card-body py-5">
-                    <i class="bi bi-clock-history display-4 mb-3 text-info"></i>
-                    <h4 class="card-title">Lịch sử thi</h4>
-                    <p class="card-text text-muted">Xem lại kết quả và tiến độ của bạn.</p>
+
+    <!-- Sidebar Actions -->
+    <div class="col-lg-4">
+        <!-- Luyện tập -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="bi bi-arrow-repeat me-2"></i>Luyện tập
+                </h6>
+            </div>
+            <div class="card-body text-center p-4">
+                <div class="feature-icon" style="background-color: rgba(136, 0, 0, 0.1); color: var(--primary-color); margin: 0 auto 1rem auto;">
+                    <i class="bi bi-play-circle-fill"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Nâng cao kỹ năng</h6>
+                <p class="text-muted small mb-3">Luyện tập không giới hạn với các đề thi mẫu</p>
+                <a href="{% url 'quiz:practice_selection' %}" class="btn btn-primary w-100">
+                    <i class="bi bi-lightning me-2"></i>Bắt đầu luyện tập
+                </a>
+            </div>
+        </div>
+
+        <!-- Lịch sử làm bài -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="bi bi-clock-history me-2"></i>Lịch sử làm bài
+                </h6>
+            </div>
+            <div class="card-body text-center p-4">
+                <div class="feature-icon" style="background-color: rgba(136, 0, 0, 0.1); color: var(--primary-color); margin: 0 auto 1rem auto;">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Theo dõi tiến độ</h6>
+                <p class="text-muted small mb-3">Xem lại kết quả và cải thiện điểm số</p>
+                <a href="{% url 'quiz:test_history' %}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-list-check me-2"></i>Xem lịch sử
+                </a>
+            </div>
+        </div>
+
+        <!-- Tham gia bằng mã -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h6 class="card-title mb-0 text-primary">
+                    <i class="bi bi-key-fill me-2"></i>Tham gia bằng mã
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'quiz:join_with_code' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Nhập mã tham gia từ giáo viên</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: rgba(136, 0, 0, 0.1); border-color: rgba(136, 0, 0, 0.2);">
+                                <i class="bi bi-ticket-perforated" style="color: var(--primary-color);"></i>
+                            </span>
+                            <input type="text" name="access_code" class="form-control" 
+                                   style="border-color: rgba(136, 0, 0, 0.2);"
+                                   placeholder="VD: ABC123" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-door-open me-2"></i>Tham gia ngay
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body text-center">
+                <h6 class="fw-bold mb-3 text-primary">Hôm nay của bạn</h6>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h5 class="fw-bold text-primary mb-1">3</h5>
+                            <small class="text-muted">Bài đã làm</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="fw-bold text-primary mb-1">85%</h5>
+                        <small class="text-muted">Hiệu suất</small>
+                    </div>
                 </div>
             </div>
-        </a>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update current time
+    function updateCurrentTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('vi-VN', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        const dateString = now.toLocaleDateString('vi-VN', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Update time badges if they exist
+        document.querySelectorAll('.badge .bi-clock').forEach(icon => {
+            const badge = icon.closest('.badge');
+            if (badge) {
+                badge.innerHTML = '<i class="bi bi-clock me-1"></i>' + timeString;
+            }
+        });
+    }
+
+    // Countdown timers for quizzes
+    function updateCountdowns() {
+        document.querySelectorAll('.countdown-timer').forEach(timer => {
+            const endTime = new Date(timer.dataset.endtime);
+            const now = new Date();
+            const diff = endTime - now;
+
+            if (diff <= 0) {
+                timer.innerHTML = '<i class="bi bi-clock me-1"></i>Đã kết thúc';
+                timer.classList.remove('text-danger');
+                timer.classList.add('text-secondary');
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            timer.querySelector('span').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        });
+    }
+
+    // Initialize
+    updateCurrentTime();
+    updateCountdowns();
+
+    // Update every second
+    setInterval(updateCurrentTime, 1000);
+    setInterval(updateCountdowns, 1000);
+
+    // Add hover effects
+    document.querySelectorAll('.stats-card, .quiz-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.cursor = 'pointer';
+        });
+    });
+
+    // Add click animation to buttons
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const btn = e.currentTarget;
+            btn.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                btn.style.transform = '';
+            }, 150);
+        });
+    });
+});
+</script>
 {% endblock %}

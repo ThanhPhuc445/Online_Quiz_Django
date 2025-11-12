@@ -59,7 +59,40 @@
             <div class="card">
                 <div class="card-header">{{ form.questions.label }} <small class="text-muted">(Chọn từ ngân hàng câu hỏi của bạn)</small></div>
                 <div class="card-body p-4 border rounded" style="max-height: 500px; overflow-y: auto;">
-                    {{ form.questions }}
+                    {% if form.questions.field.queryset.exists %}
+                        <div class="question-selection-list">
+                            {% for checkbox in form.questions %}
+                                <div class="form-check mb-3 p-3 border rounded">
+                                    {{ checkbox.tag }}
+                                    <label for="{{ checkbox.id_for_label }}" class="form-check-label w-100">
+                                        <div class="fw-bold question-text">{{ checkbox.choice_label|safe }}</div>
+                                        <div class="small text-muted mt-1">
+                                            {% with question=checkbox.data.instance %}
+                                                <span class="badge bg-secondary me-1">{{ question.get_question_type_display }}</span>
+                                                {% if question.difficulty == 'EASY' %}
+                                                    <span class="badge bg-success">Dễ</span>
+                                                {% elif question.difficulty == 'MEDIUM' %}
+                                                    <span class="badge bg-warning text-dark">Trung bình</span>
+                                                {% elif question.difficulty == 'HARD' %}
+                                                    <span class="badge bg-danger">Khó</span>
+                                                {% endif %}
+                                                <span class="ms-2 text-muted">Môn: {{ question.subject.name }}</span>
+                                            {% endwith %}
+                                        </div>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center p-4 text-muted">
+                            <i class="bi bi-inbox display-4 d-block mb-3"></i>
+                            <h5>Ngân hàng câu hỏi trống</h5>
+                            <p>Bạn cần tạo câu hỏi trước khi có thể chọn cho đề thi.</p>
+                            <a href="{% url 'quiz:question_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Tạo câu hỏi mới
+                            </a>
+                        </div>
+                    {% endif %}
                     {% if form.questions.errors %}
                         <div class="text-danger small mt-2">{{ form.questions.errors|striptags }}</div>
                     {% endif %}
@@ -70,11 +103,11 @@
         <!-- ======================= CỘT PHẢI (TÙY CHỌN PHỤ) ======================= -->
         <div class="col-lg-4">
             <!-- Card Chế độ hiển thị -->
-            <div class="card">
-                 <div class="card-header">{{ form.is_public.label }}</div>
+            <div class="card mb-4">
+                 <div class="card-header">Chế độ hiển thị</div>
                  <div class="card-body">
                     {% for radio in form.is_public %}
-                        <div class="form-check">
+                        <div class="form-check mb-2">
                             {{ radio.tag }}
                             <label for="{{ radio.id_for_label }}" class="form-check-label">
                                 {{ radio.choice_label }}
@@ -83,14 +116,60 @@
                     {% endfor %}
                  </div>
             </div>
-            
+
+            <!-- Card Cài đặt thi - PHẦN QUAN TRỌNG ĐÃ ĐƯỢC SỬA -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-gear me-2"></i>Cài đặt thi
+                </div>
+                <div class="card-body">
+                    <!-- Cho phép thi nhiều lần -->
+                    <div class="form-check form-switch mb-3">
+                        {{ form.allow_multiple_attempts }}
+                        <label for="{{ form.allow_multiple_attempts.id_for_label }}" class="form-check-label fw-bold">
+                            {{ form.allow_multiple_attempts.label }}
+                        </label>
+                    </div>
+                    <div class="alert alert-info p-2 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Thi một lần:</strong> Học sinh chỉ được làm bài 1 lần duy nhất<br>
+                        <strong>Thi nhiều lần:</strong> Học sinh có thể luyện tập nhiều lần
+                    </div>
+
+                    <!-- Thêm các cài đặt khác nếu có -->
+                    {% if form.shuffle_questions %}
+                    <div class="form-check form-switch mb-3">
+                        {{ form.shuffle_questions }}
+                        <label for="{{ form.shuffle_questions.id_for_label }}" class="form-check-label">
+                            {{ form.shuffle_questions.label }}
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    {% if form.show_results_immediately %}
+                    <div class="form-check form-switch mb-3">
+                        {{ form.show_results_immediately }}
+                        <label for="{{ form.show_results_immediately.id_for_label }}" class="form-check-label">
+                            {{ form.show_results_immediately.label }}
+                        </label>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Hiển thị Mã tham gia (chỉ khi là đề riêng tư và đã được lưu) -->
             {% if form.instance.pk and form.instance.is_public == False %}
-            <div class="card mt-4">
-                <div class="card-header">Mã tham gia</div>
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-key me-2"></i>Mã tham gia
+                </div>
                 <div class="card-body text-center">
-                    <p>Chia sẻ mã này cho học sinh để tham gia kỳ thi:</p>
-                    <h3 class="font-monospace p-2 bg-light border rounded">{{ form.instance.access_code }}</h3>
+                    <p class="small mb-2">Chia sẻ mã này cho học sinh để tham gia kỳ thi:</p>
+                    <h4 class="font-monospace p-3 bg-light border rounded mb-3">{{ form.instance.access_code }}</h4>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Học sinh cần nhập mã này để truy cập đề thi riêng tư
+                    </small>
                 </div>
             </div>
             {% endif %}
@@ -106,4 +185,103 @@
         <a href="{% url 'quiz:quiz_list' %}" class="btn btn-secondary btn-lg">Hủy bỏ</a>
     </div>
 </form>
+
+<!-- MathJax để hiển thị công thức toán học trong câu hỏi -->
+<script>
+window.MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+    }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+.question-selection-list .form-check {
+    transition: all 0.2s ease;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+}
+
+.question-selection-list .form-check:hover {
+    background-color: #f8f9fa;
+    border-color: #0d6efd;
+}
+
+.question-selection-list .form-check-input:checked ~ .form-check-label {
+    color: #0d6efd;
+}
+
+.question-selection-list .form-check-input:checked ~ .form-check-label .question-text {
+    font-weight: bold;
+}
+
+.question-text {
+    line-height: 1.4;
+}
+
+.badge {
+    font-size: 0.7rem;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Style cho phần cài đặt thi */
+.form-switch .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kích hoạt MathJax để render công thức toán học
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+    
+    // Thêm hiệu ứng cho checkbox câu hỏi
+    const checkboxes = document.querySelectorAll('.question-selection-list .form-check-input');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const parent = this.closest('.form-check');
+            if (this.checked) {
+                parent.style.backgroundColor = '#e7f1ff';
+                parent.style.borderColor = '#0d6efd';
+            } else {
+                parent.style.backgroundColor = '';
+                parent.style.borderColor = '#dee2e6';
+            }
+        });
+    });
+
+    // Hiển thị thông tin giải thích cho phần cài đặt thi
+    const multipleAttemptsSwitch = document.getElementById('{{ form.allow_multiple_attempts.id_for_label }}');
+    if (multipleAttemptsSwitch) {
+        multipleAttemptsSwitch.addEventListener('change', function() {
+            const explanation = this.checked ? 
+                'Đã bật: Học sinh có thể thi nhiều lần (chế độ luyện tập)' :
+                'Đã tắt: Học sinh chỉ được thi 1 lần duy nhất';
+            console.log(explanation);
+        });
+    }
+});
+</script>
 {% endblock %}

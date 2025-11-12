@@ -1,36 +1,426 @@
 {% extends "base.html" %}
+{% block title %}Kết quả Luyện tập: {{ result.quiz.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .result-header {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .correct-answer {
+        border-left: 4px solid #28a745;
+        background-color: #f8fff9;
+    }
+    .wrong-answer {
+        border-left: 4px solid #dc3545;
+        background-color: #fff8f8;
+    }
+    .improvement-badge {
+        background-color: #17a2b8;
+        color: white;
+    }
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-weight: bold;
+        border: 6px solid;
+    }
+    .score-excellent {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+    }
+    .score-good {
+        border-color: #ffc107;
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        color: #856404;
+    }
+    .score-poor {
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+    }
+    .answer-choice {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+    .answer-correct {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .answer-wrong {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .answer-selected {
+        border: 2px solid #007bff;
+    }
+    .math-formula {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #6c757d;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="text-center p-4 mb-4 bg-light rounded-3">
-    <h1>Kết quả Luyện tập</h1>
-    <h2 class="display-5">Bạn đã trả lời đúng: <span class="text-primary fw-bold">{{ correct_count }} / {{ total_questions }} câu</span></h2>
-    <p class="lead">Điểm tương đương: {{ score }} / 100</p>
-    <a href="{% url 'quiz:practice_selection' %}" class="btn btn-info mt-3">Luyện tập môn khác</a>
-    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Về trang chủ</a>
-</div>
-
-<h3 class="mb-3">Xem lại bài làm chi tiết:</h3>
-
-{% for item in results_data %}
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>Câu hỏi {{ forloop.counter }}:</strong> {{ item.question.text }}
+<div class="container mt-4">
+    <!-- Header kết quả -->
+    <div class="result-header rounded-3 p-4 mb-4 shadow">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    <i class="bi bi-arrow-repeat me-2"></i>Kết quả luyện tập
+                </h1>
+                <h2 class="h3 mb-0">{{ result.quiz.title }}</h2>
+                <p class="mb-0 mt-2 text-muted">
+                    <i class="bi bi-book me-1"></i>{{ result.quiz.subject.name }} • 
+                    <i class="bi bi-clock me-1"></i>{% now "H:i, d/m/Y" %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <!-- Hiển thị vòng điểm số -->
+                <div class="score-circle 
+                    {% if result.score >= 80 %}score-excellent
+                    {% elif result.score >= 50 %}score-good
+                    {% else %}score-poor{% endif %}">
+                    <div class="text-center">
+                        <div class="h2 mb-0">{{ result.score|floatformat:0 }}</div>
+                        <small>/100</small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <ul class="list-group list-group-flush">
-        {% for answer in item.all_answers %}
-            <li class="list-group-item 
-                {% if answer.id == item.correct_answer_id %}list-group-item-success{% elif answer.id == item.selected_answer_id %}list-group-item-danger{% endif %}
-            ">
-                {{ answer.text }}
-                {% if answer.id == item.correct_answer_id %}
-                    <span class="badge bg-success float-end">Đáp án đúng</span>
-                {% endif %}
-                {% if answer.id == item.selected_answer_id and not item.is_correct %}
-                    <span class="badge bg-danger float-end">Bạn đã chọn</span>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+
+    <!-- Thống kê chi tiết -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card text-center border-primary h-100">
+                <div class="card-body">
+                    <div class="h1 text-primary mb-2">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3 class="card-title display-6 fw-bold text-primary">{{ result.correct_answers }}</h3>
+                    <p class="card-text">Câu trả lời đúng</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning h-100">
+                <div class="card-body">
+                    <div class="h1 text-warning mb-2">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <h3 class="card-title display-6 fw-bold text-warning">{{ result.total_questions|add:"-result.correct_answers" }}</h3>
+                    <p class="card-text">Câu trả lời sai</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-info h-100">
+                <div class="card-body">
+                    <div class="h1 text-info mb-2">
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
+                    <h3 class="card-title display-6 fw-bold text-info">{{ result.total_questions }}</h3>
+                    <p class="card-text">Tổng số câu hỏi</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-success h-100">
+                <div class="card-body">
+                    <div class="h1 text-success mb-2">
+                        <i class="bi bi-percent"></i>
+                    </div>
+                    <h3 class="card-title display-6 fw-bold text-success">
+                        {% widthratio result.correct_answers result.total_questions 100 %}%
+                    </h3>
+                    <p class="card-text">Tỷ lệ chính xác</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông báo đánh giá -->
+    <div class="row mb-5">
+        <div class="col-12">
+            {% if result.score >= 80 %}
+            <div class="alert alert-success d-flex align-items-center">
+                <i class="bi bi-emoji-smile display-6 me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Xuất sắc! 🎉</h5>
+                    <p class="mb-0">Bạn đã hoàn thành rất tốt bài luyện tập này. Tiếp tục phát huy nhé!</p>
+                </div>
+            </div>
+            {% elif result.score >= 50 %}
+            <div class="alert alert-warning d-flex align-items-center">
+                <i class="bi bi-emoji-neutral display-6 me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Khá tốt! 👍</h5>
+                    <p class="mb-0">Kết quả khá ổn, nhưng vẫn còn room để cải thiện. Hãy luyện tập thêm!</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-danger d-flex align-items-center">
+                <i class="bi bi-emoji-frown display-6 me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Cần cố gắng thêm! 💪</h5>
+                    <p class="mb-0">Đừng nản chí! Hãy ôn tập lại và thử lại để cải thiện kết quả.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if result.improvement and result.improvement > 0 %}
+            <div class="alert alert-info d-flex align-items-center mt-3">
+                <i class="bi bi-graph-up-arrow display-6 me-3"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Tiến bộ đáng kể! 📈</h5>
+                    <p class="mb-0">Điểm số của bạn đã tăng <strong>{{ result.improvement }}%</strong> so với lần trước.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Nút hành động -->
+    <div class="d-flex flex-wrap gap-3 mb-5 p-4 bg-light rounded-3 justify-content-center">
+        <a href="{% url 'quiz:practice_quiz' result.quiz.id %}" class="btn btn-warning btn-lg px-4">
+            <i class="bi bi-arrow-repeat me-2"></i>Luyện tập lại
+        </a>
+        <a href="{% url 'quiz:practice_selection' %}" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-list-ul me-2"></i>Chọn đề khác
+        </a>
+        <a href="{% url 'quiz:practice_history' %}" class="btn btn-info btn-lg px-4">
+            <i class="bi bi-clock-history me-2"></i>Lịch sử luyện tập
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-lg px-4">
+            <i class="bi bi-house me-2"></i>Về Dashboard
+        </a>
+    </div>
+
+    <!-- Chi tiết bài làm -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <h3 class="mb-0">
+                <i class="bi bi-card-checklist me-2"></i>Chi tiết bài làm
+                <span class="badge bg-primary ms-2">{{ result.total_questions }} câu</span>
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            {% for item in result.detailed_answers %}
+            <div class="card m-3 {% if item.is_correct %}correct-answer{% else %}wrong-answer{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center 
+                    {% if item.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                    <div class="d-flex align-items-center">
+                        <strong class="me-3">Câu {{ forloop.counter }}</strong>
+                        <span class="question-preview">{{ item.question.text|truncatewords:10 }}</span>
+                    </div>
+                    <div>
+                        {% if item.is_correct %}
+                        <span class="badge bg-light text-success fs-6">
+                            <i class="bi bi-check-circle-fill me-1"></i>ĐÚNG
+                        </span>
+                        {% else %}
+                        <span class="badge bg-light text-danger fs-6">
+                            <i class="bi bi-x-circle-fill me-1"></i>SAI
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Nội dung câu hỏi -->
+                    <div class="question-content mb-4">
+                        <h6 class="text-muted mb-3">Nội dung câu hỏi:</h6>
+                        {% if '$' in item.question.text or '\\(' in item.question.text or '$$' in item.question.text %}
+                        <div class="math-formula">
+                            {{ item.question.text|linebreaksbr }}
+                        </div>
+                        {% else %}
+                        <div class="p-3 bg-light rounded">
+                            <p class="fs-5 mb-0">{{ item.question.text|linebreaksbr }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if item.is_short_answer %}
+                    <!-- Câu hỏi tự luận -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-warning">
+                                <div class="card-header bg-warning text-dark d-flex align-items-center">
+                                    <i class="bi bi-pencil me-2"></i>
+                                    <strong>Câu trả lời của bạn</strong>
+                                </div>
+                                <div class="card-body">
+                                    {% if item.student_answer_text %}
+                                        <p class="mb-0">{{ item.student_answer_text|linebreaksbr }}</p>
+                                    {% else %}
+                                        <p class="text-muted mb-0 fst-italic">Chưa trả lời</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-success">
+                                <div class="card-header bg-success text-white d-flex align-items-center">
+                                    <i class="bi bi-lightbulb me-2"></i>
+                                    <strong>Đáp án mẫu</strong>
+                                </div>
+                                <div class="card-body">
+                                    {% if item.correct_answer_text %}
+                                        <p class="mb-0">{{ item.correct_answer_text|linebreaksbr }}</p>
+                                    {% else %}
+                                        <p class="text-muted mb-0 fst-italic">Không có đáp án mẫu</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Câu hỏi có lựa chọn -->
+                    <div class="answer-comparison">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="text-warning mb-3 d-flex align-items-center">
+                                    <i class="bi bi-person-check me-2"></i>Lựa chọn của bạn:
+                                </h6>
+                                {% if item.student_answer %}
+                                    <div class="answer-choice {% if not item.is_correct %}answer-wrong answer-selected{% endif %}">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-record-fill text-danger me-2"></i>
+                                            <span>{{ item.student_answer.text }}</span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="answer-choice bg-light">
+                                        <span class="text-muted fst-italic">Không chọn đáp án nào</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-success mb-3 d-flex align-items-center">
+                                    <i class="bi bi-check-circle me-2"></i>Đáp án đúng:
+                                </h6>
+                                {% if item.correct_answer %}
+                                    <div class="answer-choice answer-correct">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                            <span>{{ item.correct_answer.text }}</span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="answer-choice bg-light">
+                                        <span class="text-muted fst-italic">Không có đáp án đúng</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Hiển thị tất cả đáp án cho câu hỏi multiple choice -->
+                        {% if item.question_type == 'MULTIPLE_CHOICE' and item.all_answers %}
+                        <div class="mt-4">
+                            <h6 class="text-info mb-3">
+                                <i class="bi bi-list-check me-2"></i>Tất cả lựa chọn:
+                            </h6>
+                            <div class="row g-2">
+                                {% for answer in item.all_answers %}
+                                <div class="col-md-6">
+                                    <div class="answer-choice 
+                                        {% if answer.is_correct %}answer-correct{% endif %}
+                                        {% if answer.id in item.student_selected_answers and not answer.is_correct %}answer-wrong{% endif %}">
+                                        <div class="d-flex align-items-center">
+                                            {% if answer.is_correct %}
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                            {% elif answer.id in item.student_selected_answers %}
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                            {% else %}
+                                                <i class="bi bi-circle text-muted me-2"></i>
+                                            {% endif %}
+                                            <span>{{ answer.text }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Giải thích (nếu có) -->
+                    {% if item.question.explanation %}
+                    <div class="mt-4 p-3 bg-info bg-opacity-10 rounded">
+                        <h6 class="text-info d-flex align-items-center mb-2">
+                            <i class="bi bi-info-circle me-2"></i>Giải thích:
+                        </h6>
+                        <p class="mb-0">{{ item.question.explanation }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Nút cuối trang -->
+    <div class="text-center mt-5 p-5 bg-light rounded-3">
+        <h4 class="mb-4">Tiếp tục hành trình luyện tập của bạn!</h4>
+        <div class="d-flex flex-wrap gap-3 justify-content-center">
+            <a href="{% url 'quiz:practice_quiz' result.quiz.id %}" class="btn btn-warning btn-lg px-5">
+                <i class="bi bi-arrow-repeat me-2"></i>Luyện tập lại
+            </a>
+            <a href="{% url 'quiz:practice_selection' %}" class="btn btn-primary btn-lg px-5">
+                <i class="bi bi-list-ul me-2"></i>Đề thi khác
+            </a>
+            <a href="{% url 'quiz:practice_random' %}" class="btn btn-success btn-lg px-5">
+                <i class="bi bi-shuffle me-2"></i>Đề ngẫu nhiên
+            </a>
+        </div>
+    </div>
 </div>
-{% endfor %}
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+    },
+    svg: {
+        fontCache: 'global'
+    }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tự động render lại MathJax sau khi load trang
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+    
+    // Thêm hiệu ứng scroll mượt khi click vào các phần
+    const questionCards = document.querySelectorAll('.card.correct-answer, .card.wrong-answer');
+    questionCards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.classList.toggle('shadow');
+        });
+    });
+});
+</script>
 {% endblock %}

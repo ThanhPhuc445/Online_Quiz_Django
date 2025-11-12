@@ -1,39 +1,137 @@
 {% extends "base.html" %}
+{% block title %}Luyện tập{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Lịch sử các bài thi đã làm</h1>
-<div class="card">
-    <div class="card-body">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Tên bài thi</th>
-                    <th scope="col">Môn học</th>
-                    <th scope="col">Điểm số</th>
-                    <th scope="col">Ngày làm</th>
-                    <th scope="col">Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for result in results %}
-                <tr>
-                    <td>{{ result.quiz.title }}</td>
-                    <td>{{ result.quiz.subject.name }}</td>
-                    <td><strong>{{ result.score }}</strong></td>
-                    <td>{{ result.completed_at|date:"H:i, d/m/Y" }}</td>
-                    <td>
-                        <a href="{% url 'quiz:view_result' pk=result.pk %}" class="btn btn-sm btn-info">Xem chi tiết</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center p-4">Bạn chưa hoàn thành bài thi nào.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-arrow-repeat me-2"></i>Chế độ luyện tập
+            </h1>
+            <p class="lead text-muted">
+                Luyện tập với các đề thi đã hoàn thành. Không giới hạn thời gian, không áp lực điểm số!
+            </p>
+        </div>
     </div>
+
+    <!-- Danh sách đề thi có thể luyện tập -->
+    <div class="row">
+        {% for quiz in available_quizzes %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">{{ quiz.title }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="badge bg-primary">{{ quiz.subject.name }}</span>
+                        <span class="badge bg-secondary">{{ quiz.questions.count }} câu</span>
+                        {% if quiz.duration_minutes %}
+                        <span class="badge bg-info">{{ quiz.duration_minutes }} phút</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text small text-muted">
+                        {{ quiz.description|default:"Luyện tập để nâng cao kiến thức"|truncatewords:20 }}
+                    </p>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            Thời gian: {% if quiz.duration_minutes %}{{ quiz.duration_minutes }} phút{% else %}Không giới hạn{% endif %}
+                        </small>
+                    </div>
+                    
+                    {% if quiz.best_score %}
+                    <div class="mb-2">
+                        <small class="text-success">
+                            <i class="bi bi-trophy me-1"></i>
+                            Điểm cao nhất: {{ quiz.best_score }}/100
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quiz:practice_quiz' quiz.id %}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-play-circle me-1"></i>Bắt đầu luyện tập
+                        </a>
+                        {% if quiz.attempt_count > 0 %}
+                        <small class="text-center text-muted">
+                            Đã luyện tập: {{ quiz.attempt_count }} lần
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x display-1 text-muted"></i>
+                <h4 class="mt-3 text-muted">Không có đề thi nào để luyện tập</h4>
+                <p class="text-muted">Hoàn thành một số đề thi trước để mở khóa chế độ luyện tập.</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-1"></i>Quay về Dashboard
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Thống kê luyện tập -->
+    {% if available_quizzes %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Thống kê luyện tập
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-primary mb-0">{{ total_attempts }}</h3>
+                                <small class="text-muted">Tổng lượt luyện tập</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-success mb-0">{{ average_score }}%</h3>
+                                <small class="text-muted">Điểm trung bình</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-info mb-0">{{ total_quizzes }}</h3>
+                                <small class="text-muted">Đề thi có sẵn</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h3 class="text-warning mb-0">{{ improvement }}%</h3>
+                                <small class="text-muted">Cải thiện</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- SỬA LỖI Ở ĐÂY: Thay 'home' bằng 'dashboard' -->
-<a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">Quay về Dashboard</a>
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.badge {
+    font-size: 0.7rem;
+}
+</style>
 {% endblock %}

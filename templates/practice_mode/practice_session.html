@@ -1,34 +1,226 @@
 {% extends "base.html" %}
+{% block title %}Luyện tập: {{ quiz.title }}{% endblock %}
+
+{% block extra_head %}
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+    .practice-header {
+        background: linear-gradient(135deg, #ffd700, #ffa500);
+        color: #000;
+    }
+    .question-card {
+        border-left: 4px solid #ffc107;
+    }
+    .timer-practice {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Luyện tập môn: {{ subject.name }}</h1>
-<p>Hãy trả lời các câu hỏi dưới đây. Sẽ không có giới hạn thời gian.</p>
-<hr>
-
-<form action="{% url 'quiz:submit_practice' %}" method="post">
-    {% csrf_token %}
-    {% for item in shuffled_questions %}
-        <!-- Input ẩn này rất quan trọng để gửi danh sách các câu hỏi đã làm lên server -->
-        <input type="hidden" name="question_id" value="{{ item.question.id }}">
-
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header">
-                <strong>Câu {{ forloop.counter }}:</strong>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="practice-header rounded-3 p-4 mb-4 shadow">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-2">
+                    <i class="bi bi-arrow-repeat me-2"></i>Chế độ luyện tập
+                </h1>
+                <h2 class="h4 mb-0">{{ quiz.title }}</h2>
+                <p class="mb-0 mt-2">
+                    <i class="bi bi-book me-1"></i>{{ quiz.subject.name }} | 
+                    <i class="bi bi-question-circle me-1"></i>{{ questions|length }} câu hỏi
+                </p>
             </div>
-            <div class="card-body">
-                <p class="card-text fs-5">{{ item.question.text }}</p>
-                <hr>
-                {% for answer in item.answers %}
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="question_{{ item.question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}" required>
-                    <label class="form-check-label" for="answer_{{ answer.id }}">
-                        {{ answer.text }}
-                    </label>
+            <div class="col-md-4 text-end">
+                <div class="timer-practice rounded-pill px-4 py-2 d-inline-block">
+                    <i class="bi bi-clock me-2"></i>
+                    <span id="practice-timer">Không giới hạn thời gian</span>
                 </div>
-                {% endfor %}
             </div>
         </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-success btn-lg w-100 mt-3">HOÀN THÀNH & XEM KẾT QUẢ</button>
-</form>
+    </div>
+
+    <!-- Form làm bài -->
+    <form method="post" action="{% url 'quiz:submit_practice_quiz' quiz.id %}" id="practice-form">
+        {% csrf_token %}
+        
+        {% for item in shuffled_questions %}
+        <div class="card question-card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Câu {{ forloop.counter }}</h5>
+            </div>
+            <div class="card-body">
+                <!-- Hiển thị câu hỏi -->
+                <div class="question-content mb-4">
+                    {% if '$' in item.question.text or '\\(' in item.question.text or '$$' in item.question.text %}
+                    <div class="math-formula p-3 bg-light rounded">
+                        {{ item.question.text|linebreaksbr }}
+                    </div>
+                    {% else %}
+                    <p class="fs-5">{{ item.question.text|linebreaksbr }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Hiển thị đáp án tùy theo loại câu hỏi -->
+                {% if item.question_type == 'SHORT_ANSWER' %}
+                <!-- Câu hỏi tự luận -->
+                <div class="mb-3">
+                    <label for="question_{{ item.question.id }}" class="form-label fw-bold">Câu trả lời của bạn:</label>
+                    <textarea name="question_{{ item.question.id }}" 
+                              id="question_{{ item.question.id }}" 
+                              class="form-control" 
+                              rows="4" 
+                              placeholder="Nhập câu trả lời của bạn..."></textarea>
+                </div>
+                
+                {% elif item.question_type == 'TRUE_FALSE' %}
+                <!-- Câu hỏi Đúng/Sai -->
+                <div class="btn-group-vertical w-100" role="group">
+                    {% for answer in item.answers %}
+                    <div class="form-check py-2 border-bottom">
+                        <input class="form-check-input" 
+                               type="radio" 
+                               name="question_{{ item.question.id }}" 
+                               id="answer_{{ answer.id }}" 
+                               value="{{ answer.id }}">
+                        <label class="form-check-label fs-6 w-100" for="answer_{{ answer.id }}">
+                            {{ answer.text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% elif item.question_type == 'SINGLE_CHOICE' %}
+                <!-- Câu hỏi một lựa chọn -->
+                <div class="list-group list-group-flush">
+                    {% for answer in item.answers %}
+                    <div class="list-group-item border-0 px-0">
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="radio" 
+                                   name="question_{{ item.question.id }}" 
+                                   id="answer_{{ answer.id }}" 
+                                   value="{{ answer.id }}">
+                            <label class="form-check-label w-100" for="answer_{{ answer.id }}">
+                                {% if '$' in answer.text or '\\(' in answer.text %}
+                                <div class="math-formula small">{{ answer.text }}</div>
+                                {% else %}
+                                {{ answer.text }}
+                                {% endif %}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% elif item.question_type == 'MULTIPLE_CHOICE' %}
+                <!-- Câu hỏi nhiều lựa chọn -->
+                <div class="list-group list-group-flush">
+                    {% for answer in item.answers %}
+                    <div class="list-group-item border-0 px-0">
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   name="question_{{ item.question.id }}" 
+                                   id="answer_{{ answer.id }}" 
+                                   value="{{ answer.id }}">
+                            <label class="form-check-label w-100" for="answer_{{ answer.id }}">
+                                {% if '$' in answer.text or '\\(' in answer.text %}
+                                <div class="math-formula small">{{ answer.text }}</div>
+                                {% else %}
+                                {{ answer.text }}
+                                {% endif %}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Nút nộp bài -->
+        <div class="fixed-bottom bg-white border-top py-3">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {% widthratio forloop.counter questions|length 100 %}%"
+                                 aria-valuenow="{% widthratio forloop.counter questions|length 100 %}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted">Tiến độ làm bài</small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button type="submit" class="btn btn-warning btn-lg px-5">
+                            <i class="bi bi-send-check me-2"></i>Kết thúc luyện tập
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- MathJax -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cấu hình MathJax
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        }
+    };
+
+    // Hiển thị cảnh báo khi rời trang
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = '';
+    });
+
+    // Theo dõi tiến độ
+    function updateProgress() {
+        const totalQuestions = {{ shuffled_questions|length }};
+        const answeredQuestions = document.querySelectorAll('input:checked, textarea').length;
+        const progress = (answeredQuestions / totalQuestions) * 100;
+        
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+            progressBar.setAttribute('aria-valuenow', progress);
+        }
+    }
+
+    // Lắng nghe sự kiện thay đổi
+    document.querySelectorAll('input, textarea').forEach(element => {
+        element.addEventListener('change', updateProgress);
+        element.addEventListener('input', updateProgress);
+    });
+
+    // Khởi tạo progress
+    updateProgress();
+});
+</script>
 {% endblock %}

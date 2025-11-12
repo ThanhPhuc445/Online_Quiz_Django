@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Chấm điểm: {{ result.quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-check-circle me-2"></i>
+                Chấm điểm bài thi: {{ result.quiz.title }}
+            </h4>
+        </div>
+        <div class="card-body">
+            <!-- Thông tin học sinh -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Học sinh:</strong> {{ result.student.get_full_name|default:result.student.username }}</p>
+                    <p><strong>Môn học:</strong> {{ result.quiz.subject.name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Thời gian nộp:</strong> {{ result.completed_at|date:"H:i d/m/Y" }}</p>
+                    <p><strong>Điểm trắc nghiệm:</strong> {{ result.score }}/100</p>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                {% for answer in short_answers %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Câu hỏi {{ forloop.counter }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Nội dung câu hỏi -->
+                        <div class="mb-3">
+                            <strong>Nội dung câu hỏi:</strong>
+                            <div class="p-3 bg-light rounded mt-2">
+                                {{ answer.question.text|linebreaksbr }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Đáp án học sinh -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <strong class="text-warning">Đáp án của học sinh:</strong>
+                                    <div class="p-3 bg-warning bg-opacity-10 rounded mt-2 border border-warning">
+                                        {{ answer.custom_answer|default:"Chưa trả lời"|linebreaksbr }}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Đáp án mẫu -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <strong class="text-success">Đáp án mẫu:</strong>
+                                    <div class="p-3 bg-success bg-opacity-10 rounded mt-2 border border-success">
+                                        {{ answer.question.correct_answer_text|linebreaksbr }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phần chấm điểm -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label for="points_{{ answer.id }}" class="form-label">
+                                    <strong>Điểm (tối đa 10):</strong>
+                                </label>
+                                <input type="number" 
+                                       name="points_{{ answer.id }}" 
+                                       id="points_{{ answer.id }}"
+                                       value="{{ answer.points_earned|default:0 }}" 
+                                       min="0" max="10" step="0.5" 
+                                       class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="comment_{{ answer.id }}" class="form-label">
+                                    <strong>Nhận xét:</strong>
+                                </label>
+                                <textarea name="comment_{{ answer.id }}" 
+                                          id="comment_{{ answer.id }}"
+                                          class="form-control" 
+                                          rows="2"
+                                          placeholder="Nhận xét cho câu trả lời...">{{ answer.teacher_comment|default:"" }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Không có câu hỏi tự luận nào trong bài thi này.
+                </div>
+                {% endfor %}
+
+                {% if short_answers %}
+                <!-- Nhận xét tổng thể -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <strong>Nhận xét tổng thể</strong>
+                    </div>
+                    <div class="card-body">
+                        <textarea name="overall_feedback" 
+                                  class="form-control" 
+                                  rows="3"
+                                  placeholder="Nhận xét chung về bài làm của học sinh...">{{ result.teacher_feedback|default:"" }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Nút thao tác -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-lg me-2"></i>Lưu điểm và nhận xét
+                    </button>
+                    <a href="{% url 'quiz:grading_dashboard' %}" class="btn btn-secondary btn-lg">
+                        <i class="bi bi-arrow-left me-2"></i>Quay lại
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

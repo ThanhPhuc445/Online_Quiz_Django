@@ -1,45 +1,276 @@
 {% extends "base.html" %}
 {% block title %}Kết quả: {{ result.quiz.title }}{% endblock %}
 
+{% block extra_head %}
+<!-- MathJax để hiển thị công thức toán -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    .math-formula {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 6px;
+        margin: 8px 0;
+        border-left: 3px solid #007bff;
+    }
+    .correct-answer {
+        border-left: 4px solid #28a745 !important;
+        background-color: #f8fff9 !important;
+    }
+    .incorrect-answer {
+        border-left: 4px solid #dc3545 !important;
+        background-color: #fff8f8 !important;
+    }
+    .student-answer {
+        border-left: 4px solid #ffc107 !important;
+        background-color: #fffdf6 !important;
+    }
+    .answer-explanation {
+        background-color: #e9ecef;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+    .grading-badge {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+    .points-display {
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="text-center p-4 mb-4 bg-light rounded-3">
-    <h1>Kết quả bài thi: {{ result.quiz.title }}</h1>
-    <h2 class="display-4">Điểm số: <span class="text-primary fw-bold">{{ result.score }} / 100</span></h2>
-    <p class="lead">Hoàn thành lúc: {{ result.completed_at|date:"H:i, d/m/Y" }}</p>
+    <h1 class="display-5 fw-bold">Kết quả bài thi</h1>
+    <h2 class="text-primary">{{ result.quiz.title }}</h2>
     
-    <!-- === SỬA LỖI Ở ĐÂY: Thay 'home' bằng 'dashboard' === -->
-    <a href="{% url 'dashboard' %}" class="btn btn-primary"><i class="bi bi-arrow-left-circle me-2"></i>Quay về Dashboard</a>
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">{{ result.score }}/100</h3>
+                    <p class="card-text">Điểm số</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-success">
+                        {% widthratio result.score 100 1 as correct_percent %}
+                        {{ correct_percent }}%
+                    </h3>
+                    <p class="card-text">Tỷ lệ đúng</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-info">{{ detailed_answers|length }}</h3>
+                    <p class="card-text">Tổng số câu</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 bg-white shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title {% if result.is_graded %}text-success{% else %}text-warning{% endif %}">
+                        {% if result.is_graded %}
+                            {{ result.short_answer_score|default:0 }}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </h3>
+                    <p class="card-text">
+                        {% if result.is_graded %}
+                            Điểm tự luận
+                        {% else %}
+                            Chờ chấm điểm
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <a href="{% url 'quiz:test_history' %}" class="btn btn-secondary"><i class="bi bi-clock-history me-2"></i>Xem lịch sử thi</a>
+    <!-- Hiển thị trạng thái chấm điểm tổng thể -->
+    {% if result.is_graded %}
+    <div class="alert alert-success mt-3">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Đã được chấm điểm!</strong> 
+        {% if result.teacher_feedback %}
+            Nhận xét: "{{ result.teacher_feedback }}"
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning mt-3">
+        <i class="bi bi-clock me-2"></i>
+        <strong>Đang chờ giáo viên chấm điểm...</strong>
+    </div>
+    {% endif %}
+    
+    <p class="lead mt-3">Hoàn thành lúc: {{ result.completed_at|date:"H:i, d/m/Y" }}</p>
+    
+    <div class="mt-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-arrow-left-circle me-2"></i>Quay về Dashboard
+        </a>
+        <a href="{% url 'quiz:test_history' %}" class="btn btn-secondary btn-lg">
+            <i class="bi bi-clock-history me-2"></i>Xem lịch sử thi
+        </a>
+    </div>
 </div>
 
-<h3 class="mb-3"><i class="bi bi-card-checklist me-2"></i>Xem lại bài làm chi tiết:</h3>
+<h3 class="mb-4"><i class="bi bi-card-checklist me-2"></i>Chi tiết bài làm:</h3>
 
 {% for item in detailed_answers %}
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>Câu hỏi {{ forloop.counter }}:</strong> {{ item.question_text }}
+<div class="card mb-4 {% if item.is_correct %}border-success{% else %}border-danger{% endif %}">
+    <div class="card-header d-flex justify-content-between align-items-center {% if item.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+        <div>
+            <strong>Câu hỏi {{ forloop.counter }}:</strong> 
+            <span class="ms-2">{{ item.question.text|truncatewords:20 }}</span>
+        </div>
+        <div>
+            <span class="badge bg-light text-dark me-2">{{ item.question.get_difficulty_display }}</span>
+            <span class="badge bg-secondary">{{ item.question.get_question_type_display }}</span>
+            {% if item.is_short_answer %}
+                <span class="badge bg-warning text-dark grading-badge">
+                    {% if item.points_earned > 0 %}
+                        {{ item.points_earned }} điểm
+                    {% else %}
+                        Chờ chấm
+                    {% endif %}
+                </span>
+            {% endif %}
+        </div>
     </div>
-    <ul class="list-group list-group-flush">
-        {% for answer in item.all_answers %}
+    
+    <div class="card-body">
+        <!-- Hiển thị câu hỏi -->
+        <div class="question-content mb-4">
+            {% if '$' in item.question.text or '\\(' in item.question.text or '$$' in item.question.text %}
+            <div class="math-formula">
+                {{ item.question.text|linebreaksbr }}
+            </div>
+            {% else %}
+            <p class="fs-5">{{ item.question.text|linebreaksbr }}</p>
+            {% endif %}
+        </div>
+
+        {% if item.is_short_answer %}
+        <!-- HIỂN THỊ CÂU HỎI TỰ LUẬN - ĐÃ CẬP NHẬT -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card h-100 student-answer">
+                    <div class="card-header bg-warning text-dark">
+                        <strong><i class="bi bi-pencil me-2"></i>Đáp án của bạn</strong>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ item.student_answer_text|default:"Chưa trả lời"|linebreaksbr }}</p>
+                        
+                        <!-- HIỂN THỊ ĐIỂM VÀ NHẬN XÉT NẾU ĐÃ CHẤM -->
+                        {% if item.points_earned > 0 %}
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="points-display text-success">Điểm: {{ item.points_earned }}/10</strong>
+                                <span class="badge bg-success">Đã chấm</span>
+                            </div>
+                            {% if item.teacher_comment %}
+                            <div class="border-top pt-2">
+                                <strong>Nhận xét:</strong>
+                                <p class="mb-0 text-muted">{{ item.teacher_comment }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 correct-answer">
+                    <div class="card-header bg-success text-white">
+                        <strong><i class="bi bi-lightbulb me-2"></i>Đáp án mẫu</strong>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ item.correct_answer_text|linebreaksbr }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- THÔNG BÁO TRẠNG THÁI CHẤM ĐIỂM CHO TỪNG CÂU -->
+        <div class="mt-3">
+            {% if item.points_earned > 0 %}
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>Đã được chấm điểm!</strong> Câu trả lời của bạn đã được giáo viên đánh giá.
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="bi bi-clock me-2"></i>
+                <strong>Đang chờ chấm điểm...</strong> Câu hỏi tự luận cần được giáo viên chấm điểm thủ công.
+            </div>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <!-- HIỂN THỊ CÂU HỎI CÓ LỰA CHỌN -->
+        <ul class="list-group list-group-flush">
+            {% for answer in item.all_answers %}
             <li class="list-group-item 
-                {% if answer.id == item.correct_answer_id %}
-                    list-group-item-success
-                {% elif answer.id == item.student_answer_id %}
-                    list-group-item-danger
-                {% endif %}
-            ">
-                {{ answer.text }}
-                
-                {% if answer.id == item.correct_answer_id %}
-                    <span class="badge bg-success float-end">Đáp án đúng</span>
-                {% endif %}
-                {% if answer.id == item.student_answer_id and answer.id != item.correct_answer_id %}
-                    <span class="badge bg-danger float-end">Bạn đã chọn</span>
-                {% endif %}
+                {% if answer.id == item.correct_answer.id %}correct-answer
+                {% elif answer.id == item.student_answer.id and not item.is_correct %}incorrect-answer
+                {% elif answer.id == item.student_answer.id %}student-answer
+                {% endif %}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                        {% if '$' in answer.text or '\\(' in answer.text or '$$' in answer.text %}
+                        <div class="math-formula small">{{ answer.text }}</div>
+                        {% else %}
+                        {{ answer.text }}
+                        {% endif %}
+                    </div>
+                    <div class="ms-3">
+                        {% if answer.id == item.correct_answer.id %}
+                        <span class="badge bg-success">Đáp án đúng</span>
+                        {% endif %}
+                        {% if answer.id == item.student_answer.id and answer.id != item.correct_answer.id %}
+                        <span class="badge bg-danger">Bạn đã chọn</span>
+                        {% endif %}
+                        {% if answer.id == item.student_answer.id and answer.id == item.correct_answer.id %}
+                        <span class="badge bg-success">Bạn đã chọn đúng</span>
+                        {% endif %}
+                    </div>
+                </div>
             </li>
-        {% endfor %}
-    </ul>
+            {% endfor %}
+        </ul>
+
+        <!-- Thông báo kết quả -->
+        <div class="mt-3 p-3 rounded {% if item.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+            {% if item.is_correct %}
+            <i class="bi bi-check-circle-fill me-2"></i><strong>Chính xác!</strong> Bạn đã trả lời đúng câu hỏi này.
+            {% else %}
+            <i class="bi bi-x-circle-fill me-2"></i><strong>Chưa chính xác.</strong> Bạn đã trả lời sai câu hỏi này.
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endfor %}
+
+<script>
+    // Cấu hình MathJax cho trang kết quả
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        }
+    };
+</script>
 {% endblock %}

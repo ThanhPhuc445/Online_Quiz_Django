@@ -1,4 +1,3 @@
-# quiz/urls.py
 from django.urls import path
 from . import views
 
@@ -20,14 +19,22 @@ urlpatterns = [
     path('teacher/quizzes/<int:pk>/delete/', views.quiz_delete, name='quiz_delete'),
     path('teacher/quizzes/<int:pk>/results/', views.quiz_results, name='quiz_results'),
     
-    # URLs của Học sinh
+    # URLs chấm điểm tự luận
+    path('grading/dashboard/', views.grading_dashboard, name='grading_dashboard'),
+    path('grading/grade/<int:result_id>/', views.grade_short_answer, name='grade_short_answer'),
+    
+    # URLs của Học sinh - Thi thật
     path('take/<int:pk>/', views.take_quiz, name='take_quiz'),
     path('submit/<int:pk>/', views.submit_quiz, name='submit_quiz'),
     path('results/<int:pk>/', views.view_result, name='view_result'),
     path('history/', views.test_history, name='test_history'),
     path('join/', views.join_with_code, name='join_with_code'),
     
-    path('practice/', views.practice_mode_selection, name='practice_selection'),
-    path('practice/start/<int:subject_id>/', views.start_practice, name='start_practice'),
-    path('practice/submit/', views.submit_practice, name='submit_practice'),
+    # URLs LUYỆN TẬP - ĐẦY ĐỦ
+    path('practice/', views.practice_selection, name='practice_selection'),
+    path('practice/quiz/<int:pk>/', views.practice_quiz, name='practice_quiz'),
+    path('practice/quiz/<int:pk>/submit/', views.submit_practice_quiz, name='submit_practice_quiz'),
+    path('practice/history/', views.practice_history, name='practice_history'),
+    path('practice/subject/<int:subject_id>/', views.practice_by_subject, name='practice_by_subject'),
+    path('practice/random/', views.practice_random, name='practice_random'),
 ]

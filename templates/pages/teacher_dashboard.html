@@ -42,7 +42,6 @@
         <div class="card text-center h-100">
             <div class="card-body">
                 <i class="bi bi-bar-chart-fill display-4 mb-2 text-info"></i>
-                <!-- ĐÃ THAY THẾ DỮ LIỆU GIẢ BẰNG BIẾN TỪ VIEW -->
                 <h2 class="card-title display-5 fw-bold">{{ average_correct_rate }}%</h2>
                 <p class="card-text text-muted">Tỉ lệ đúng trung bình</p>
             </div>
@@ -53,9 +52,21 @@
 <!-- Hàng nút hành động chính -->
 <div class="mb-4 p-4 bg-light rounded-3">
     <h4 class="mb-3">Tác vụ nhanh</h4>
-    <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary btn-lg me-2"><i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới</a>
-    <a href="{% url 'quiz:question_list' %}" class="btn btn-secondary btn-lg me-2"><i class="bi bi-bank me-2"></i>Ngân hàng câu hỏi</a>
-    <a href="{% url 'quiz:question_import' %}" class="btn btn-success btn-lg"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i>Import từ Excel</a>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
+        </a>
+        <a href="{% url 'quiz:question_list' %}" class="btn btn-secondary btn-lg">
+            <i class="bi bi-bank me-2"></i>Ngân hàng câu hỏi
+        </a>
+        <a href="{% url 'quiz:question_import' %}" class="btn btn-success btn-lg">
+            <i class="bi bi-file-earmark-arrow-up-fill me-2"></i>Import từ Excel
+        </a>
+        <!-- THÊM NÚT CHẤM ĐIỂM TỰ LUẬN -->
+        <a href="{% url 'quiz:grading_dashboard' %}" class="btn btn-warning btn-lg">
+            <i class="bi bi-check-square-fill me-2"></i>Chấm điểm tự luận
+        </a>
+    </div>
 </div>
 
 <!-- Bảng đề thi gần đây -->

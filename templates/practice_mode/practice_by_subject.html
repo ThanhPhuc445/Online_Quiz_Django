@@ -1,0 +1,152 @@
+@login_required
+def practice_history(request):
+    """Lịch sử luyện tập"""
+    practice_results = PracticeResult.objects.filter(student=request.user)
+    
+    # Áp dụng bộ lọc
+    quiz_filter = request.GET.get('quiz')
+    subject_filter = request.GET.get('subject')
+    date_range = request.GET.get('date_range')
+    
+    if quiz_filter:
+        practice_results = practice_results.filter(quiz_id=quiz_filter)
+    if subject_filter:
+        practice_results = practice_results.filter(quiz__subject_id=subject_filter)
+    if date_range == 'today':
+        today = timezone.now().date()
+        practice_results = practice_results.filter(completed_at__date=today)
+    elif date_range == 'week':
+        week_ago = timezone.now() - timezone.timedelta(days=7)
+        practice_results = practice_results.filter(completed_at__gte=week_ago)
+    elif date_range == 'month':
+        month_ago = timezone.now() - timezone.timedelta(days=30)
+        practice_results = practice_results.filter(completed_at__gte=month_ago)
+    
+    practice_results = practice_results.order_by('-completed_at')
+    
+    # Tính toán thống kê
+    total_sessions = practice_results.count()
+    
+    if practice_results.exists():
+        average_score = practice_results.aggregate(Avg('score'))['score__avg']
+        average_score = round(average_score, 1)
+    else:
+        average_score = 0
+    
+    # Tính số đề đã luyện
+    total_quizzes = practice_results.values('quiz').distinct().count()
+    
+    # Tính tiến bộ (đơn giản)
+    improvement = 0
+    if practice_results.count() >= 2:
+        recent_scores = practice_results[:2]
+        old_score = recent_scores[1].score
+        new_score = recent_scores[0].score
+        if old_score > 0:
+            improvement = round(((new_score - old_score) / old_score) * 100, 1)
+    
+    # Thêm improvement cho từng kết quả
+    for result in practice_results:
+        previous_result = PracticeResult.objects.filter(
+            student=request.user,
+            quiz=result.quiz,
+            completed_at__lt=result.completed_at
+        ).order_by('-completed_at').first()
+        
+        if previous_result:
+            result.improvement = round(((result.score - previous_result.score) / previous_result.score) * 100, 1)
+        else:
+            result.improvement = 0
+    
+    context = {
+        'practice_results': practice_results,
+        'total_sessions': total_sessions,
+        'average_score': average_score,
+        'total_quizzes': total_quizzes,
+        'improvement': improvement,
+        'available_quizzes': Quiz.objects.filter(allow_multiple_attempts=True, is_public=True),
+        'subjects': Subject.objects.all(),
+    }
+    return render(request, 'practice_mode/practice_history.html', context)
+
+@login_required
+def practice_by_subject(request, subject_id):
+    """Luyện tập theo chủ đề môn học"""
+    subject = get_object_or_404(Subject, pk=subject_id)
+    available_quizzes = Quiz.objects.filter(
+        subject=subject,
+        allow_multiple_attempts=True,
+        is_public=True
+    )
+    
+    # Thêm thông tin thống kê cho mỗi quiz
+    for quiz in available_quizzes:
+        # Số lần luyện tập
+        quiz.attempt_count = PracticeResult.objects.filter(
+            quiz=quiz, 
+            student=request.user
+        ).count()
+        
+        # Điểm cao nhất
+        best_result = PracticeResult.objects.filter(
+            quiz=quiz, 
+            student=request.user
+        ).order_by('-score').first()
+        quiz.best_score = best_result.score if best_result else None
+        
+        # Tính % hoàn thành (đơn giản)
+        if quiz.attempt_count > 0:
+            quiz.completion_rate = min(quiz.attempt_count * 10, 100)  # Ví dụ
+        else:
+            quiz.completion_rate = 0
+            
+        # Tính tiến bộ
+        recent_results = PracticeResult.objects.filter(
+            quiz=quiz, 
+            student=request.user
+        ).order_by('-completed_at')[:2]
+        
+        if len(recent_results) == 2:
+            old_score = recent_results[1].score
+            new_score = recent_results[0].score
+            if old_score > 0:
+                quiz.improvement = round(((new_score - old_score) / old_score) * 100, 1)
+            else:
+                quiz.improvement = 0
+        else:
+            quiz.improvement = 0
+    
+    # Tính tổng số câu hỏi
+    total_questions = sum(quiz.questions.count() for quiz in available_quizzes)
+    
+    # Tính tổng lượt luyện tập
+    total_attempts = PracticeResult.objects.filter(
+        student=request.user,
+        quiz__subject=subject
+    ).count()
+    
+    # Tính điểm trung bình
+    subject_results = PracticeResult.objects.filter(
+        student=request.user,
+        quiz__subject=subject
+    )
+    if subject_results.exists():
+        average_score = subject_results.aggregate(Avg('score'))['score__avg']
+        average_score = round(average_score, 1)
+    else:
+        average_score = 0
+    
+    # Lấy các môn học khác
+    other_subjects = Subject.objects.exclude(id=subject_id).annotate(
+        quiz_count=Count('quizzes', filter=Q(quizzes__allow_multiple_attempts=True, quizzes__is_public=True))
+    ).filter(quiz_count__gt=0)
+    
+    context = {
+        'subject': subject,
+        'available_quizzes': available_quizzes,
+        'total_questions': total_questions,
+        'total_attempts': total_attempts,
+        'average_score': average_score,
+        'other_subjects': other_subjects,
+    }
+    return render(request, 'practice_mode/practice_by_subject.html', context)

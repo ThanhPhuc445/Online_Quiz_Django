@@ -1,5 +1,21 @@
 {% extends "base.html" %}
+
 {% block title %}Ngân hàng câu hỏi{% endblock %}
+
+{% block extra_head %}
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -12,12 +28,43 @@
 
 <div class="card mb-4">
     <div class="card-header">
-        <i class="bi bi-funnel-fill me-2"></i>Bộ lọc
+        <i class="bi bi-funnel-fill me-2"></i>Bộ lọc & Tìm kiếm
     </div>
     <div class="card-body">
-        <!-- Khu vực bộ lọc giữ nguyên logic, chỉ sửa giao diện nhẹ -->
-        <form method="GET" action="{% url 'quiz:question_list' %}">
-            <!-- ... Nội dung form lọc giữ nguyên ... -->
+        <form method="GET" action="{% url 'quiz:question_list' %}" class="row g-3">
+            <div class="col-md-4">
+                <label for="subject" class="form-label">Môn học</label>
+                <select name="subject" id="subject" class="form-select">
+                    <option value="">Tất cả môn học</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if request.GET.subject == subject.id|stringformat:"i" %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="difficulty" class="form-label">Độ khó</label>
+                <select name="difficulty" id="difficulty" class="form-select">
+                    <option value="">Tất cả độ khó</option>
+                    <option value="EASY" {% if request.GET.difficulty == "EASY" %}selected{% endif %}>Dễ</option>
+                    <option value="MEDIUM" {% if request.GET.difficulty == "MEDIUM" %}selected{% endif %}>Trung bình</option>
+                    <option value="HARD" {% if request.GET.difficulty == "HARD" %}selected{% endif %}>Khó</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="question_type" class="form-label">Loại câu hỏi</label>
+                <select name="question_type" id="question_type" class="form-select">
+                    <option value="">Tất cả loại</option>
+                    <option value="SINGLE_CHOICE" {% if request.GET.question_type == "SINGLE_CHOICE" %}selected{% endif %}>Một lựa chọn</option>
+                    <option value="MULTIPLE_CHOICE" {% if request.GET.question_type == "MULTIPLE_CHOICE" %}selected{% endif %}>Nhiều lựa chọn</option>
+                    <option value="TRUE_FALSE" {% if request.GET.question_type == "TRUE_FALSE" %}selected{% endif %}>Đúng/Sai</option>
+                    <option value="SHORT_ANSWER" {% if request.GET.question_type == "SHORT_ANSWER" %}selected{% endif %}>Tự luận ngắn</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-2"></i>Lọc</button>
+            </div>
         </form>
     </div>
 </div>
@@ -30,6 +77,7 @@
                     <tr>
                         <th class="ps-4">Nội dung câu hỏi</th>
                         <th>Môn học</th>
+                        <th>Loại câu hỏi</th>
                         <th>Độ khó</th>
                         <th class="text-end pe-4">Hành động</th>
                     </tr>
@@ -37,19 +85,55 @@
                 <tbody>
                     {% for question in page_obj %}
                     <tr>
-                        <td class="ps-4" style="max-width: 400px;">{{ question.text|truncatechars:100 }}</td>
-                        <td>{{ question.subject.name }}</td>
-                        <td><span class="badge bg-secondary">{{ question.get_difficulty_display }}</span></td>
+                        <td class="ps-4" style="max-width: 400px;">
+                            <!-- Hiển thị công thức toán học -->
+                            <div class="fw-semibold question-text">{{ question.text|safe }}</div>
+                            {% if question.question_type == 'SHORT_ANSWER' and question.correct_answer_text %}
+                                <small class="text-muted">Đáp án: {{ question.correct_answer_text|safe }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ question.subject.name }}</span>
+                        </td>
+                        <td>
+                            {% if question.question_type == 'SINGLE_CHOICE' %}
+                                <span class="badge bg-primary"><i class="bi bi-1-circle me-1"></i>Một lựa chọn</span>
+                            {% elif question.question_type == 'MULTIPLE_CHOICE' %}
+                                <span class="badge bg-info"><i class="bi bi-check2-all me-1"></i>Nhiều lựa chọn</span>
+                            {% elif question.question_type == 'TRUE_FALSE' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-question-circle me-1"></i>Đúng/Sai</span>
+                            {% elif question.question_type == 'SHORT_ANSWER' %}
+                                <span class="badge bg-success"><i class="bi bi-chat-left-text me-1"></i>Tự luận ngắn</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if question.difficulty == 'EASY' %}
+                                <span class="badge bg-success">Dễ</span>
+                            {% elif question.difficulty == 'MEDIUM' %}
+                                <span class="badge bg-warning text-dark">Trung bình</span>
+                            {% elif question.difficulty == 'HARD' %}
+                                <span class="badge bg-danger">Khó</span>
+                            {% endif %}
+                        </td>
                         <td class="text-end pe-4">
-                            <a href="{% url 'quiz:question_edit' question.pk %}" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
-                            <a href="{% url 'quiz:question_delete' question.pk %}" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3"></i></a>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'quiz:question_edit' question.pk %}" class="btn btn-outline-primary" title="Chỉnh sửa">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="{% url 'quiz:question_delete' question.pk %}" class="btn btn-outline-danger" title="Xóa">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center p-5">
-                            <h4 class="text-muted">Ngân hàng câu hỏi của bạn đang trống</h4>
-                            <p>Hãy bắt đầu bằng cách <a href="{% url 'quiz:question_create' %}">thêm một câu hỏi mới</a>!</p>
+                        <td colspan="5" class="text-center p-5">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox display-4 d-block mb-3"></i>
+                                <h4>Ngân hàng câu hỏi của bạn đang trống</h4>
+                                <p class="mb-0">Hãy bắt đầu bằng cách <a href="{% url 'quiz:question_create' %}">thêm một câu hỏi mới</a>!</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -57,26 +141,114 @@
             </table>
         </div>
     </div>
+
     {% if page_obj.has_other_pages %}
     <div class="card-footer bg-light">
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mb-0">
-                {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">‹</span></li>
-                {% endif %}
-                
-                <li class="page-item disabled"><span class="page-link">Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                Hiển thị {{ page_obj.start_index }} - {{ page_obj.end_index }} của {{ page_obj.paginator.count }} câu hỏi
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                                ‹
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">‹</span></li>
+                    {% endif %}
 
-                {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">›</span></li>
-                {% endif %}
-            </ul>
-        </nav>
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                                ›
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">›</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
     </div>
     {% endif %}
 </div>
+
+<!-- Thống kê nhanh -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white text-center">
+            <div class="card-body">
+                <h4 class="card-title">{{ total_questions }}</h4>
+                <p class="card-text mb-0">Tổng câu hỏi</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white text-center">
+            <div class="card-body">
+                <h4 class="card-title">{{ single_choice_count }}</h4>
+                <p class="card-text mb-0">Một lựa chọn</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white text-center">
+            <div class="card-body">
+                <h4 class="card-title">{{ multiple_choice_count }}</h4>
+                <p class="card-text mb-0">Nhiều lựa chọn</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark text-center">
+            <div class="card-body">
+                <h4 class="card-title">{{ true_false_count }}</h4>
+                <p class="card-text mb-0">Đúng/Sai</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kích hoạt MathJax sau khi trang tải -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+});
+</script>
+
+<style>
+.badge { font-size: 0.75rem; }
+.table td { vertical-align: middle; }
+.card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); }
+.page-link { border: 1px solid #dee2e6; }
+.btn-group-sm > .btn { padding: 0.25rem 0.5rem; }
+.question-text svg { vertical-align: middle; margin-right: 4px; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+});
+</script>
 {% endblock %}

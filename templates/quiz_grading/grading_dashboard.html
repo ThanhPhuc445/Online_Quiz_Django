@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Chấm điểm tự luận - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="bi bi-journal-check me-2"></i>Quản lý chấm điểm tự luận
+            </h2>
+        </div>
+    </div>
+
+    <!-- Bài thi cần chấm -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history me-2"></i>
+                Bài thi cần chấm điểm ({{ pending_results.count }})
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if pending_results %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Học sinh</th>
+                            <th>Đề thi</th>
+                            <th>Môn học</th>
+                            <th>Thời gian nộp</th>
+                            <th>Số câu tự luận</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in pending_results %}
+                        <tr>
+                            <td>{{ result.student.get_full_name|default:result.student.username }}</td>
+                            <td>{{ result.quiz.title }}</td>
+                            <td>{{ result.quiz.subject.name }}</td>
+                            <td>{{ result.completed_at|date:"H:i d/m/Y" }}</td>
+                            <td>
+                                <span class="badge bg-primary">
+                                    {{ result.short_answer_count }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'quiz:grade_short_answer' result.id %}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="bi bi-pencil me-1"></i>Chấm điểm
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-check-circle display-4 text-success"></i>
+                <p class="mt-3 text-muted">Không có bài thi nào cần chấm điểm!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bài thi đã chấm -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-check-circle me-2"></i>
+                Bài thi đã chấm điểm ({{ graded_results.count }})
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if graded_results %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Học sinh</th>
+                            <th>Đề thi</th>
+                            <th>Điểm tự luận</th>
+                            <th>Thời gian chấm</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in graded_results %}
+                        <tr>
+                            <td>{{ result.student.get_full_name|default:result.student.username }}</td>
+                            <td>{{ result.quiz.title }}</td>
+                            <td>
+                                <strong class="text-success">{{ result.short_answer_score }}</strong> điểm
+                            </td>
+                            <td>{{ result.completed_at|date:"H:i d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'quiz:grade_short_answer' result.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>Xem lại
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-journal-x display-4 text-muted"></i>
+                <p class="mt-3 text-muted">Chưa có bài thi nào được chấm điểm!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

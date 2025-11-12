@@ -11,6 +11,12 @@ class Subject(models.Model):
         return self.name
 
 class Question(models.Model):
+    class QuestionType(models.TextChoices):
+        MULTIPLE_CHOICE = "MULTIPLE_CHOICE", "Câu hỏi nhiều lựa chọn"
+        TRUE_FALSE = "TRUE_FALSE", "Câu hỏi Đúng/Sai"
+        SHORT_ANSWER = "SHORT_ANSWER", "Câu tự luận ngắn"
+        SINGLE_CHOICE = "SINGLE_CHOICE", "Câu hỏi một lựa chọn"
+    
     class Difficulty(models.TextChoices):
         EASY = "EASY", "Dễ"
         MEDIUM = "MEDIUM", "Trung bình"
@@ -18,12 +24,27 @@ class Question(models.Model):
 
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='questions', verbose_name="Môn học")
     text = models.TextField(verbose_name="Nội dung câu hỏi")
+    question_type = models.CharField(
+        max_length=20, 
+        choices=QuestionType.choices, 
+        default=QuestionType.SINGLE_CHOICE,
+        verbose_name="Loại câu hỏi"
+    )
     difficulty = models.CharField(max_length=10, choices=Difficulty.choices, verbose_name="Độ khó")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Người tạo")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
+    # Thêm trường cho câu hỏi tự luận
+    correct_answer_text = models.TextField(blank=True, null=True, verbose_name="Đáp án đúng (cho tự luận)")
 
     def __str__(self):
         return self.text[:50]
+
+    def clean(self):
+        """Validation cho loại câu hỏi"""
+        from django.core.exceptions import ValidationError
+        
+        if self.question_type == self.QuestionType.SHORT_ANSWER and not self.correct_answer_text:
+            raise ValidationError({'correct_answer_text': 'Vui lòng nhập đáp án đúng cho câu hỏi tự luận'})
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, related_name='answers', on_delete=models.CASCADE, verbose_name="Câu hỏi")
@@ -32,6 +53,14 @@ class Answer(models.Model):
 
     def __str__(self):
         return self.text
+    
+    def clean(self):
+        """Validation cho đáp án"""
+        from django.core.exceptions import ValidationError
+        
+        if self.question.question_type == Question.QuestionType.TRUE_FALSE:
+            if self.text not in ['Đúng', 'Sai']:
+                raise ValidationError({'text': 'Câu hỏi Đúng/Sai chỉ được có đáp án "Đúng" hoặc "Sai"'})
 
 class Quiz(models.Model):
     title = models.CharField(max_length=255, verbose_name="Tiêu đề đề thi")
@@ -43,7 +72,6 @@ class Quiz(models.Model):
     end_time = models.DateTimeField(verbose_name="Thời gian kết thúc")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     
-    # === TRƯỜNG MỚI ĐƯỢC THÊM VÀO ===
     is_public = models.BooleanField(
         default=True, 
         verbose_name="Công khai?",
@@ -66,7 +94,11 @@ class Quiz(models.Model):
         null=True,
         verbose_name="Mã tham gia"
     )
-
+    allow_multiple_attempts = models.BooleanField(
+        default=False,
+        verbose_name="Cho phép thi nhiều lần",
+        help_text="Nếu được chọn, học sinh có thể thi đề này nhiều lần. Nếu không, mỗi học sinh chỉ được thi 1 lần."
+    )
     def save(self, *args, **kwargs):
         # Tự động tạo mã tham gia nếu chưa có
         if not self.access_code:

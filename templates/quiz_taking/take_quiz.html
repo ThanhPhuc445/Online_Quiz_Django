@@ -1,11 +1,64 @@
 {% extends "base.html" %}
 {% block title %}Đang làm bài: {{ quiz.title }}{% endblock %}
 
+{% block extra_head %}
+<!-- MathJax để hiển thị công thức toán -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    .math-formula {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        border-left: 4px solid #007bff;
+        font-size: 1.1em;
+    }
+    .question-type-badge {
+        font-size: 0.8rem;
+    }
+    .short-answer-input {
+        min-height: 120px;
+        font-size: 1.1em;
+    }
+    .true-false-options {
+        display: flex;
+        gap: 30px;
+        margin: 20px 0;
+    }
+    .form-check-label {
+        cursor: pointer;
+    }
+    .multiple-choice-hint {
+        font-size: 0.9em;
+        color: #6c757d;
+        font-style: italic;
+    }
+    .question-counter {
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.9em;
+    }
+    .time-warning {
+        color: #dc3545;
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4 align-items-center">
     <div class="col-md-8">
         <h1 class="page-title">{{ quiz.title }}</h1>
-        <p class="text-muted fs-5"><i class="bi bi-book me-2"></i>{{ quiz.subject.name }}</p>
+        <p class="text-muted fs-5">
+            <i class="bi bi-book me-2"></i>{{ quiz.subject.name }}
+            <span class="question-counter ms-3">Tổng: {{ shuffled_questions|length }} câu</span>
+        </p>
     </div>
     <div class="col-md-4">
         <div class="card text-center bg-light">
@@ -19,47 +72,241 @@
 
 <form id="quizForm" action="{% url 'quiz:submit_quiz' pk=quiz.pk %}" method="post">
     {% csrf_token %}
+    
     {% for item in shuffled_questions %}
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between">
-            <span>Câu hỏi {{ forloop.counter }}</span>
-            <span class="badge bg-secondary">{{ item.question.get_difficulty_display }}</span>
-        </div>
-        <div class="card-body">
-            <p class="fs-5 mb-4">{{ item.question.text }}</p>
-            {% for answer in item.answers %}
-            <div class="form-check fs-5 mb-3">
-                <input class="form-check-input" type="radio" name="question_{{ item.question.id }}" id="answer_{{ answer.id }}" value="{{ answer.id }}" required>
-                <label class="form-check-label" for="answer_{{ answer.id }}">
-                    {{ answer.text }}
-                </label>
+    <div class="card mb-4 question-card" data-question-type="{{ item.question.question_type }}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>
+                <strong>Câu hỏi {{ forloop.counter }}</strong>
+                {% if item.question.difficulty == 'HARD' %}
+                <span class="badge bg-danger ms-2">Khó</span>
+                {% elif item.question.difficulty == 'MEDIUM' %}
+                <span class="badge bg-warning ms-2">Trung bình</span>
+                {% else %}
+                <span class="badge bg-success ms-2">Dễ</span>
+                {% endif %}
+            </span>
+            <div>
+                <span class="badge question-type-badge 
+                    {% if item.question.question_type == 'SINGLE_CHOICE' %}bg-primary
+                    {% elif item.question.question_type == 'MULTIPLE_CHOICE' %}bg-info
+                    {% elif item.question.question_type == 'TRUE_FALSE' %}bg-warning
+                    {% elif item.question.question_type == 'SHORT_ANSWER' %}bg-success
+                    {% endif %}">
+                    {{ item.question.get_question_type_display }}
+                </span>
             </div>
-            {% endfor %}
+        </div>
+        
+        <div class="card-body">
+            <!-- Hiển thị nội dung câu hỏi -->
+            <div class="question-content mb-4">
+                {% if '$' in item.question.text or '\\(' in item.question.text or '$$' in item.question.text %}
+                <div class="math-formula">
+                    {{ item.question.text|linebreaksbr }}
+                </div>
+                {% else %}
+                <p class="fs-5">{{ item.question.text|linebreaksbr }}</p>
+                {% endif %}
+            </div>
+
+            <!-- HIỂN THỊ THEO LOẠI CÂU HỎI -->
+            {% if item.question.question_type == 'SINGLE_CHOICE' %}
+            <!-- CÂU HỎI MỘT LỰA CHỌN -->
+            <div class="single-choice-options">
+                {% for answer in item.answers %}
+                <div class="form-check fs-5 mb-3">
+                    <input class="form-check-input" type="radio" 
+                           name="question_{{ item.question.id }}" 
+                           id="answer_{{ item.question.id }}_{{ answer.id }}" 
+                           value="{{ answer.id }}" required>
+                    <label class="form-check-label w-100" for="answer_{{ item.question.id }}_{{ answer.id }}">
+                        {% if '$' in answer.text or '\\(' in answer.text or '$$' in answer.text %}
+                        <div class="math-formula small">{{ answer.text }}</div>
+                        {% else %}
+                        {{ answer.text }}
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% elif item.question.question_type == 'MULTIPLE_CHOICE' %}
+            <!-- CÂU HỎI NHIỀU LỰA CHỌN -->
+            <div class="multiple-choice-options">
+                <p class="multiple-choice-hint mb-3">
+                    <i class="bi bi-info-circle"></i> Có thể chọn nhiều đáp án đúng
+                </p>
+                {% for answer in item.answers %}
+                <div class="form-check fs-5 mb-3">
+                    <input class="form-check-input" type="checkbox" 
+                           name="question_{{ item.question.id }}" 
+                           id="answer_{{ item.question.id }}_{{ answer.id }}" 
+                           value="{{ answer.id }}">
+                    <label class="form-check-label w-100" for="answer_{{ item.question.id }}_{{ answer.id }}">
+                        {% if '$' in answer.text or '\\(' in answer.text or '$$' in answer.text %}
+                        <div class="math-formula small">{{ answer.text }}</div>
+                        {% else %}
+                        {{ answer.text }}
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% elif item.question.question_type == 'TRUE_FALSE' %}
+            <!-- CÂU HỎI ĐÚNG/SAI -->
+            <div class="true-false-options fs-5">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" 
+                           name="question_{{ item.question.id }}" 
+                           id="true_{{ item.question.id }}" 
+                           value="true" required>
+                    <label class="form-check-label" for="true_{{ item.question.id }}">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>Đúng
+                    </label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" 
+                           name="question_{{ item.question.id }}" 
+                           id="false_{{ item.question.id }}" 
+                           value="false" required>
+                    <label class="form-check-label" for="false_{{ item.question.id }}">
+                        <i class="bi bi-x-circle-fill text-danger me-2"></i>Sai
+                    </label>
+                </div>
+            </div>
+
+            {% elif item.question.question_type == 'SHORT_ANSWER' %}
+            <!-- CÂU TỰ LUẬN NGẮN -->
+            <div class="short-answer-section">
+                <label for="short_answer_{{ item.question.id }}" class="form-label fs-5">
+                    <strong>Trả lời:</strong>
+                </label>
+                <textarea class="form-control short-answer-input" 
+                         id="short_answer_{{ item.question.id }}" 
+                         name="short_answer_{{ item.question.id }}" 
+                         rows="5" 
+                         placeholder="Nhập câu trả lời của bạn tại đây..."
+                         required></textarea>
+                <div class="form-text mt-2">
+                    <i class="bi bi-pencil-square"></i> Đây là câu hỏi tự luận ngắn. Hãy trình bày rõ ràng và đầy đủ ý.
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
-    <button type="submit" class="btn btn-primary btn-lg w-100 mt-3 py-3"><i class="bi bi-check2-circle me-2"></i>NỘP BÀI VÀ XEM KẾT QUẢ</button>
+
+    <div class="sticky-bottom bg-white p-4 border-top shadow-lg">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <small class="text-muted" id="progressText">Đã trả lời: 0/{{ shuffled_questions|length }} câu</small>
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
+                    <i class="bi bi-check2-circle me-2"></i>NỘP BÀI
+                </button>
+            </div>
+        </div>
+    </div>
 </form>
 
 <script>
+    // Cấu hình MathJax
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            tags: 'ams'
+        },
+        options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+        }
+    };
+
+    // Timer
     const duration = {{ quiz.duration_minutes }} * 60;
     const timerElement = document.getElementById('timer');
     const quizForm = document.getElementById('quizForm');
     let timeLeft = duration;
 
-    const timerInterval = setInterval(() => {
+    function updateTimer() {
         timeLeft--;
         const minutes = Math.floor(timeLeft / 60);
         let seconds = timeLeft % 60;
         seconds = seconds < 10 ? '0' + seconds : seconds;
         timerElement.textContent = `${minutes}:${seconds}`;
 
+        // Đổi màu khi sắp hết giờ
+        if (timeLeft <= 300) { // 5 phút
+            timerElement.classList.add('time-warning');
+        }
+
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            timerElement.textContent = "Hết giờ!";
+            timerElement.textContent = "00:00";
             alert("Đã hết thời gian làm bài. Hệ thống sẽ tự động nộp bài của bạn.");
             quizForm.submit();
         }
-    }, 1000);
+    }
+
+    const timerInterval = setInterval(updateTimer, 1000);
+    updateTimer(); // Chạy ngay lần đầu
+
+    // Theo dõi tiến độ làm bài
+    function updateProgress() {
+        const totalQuestions = {{ shuffled_questions|length }};
+        let answered = 0;
+        
+        // Đếm câu đã trả lời
+        document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked, textarea').forEach(input => {
+            if (input.type === 'textarea') {
+                if (input.value.trim() !== '') answered++;
+            } else {
+                answered++;
+            }
+        });
+        
+        const progressPercent = (answered / totalQuestions) * 100;
+        document.getElementById('progressBar').style.width = `${progressPercent}%`;
+        document.getElementById('progressText').textContent = `Đã trả lời: ${answered}/${totalQuestions} câu`;
+    }
+
+    // Lắng nghe sự kiện thay đổi trên tất cả input
+    document.querySelectorAll('input, textarea').forEach(element => {
+        element.addEventListener('change', updateProgress);
+        element.addEventListener('input', updateProgress);
+    });
+
+    // Khởi tạo progress bar
+    updateProgress();
+
+    // Xử lý multiple choice - không bắt required vì có thể không chọn đáp án nào
+    document.querySelectorAll('.multiple-choice-options input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const name = this.name;
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+            // Bỏ required cho tất cả checkbox trong nhóm
+            checkboxes.forEach(cb => cb.required = false);
+        });
+    });
+
+    // Tự động render MathJax
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.MathJax) {
+            window.MathJax.typesetPromise();
+        }
+    });
+
+    // Cảnh báo khi rời trang
+    window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = '';
+    });
 </script>
 {% endblock %}
