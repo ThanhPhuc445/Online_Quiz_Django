@@ -17,12 +17,13 @@ class QuestionForm(forms.ModelForm):
     
     class Meta:
         model = Question
-        fields = ['subject', 'text', 'question_type', 'difficulty', 'correct_answer_text']
+        fields = ['subject', 'text', 'question_type', 'difficulty', 'correct_answer_text', 'explanation']
         labels = {
             'text': 'Nội dung câu hỏi',
             'question_type': 'Loại câu hỏi',
             'difficulty': 'Độ khó',
-            'correct_answer_text': 'Đáp án đúng (cho tự luận)'
+            'correct_answer_text': 'Đáp án đúng (cho tự luận)',
+            'explanation': 'Giải thích đáp án',
         }
         widgets = {
             'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'id': 'id_text'}),
@@ -33,6 +34,12 @@ class QuestionForm(forms.ModelForm):
                 'rows': 3, 
                 'placeholder': 'Nhập đáp án mẫu cho câu tự luận...',
                 'id': 'id_correct_answer_text'
+            }),
+            'explanation': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Nhập giải thích đáp án...',
+                'id': 'id_explanation'
             }),
         }
 

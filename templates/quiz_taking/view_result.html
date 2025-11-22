@@ -96,7 +96,23 @@
             </div>
         </div>
     </div>
-    
+    <!-- Hiển thị lời giải chi tiết -->
+{% if item.explanation %}
+<div class="mt-4 p-3 bg-light rounded border">
+    <h6 class="text-primary mb-3">
+        <i class="bi bi-lightbulb-fill me-2"></i>Lời giải chi tiết:
+    </h6>
+    <div class="explanation-content">
+        {% if '$' in item.explanation or '\\(' in item.explanation or '$$' in item.explanation %}
+        <div class="math-formula">
+            {{ item.explanation|linebreaksbr }}
+        </div>
+        {% else %}
+        <p class="mb-0">{{ item.explanation|linebreaksbr }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
     <!-- Hiển thị trạng thái chấm điểm tổng thể -->
     {% if result.is_graded %}
     <div class="alert alert-success mt-3">

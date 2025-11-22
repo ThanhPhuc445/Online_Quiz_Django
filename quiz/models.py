@@ -35,6 +35,7 @@ class Question(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     # Thêm trường cho câu hỏi tự luận
     correct_answer_text = models.TextField(blank=True, null=True, verbose_name="Đáp án đúng (cho tự luận)")
+    explanation = models.TextField(blank=True, null=True, verbose_name="Giải thích đáp án", help_text="Giải thích này sẽ hiển thị sau khi học sinh hoàn thành bài thi.")
 
     def __str__(self):
         return self.text[:50]

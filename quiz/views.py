@@ -657,7 +657,9 @@ def view_result(request, pk):
                 'question_type': question.question_type,
                 'correct_answer_text': question.correct_answer_text,
                 'student_answer_text': student_answer_obj.custom_answer if student_answer_obj else '',
-                'is_short_answer': True
+                'is_short_answer': True,
+                'is_multiple_choice': False,
+                'explanation': question.explanation
             })
         elif question.question_type == Question.QuestionType.MULTIPLE_CHOICE:
             # Xử lý câu hỏi nhiều lựa chọn
@@ -683,7 +685,9 @@ def view_result(request, pk):
                 'student_selected_answers': student_selected_answers,
                 'is_correct': is_correct,
                 'is_short_answer': False,
-                'is_multiple_choice': True
+                'is_multiple_choice': True,
+                'explanation': question.explanation
+                
             })
         else:
             # Xử lý câu hỏi một lựa chọn và Đúng/Sai
@@ -699,9 +703,9 @@ def view_result(request, pk):
                 'student_answer': student_answer,
                 'is_correct': is_correct,
                 'is_short_answer': False,
-                'is_multiple_choice': False
+                'is_multiple_choice': False,
+                'explanation': question.explanation
             })
-    
     context = {
         'result': result, 
         'detailed_answers': detailed_answers
