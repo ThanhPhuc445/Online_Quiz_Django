@@ -1,64 +1,299 @@
-{% extends "base.html" %} {% load static %} {% block title %}Trang chủ - Hệ
-thống Thi Trắc nghiệm{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Examify - Nền tảng Thi Trắc nghiệm</title>
 
-<!-- Khối extra_head này sẽ được "nhét" vào thẻ <head> của base.html -->
-{% block extra_head %}
-<style>
-  .hero-image {
-    /* Hiệu ứng phóng to nhẹ khi hover, tạo cảm giác sống động */
-    transition: transform 0.3s ease-in-out;
-  }
-  .hero-image:hover {
-    transform: scale(1.05);
-  }
-</style>
-{% endblock %} {% block content %}
-<div class="container">
-  <div class="row align-items-center justify-content-center py-5">
-    <!-- Cột 1: Chứa toàn bộ phần text -->
-    <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
-      <h1 class="display-3 fw-bold" style="color: var(--primary-color)">
-        Kiến thức trong tầm tay.
-      </h1>
-      <h1 class="display-5 fw-bold mb-4">Thành công trong mọi kỳ thi.</h1>
-      <p class="fs-4 col-lg-10 text-muted">
-        Examify là nền tảng thi trắc nghiệm hiện đại, giúp giáo viên kiến tạo và
-        quản lý đề thi hiệu quả, đồng thời mang đến cho học sinh trải nghiệm ôn
-        luyện và kiểm tra tốt nhất.
-      </p>
-      <div
-        class="d-grid gap-2 d-sm-flex justify-content-sm-center justify-content-lg-start mt-5"
-      >
-        {% if user.is_authenticated %}
-        <a class="btn btn-primary btn-lg px-4" href="{% url 'dashboard' %}"
-          ><i class="bi bi-speedometer2 me-2"></i>Vào Dashboard của bạn</a
-        >
-        {% else %}
-        <a
-          type-="button"
-          class="btn btn-primary btn-lg px-4 gap-3"
-          href="{% url 'register' %}"
-          ><i class="bi bi-person-plus-fill me-2"></i>Bắt đầu ngay</a
-        >
-        <a
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <style>
+      :root {
+        --primary-color: #880000;
+        --primary-hover: #660000;
+        --text-dark: #111827;
+        --text-gray: #4b5563;
+        --bg-hero: #fff5f5;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        color: var(--text-dark);
+        background-color: var(
+          --bg-hero
+        ); /* Màu nền hồng nhạt phủ toàn trang hero */
+        overflow-x: hidden;
+      }
+
+      /* --- NAVBAR TINH CHỈNH --- */
+      .navbar {
+        padding: 1.5rem 0; /* Tăng chiều cao navbar cho thoáng */
+        background-color: var(
+          --bg-hero
+        ); /* Cùng màu nền với body để liền mạch */
+      }
+      .navbar-brand {
+        font-weight: 800;
+        color: var(--primary-color) !important;
+        font-size: 1.6rem;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+      }
+      .nav-link {
+        font-weight: 500;
+        color: var(--text-dark) !important;
+        margin: 0 15px;
+        font-size: 0.95rem;
+      }
+      .nav-link:hover {
+        color: var(--primary-color) !important;
+      }
+
+      /* --- HERO SECTION CÂN ĐỐI --- */
+      .hero-section {
+        min-height: 85vh; /* Chiếm 85% chiều cao màn hình */
+        display: flex;
+        align-items: center; /* Căn giữa theo chiều dọc */
+        padding-bottom: 5rem;
+      }
+
+      /* Typography cân chỉnh */
+      .hero-badge {
+        background-color: rgba(136, 0, 0, 0.1);
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        border-radius: 30px;
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .hero-title {
+        font-size: 3.5rem; /* Kích thước chữ lớn vừa đủ */
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 1.5rem;
+        color: var(--text-dark);
+      }
+
+      .hero-desc {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--text-gray);
+        margin-bottom: 2.5rem;
+        max-width: 90%; /* Giới hạn chiều rộng dòng chữ để dễ đọc */
+      }
+
+      /* Nút bấm */
+      .btn-custom-primary {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 14px 32px;
+        border-radius: 50px;
+        font-weight: 600;
+        border: 2px solid var(--primary-color);
+        transition: all 0.3s;
+      }
+      .btn-custom-primary:hover {
+        background-color: var(--primary-hover);
+        border-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(136, 0, 0, 0.15);
+      }
+
+      /* Hình ảnh */
+      .hero-img-wrapper {
+        position: relative;
+        padding-left: 2rem; /* Đẩy hình sang phải một chút để tách biệt */
+      }
+      .hero-img-wrapper img {
+        border-radius: 24px;
+        /* Xóa shadow quá đậm, dùng shadow mềm hơn */
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        height: auto;
+        transform: perspective(1000px) rotateY(-2deg); /* Hiệu ứng 3D nhẹ */
+        transition: transform 0.5s ease;
+      }
+      .hero-img-wrapper img:hover {
+        transform: perspective(1000px) rotateY(0deg) translateY(-5px);
+      }
+
+      /* Responsive */
+      @media (max-width: 991px) {
+        .hero-section {
+          min-height: auto;
+          padding: 60px 0;
+          text-align: center;
+        }
+        .hero-title {
+          font-size: 2.5rem;
+        }
+        .hero-desc {
+          max-width: 100%;
+          margin-bottom: 2rem;
+        }
+        .hero-img-wrapper {
+          padding-left: 0;
+          margin-top: 3rem;
+        }
+        .hero-img-wrapper img {
+          transform: none;
+        }
+        .d-flex.gap-3 {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <!-- Logo thẳng hàng với cột bên trái -->
+        <a class="navbar-brand" href="/">
+          <i class="bi bi-card-checklist me-2"></i>Examify
+        </a>
+
+        <button
+          class="navbar-toggler border-0 shadow-none"
           type="button"
-          class="btn btn-outline-secondary btn-lg px-4"
-          href="{% url 'login' %}"
-          >Tôi đã có tài khoản</a
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarMain"
         >
-        {% endif %}
-      </div>
-    </div>
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <!-- Cột 2: Chứa hình ảnh -->
-    <div class="col-lg-6">
-      <!-- Đã xóa các class tạo viền/bóng đổ và thêm class hero-image -->
-      <img
-        src="{% static 'images/img.png' %}"
-        class="img-fluid hero-image"
-        alt="Học sinh đang học bài"
-      />
-    </div>
-  </div>
-</div>
-{% endblock %}
+        <div class="collapse navbar-collapse" id="navbarMain">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item"><a class="nav-link" href="#">Tính năng</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Dành cho Giáo viên</a>
+            </li>
+            <li class="nav-item"><a class="nav-link" href="#">Bảng giá</a></li>
+          </ul>
+          <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+            {% if user.is_authenticated %}
+            <a
+              href="{% url 'dashboard' %}"
+              class="btn btn-custom-primary btn-sm px-4"
+            >
+              Vào Dashboard <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+            {% else %}
+            <!-- Nút đăng nhập/đăng ký gọn hơn -->
+            <a
+              href="{% url 'login' %}"
+              class="fw-bold text-decoration-none me-3"
+              style="color: var(--primary-color)"
+              >Đăng nhập</a
+            >
+            <a
+              href="{% url 'register' %}"
+              class="btn btn-dark rounded-pill px-4 py-2"
+              style="background-color: #111"
+              >Đăng ký</a
+            >
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="row align-items-center g-5">
+          <!-- g-5 tạo khoảng cách rộng giữa 2 cột -->
+
+          <!-- CỘT 1: TEXT (Cân bằng lại typography) -->
+          <div class="col-lg-6">
+            <div class="hero-badge">
+              <i class="bi bi-stars me-2"></i>Nền tảng thi trực tuyến #1 Việt
+              Nam
+            </div>
+
+            <h1 class="hero-title">
+              Kiến thức trong tầm tay,<br />
+              <span style="color: var(--primary-color)">Thành công</span> tương
+              lai.
+            </h1>
+
+            <p class="hero-desc">
+              Examify giúp Giáo viên tạo đề thi tự động bằng AI chỉ trong vài
+              giây. Quản lý lớp học, chấm điểm tự động và báo cáo chi tiết.
+            </p>
+
+            <div class="d-flex gap-3">
+              {% if user.is_authenticated %}
+              <a
+                href="{% url 'dashboard' %}"
+                class="btn btn-custom-primary btn-lg shadow-sm"
+              >
+                <i class="bi bi-speedometer2 me-2"></i>Truy cập Hệ thống
+              </a>
+              {% else %}
+              <a
+                href="{% url 'register' %}"
+                class="btn btn-custom-primary btn-lg shadow-sm"
+              >
+                Bắt đầu ngay
+              </a>
+              <a
+                href="{% url 'login' %}"
+                class="btn btn-outline-dark rounded-pill px-4 py-3 fw-bold border-2"
+              >
+                <i class="bi bi-play-circle me-2"></i>Xem Demo
+              </a>
+              {% endif %}
+            </div>
+
+            <div
+              class="mt-4 d-flex align-items-center gap-4 text-muted small fw-medium"
+            >
+              <span
+                ><i class="bi bi-check-circle-fill text-success me-1"></i> Miễn
+                phí trọn đời</span
+              >
+              <span
+                ><i class="bi bi-shield-check-fill text-success me-1"></i> Bảo
+                mật tuyệt đối</span
+              >
+            </div>
+          </div>
+
+          <!-- CỘT 2: HÌNH ẢNH (Cân chỉnh lại vị trí) -->
+          <div class="col-lg-6">
+            <div class="hero-img-wrapper">
+              <!-- Ảnh minh họa -->
+              <img
+                src="{% static 'images/img.png' %}"
+                alt="Examify Dashboard"
+                class="img-fluid"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

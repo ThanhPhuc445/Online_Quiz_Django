@@ -1,135 +1,336 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Hệ thống Thi Trắc nghiệm{% endblock %}</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap & Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
 
     <style>
-        :root {
-            --primary-color: #880000;
-            --primary-dark: #660000;
-            --secondary-color: #2c3e50;
-            --accent-color: #f39c12;
-            --background-light: #fdfdfb;
-            --background-alt: #f1f2f6;
-            --text-color: #34495e;
-            --border-color: #dfe4ea;
+      :root {
+        --primary-color: #880000;
+        --primary-dark: #660000;
+        --primary-soft: rgba(136, 0, 0, 0.08); /* Màu nền nhạt khi hover */
+        --secondary-color: #2c3e50;
+        --background-light: #fdfdfb;
+        --background-alt: #f1f2f6;
+        --text-color: #34495e;
+        --border-color: #dfe4ea;
+        --sidebar-width: 260px; /* Độ rộng Sidebar */
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--background-alt);
+        color: var(--text-color);
+        overflow-x: hidden; /* Tránh thanh cuộn ngang */
+      }
+
+      /* --- NAVBAR --- */
+      .navbar {
+        background-color: var(--background-light) !important;
+        border-bottom: 1px solid var(--border-color);
+        z-index: 1030; /* Luôn nằm trên cùng */
+      }
+      .navbar-brand {
+        color: var(--primary-color) !important;
+        font-weight: 700;
+      }
+
+      /* --- WRAPPER CHO SIDEBAR LAYOUT --- */
+      #wrapper {
+        display: flex;
+        width: 100%;
+        align-items: stretch;
+        min-height: calc(100vh - 57px); /* Trừ đi chiều cao navbar */
+      }
+
+      /* --- SIDEBAR STYLES --- */
+      #sidebar-wrapper {
+        min-width: var(--sidebar-width);
+        max-width: var(--sidebar-width);
+        background-color: #fff;
+        border-right: 1px solid var(--border-color);
+        transition: margin 0.25s ease-out;
+      }
+
+      .sidebar-heading {
+        padding: 1.2rem 1.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #adb5bd;
+        letter-spacing: 0.5px;
+      }
+
+      .list-group-item-action {
+        border: none;
+        padding: 0.8rem 1.25rem;
+        color: var(--text-color);
+        font-weight: 500;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+      }
+
+      .list-group-item-action i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+        font-size: 1.1rem;
+        color: #6c757d;
+      }
+
+      /* Hiệu ứng khi Hover/Active vào Menu */
+      .list-group-item-action:hover,
+      .list-group-item-action.active {
+        background-color: var(--primary-soft);
+        color: var(--primary-color);
+        border-left-color: var(--primary-color); /* Đường kẻ chỉ báo bên trái */
+        font-weight: 600;
+      }
+
+      .list-group-item-action:hover i,
+      .list-group-item-action.active i {
+        color: var(--primary-color);
+      }
+
+      /* --- PAGE CONTENT --- */
+      #page-content-wrapper {
+        width: 100%;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* --- BUTTONS & CARDS (Giữ nguyên của bạn) --- */
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+      .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+      }
+      .page-title {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        display: inline-block;
+      }
+
+      /* Responsive: Ẩn sidebar trên mobile */
+      @media (max-width: 768px) {
+        #sidebar-wrapper {
+          margin-left: calc(var(--sidebar-width) * -1);
         }
-        html, body {
-            height: 100%;
-        }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--background-alt);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-        }
-        .navbar {
-            background-color: var(--background-light) !important;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .navbar-brand {
-            color: var(--primary-color) !important;
-            font-weight: 700;
-        }
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            font-weight: 500;
-            transition: all 0.2s ease-in-out;
-        }
-        .btn-primary:hover, .btn-primary:focus {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .btn-secondary {
-             background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-        }
-        .card {
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            transform: translateY(-4px);
-        }
-        .card-header {
-            background-color: transparent;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        main {
-            flex-grow: 1; /* Sửa lại để áp dụng cho thẻ main */
-        }
-        .page-title {
-            color: var(--primary-color);
-            font-weight: 700;
-            margin-bottom: 2rem;
-            border-bottom: 3px solid var(--primary-color);
-            padding-bottom: 0.5rem;
-            display: inline-block;
-        }
+      }
     </style>
 
-    <!-- Block này cho phép các trang con thêm CSS/JS riêng vào thẻ <head> -->
     {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <!-- NAVBAR: Luôn hiển thị trên cùng -->
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand fs-4" href="{% url 'landing_page' %}">
+          <i class="bi bi-card-checklist me-2"></i>Examify
+        </a>
 
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand fs-4" href="{% url 'landing_page' %}">
-                <i class="bi bi-card-checklist"></i> Examify
-            </a>
-            <div class="d-flex align-items-center">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                    <form action="{% url 'logout' %}" method="post" class="ms-2">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
-                    </form>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-sm me-2">Đăng nhập</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Đăng ký</a>
-                {% endif %}
+        <!-- Nút toggle sidebar trên mobile -->
+        {% if user.is_authenticated %}
+        <button
+          class="navbar-toggler border-0 ms-2"
+          type="button"
+          id="menu-toggle"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        {% endif %}
+
+        <div
+          class="collapse navbar-collapse justify-content-end"
+          id="navbarNav"
+        >
+          <div class="d-flex align-items-center">
+            {% if user.is_authenticated %}
+            <div class="dropdown">
+              <a
+                href="#"
+                class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark fw-bold"
+                id="dropdownUser1"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <div
+                  class="bg-soft-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+                  style="width: 32px; height: 32px; background: #eee"
+                >
+                  <i class="bi bi-person-fill text-secondary"></i>
+                </div>
+                {{ user.username }}
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end text-small shadow"
+                aria-labelledby="dropdownUser1"
+              >
+                <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
+                <li><a class="dropdown-item" href="#">Cài đặt</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <form action="{% url 'logout' %}" method="post" class="px-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                      Đăng xuất
+                    </button>
+                  </form>
+                </li>
+              </ul>
             </div>
+            {% else %}
+            <a
+              href="{% url 'login' %}"
+              class="btn btn-outline-secondary btn-sm me-2"
+              >Đăng nhập</a
+            >
+            <a href="{% url 'register' %}" class="btn btn-primary btn-sm"
+              >Đăng ký</a
+            >
+            {% endif %}
+          </div>
         </div>
+      </div>
     </nav>
 
-    <main class="container my-5">
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-dismissible fade show 
-                {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" 
-                role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-        {% endif %}
-        
-        {% block content %}{% endblock %}
-    </main>
+    <!-- WRAPPER: Chứa Sidebar + Content -->
+    <div id="wrapper">
+      <!-- 1. SIDEBAR (Chỉ hiện khi đã đăng nhập) -->
+      {% if user.is_authenticated %}
+      <div id="sidebar-wrapper">
+        <div class="list-group list-group-flush py-3">
+          <!-- SECTION: CHUNG -->
+          <div class="sidebar-heading">Cá nhân</div>
+          <a
+            href="{% url 'dashboard' %}"
+            class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+          >
+            <i class="bi bi-grid-1x2-fill"></i> Tổng quan
+          </a>
+          <a href="#" class="list-group-item list-group-item-action">
+            <i class="bi bi-compass"></i> Khám phá đề thi
+          </a>
 
-    <footer class="py-4 mt-auto text-center text-muted" style="background-color: var(--background-light); border-top: 1px solid var(--border-color);">
-        <p class="mb-0">&copy; 2025 Examify. All rights reserved.</p>
-    </footer>
+          <!-- SECTION: GIÁO VIÊN (Kiểm tra role hoặc staff) -->
+          <div class="sidebar-heading mt-3">Quản lý Đào tạo</div>
+
+          <a
+            href="{% url 'quiz:quiz_list' %}"
+            class="list-group-item list-group-item-action"
+          >
+            <i class="bi bi-journal-richtext"></i> Thư viện đề thi
+          </a>
+          <a
+            href="{% url 'quiz:question_list' %}"
+            class="list-group-item list-group-item-action"
+          >
+            <i class="bi bi-collection-fill"></i> Ngân hàng câu hỏi
+          </a>
+          <a
+            href="{% url 'quiz:grading_dashboard' %}"
+            class="list-group-item list-group-item-action"
+          >
+            <i class="bi bi-check2-square"></i> Chấm bài tự luận
+          </a>
+
+          <!-- SECTION: CÀI ĐẶT -->
+          <div class="sidebar-heading mt-3">Hệ thống</div>
+          <a href="#" class="list-group-item list-group-item-action">
+            <i class="bi bi-gear"></i> Cài đặt
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 2. MAIN CONTENT AREA -->
+      <div id="page-content-wrapper">
+        <!-- Container chứa nội dung chính -->
+        <div class="container-fluid px-4 py-4">
+          <!-- Thông báo (Alerts) -->
+          {% if messages %} {% for message in messages %}
+          <div
+            class="alert alert-dismissible fade show shadow-sm border-0
+                        {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}"
+            role="alert"
+          >
+            <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+          {% endfor %} {% endif %}
+
+          <!-- Nội dung trang con -->
+          {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer dính đáy content -->
+        <footer class="mt-auto py-3 text-center text-muted border-top bg-white">
+          <small
+            >&copy; 2025 Examify. Nền tảng thi trắc nghiệm thông minh.</small
+          >
+        </footer>
+      </div>
+    </div>
+    <!-- End #wrapper -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+
+    <!-- Script nhỏ để toggle sidebar trên mobile -->
+    <script>
+      const menuToggle = document.getElementById("menu-toggle");
+      const wrapper = document.getElementById("wrapper");
+      if (menuToggle) {
+        menuToggle.addEventListener("click", function (e) {
+          e.preventDefault();
+          wrapper.classList.toggle("toggled");
+          // Logic CSS để ẩn hiện sidebar (cần thêm class toggled vào CSS nếu muốn responsive xịn hơn)
+          const sidebar = document.getElementById("sidebar-wrapper");
+          if (
+            sidebar.style.marginLeft === "0px" ||
+            sidebar.style.marginLeft === ""
+          ) {
+            sidebar.style.marginLeft = "-260px";
+          } else {
+            sidebar.style.marginLeft = "0px";
+          }
+        });
+      }
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
 </html>

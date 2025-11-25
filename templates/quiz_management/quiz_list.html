@@ -1,69 +1,214 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Quản lý Đề thi{% endblock %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title"><i class="bi bi-file-earmark-text me-2"></i>Quản lý Đề thi</h1>
-    <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
-    </a>
-</div>
+{% block extra_head %}
+<style>
+    /* Hiệu ứng badge mềm mại */
+    .badge-soft-success { background-color: rgba(25, 135, 84, 0.1); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2); }
+    .badge-soft-info { background-color: rgba(13, 202, 240, 0.1); color: #055160; border: 1px solid rgba(13, 202, 240, 0.2); }
+    .badge-soft-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; border: 1px solid rgba(108, 117, 125, 0.2); }
+    .badge-soft-warning { background-color: rgba(255, 193, 7, 0.1); color: #856404; border: 1px solid rgba(255, 193, 7, 0.2); }
+    
+    /* Code box */
+    .access-code-box {
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 1px;
+    }
+    .access-code-box:hover {
+        background-color: #e9ecef !important;
+        transform: scale(1.05);
+    }
+    
+    /* Table row hover effect */
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
 
-<div class="card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th class="ps-4">Tiêu đề</th>
-                        <th>Môn học</th>
-                        <th>Mã tham gia</th>
-                        <th>Trạng thái</th>
-                        <th class="text-end pe-4">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for quiz in quizzes %}
-                    <tr>
-                        <td class="ps-4">
-                            <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="text-decoration-none fw-bold">{{ quiz.title }}</a>
-                            <div class="small text-muted">{{ quiz.questions.count }} câu hỏi | {{ quiz.duration_minutes }} phút</div>
-                        </td>
-                        <td>{{ quiz.subject.name }}</td>
-                        <td>
-                            {% if quiz.access_code %}
-                                <span class="badge bg-dark font-monospace">{{ quiz.access_code }}</span>
-                            {% else %}
-                                <span class="text-muted small">--</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <!-- === LOGIC ĐÃ ĐƯỢC SỬA LẠI CHO ĐÚNG === -->
-                            {% if quiz.start_time > now %}
-                                <span class="badge bg-info">Sắp diễn ra</span>
-                            {% elif quiz.end_time < now %}
-                                <span class="badge bg-secondary">Đã kết thúc</span>
-                            {% else %}
-                                <span class="badge bg-success">Đang diễn ra</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end pe-4">
-                            <a href="{% url 'quiz:quiz_results' quiz.pk %}" class="btn btn-sm btn-outline-success" title="Xem Kết quả"><i class="bi bi-bar-chart-line"></i></a>
-                            <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
-                            <a href="{% url 'quiz:quiz_delete' quiz.pk %}" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3"></i></a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center p-5">
-                            <h4 class="text-muted">Bạn chưa tạo đề thi nào.</h4>
-                            <p><a href="{% url 'quiz:quiz_create' %}">Hãy tạo đề thi đầu tiên!</a></p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="page-title mb-1"><i class="bi bi-journal-text me-2"></i>Thư viện Đề thi</h2>
+            <p class="text-muted small mb-0">Quản lý tất cả các bài kiểm tra và kỳ thi của bạn.</p>
         </div>
+        <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i>Tạo đề thi mới
+        </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-secondary text-uppercase small fw-bold">Thông tin đề thi</th>
+                            <th class="py-3 text-secondary text-uppercase small fw-bold">Chế độ & Mã</th>
+                            <th class="py-3 text-secondary text-uppercase small fw-bold">Trạng thái</th>
+                            <th class="text-end pe-4 py-3 text-secondary text-uppercase small fw-bold">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for quiz in quizzes %}
+                        <tr>
+                            <!-- Cột 1: Thông tin chính -->
+                            <td class="ps-4 py-3">
+                                <div class="d-flex flex-column">
+                                    <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="fw-bold text-dark text-decoration-none fs-6 mb-1 hover-primary">
+                                        {{ quiz.title }}
+                                    </a>
+                                    <div class="small text-muted d-flex align-items-center gap-2">
+                                        <span class="badge bg-light text-dark border">{{ quiz.subject.name }}</span>
+                                        <span>•</span>
+                                        <span><i class="bi bi-clock me-1"></i>{{ quiz.duration_minutes }} phút</span>
+                                        <span>•</span>
+                                        <span><i class="bi bi-question-circle me-1"></i>{{ quiz.questions.count }} câu</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Cột 2: Mã tham gia (QUAN TRỌNG) -->
+                            <td>
+                                {% if quiz.is_public %}
+                                    <span class="badge badge-soft-success rounded-pill px-3">
+                                        <i class="bi bi-globe me-1"></i>Công khai
+                                    </span>
+                                {% else %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <!-- Badge Riêng tư -->
+                                        <span class="badge badge-soft-warning rounded-pill" title="Chỉ học sinh có mã mới được thi">
+                                            <i class="bi bi-lock-fill"></i>
+                                        </span>
+                                        
+                                        <!-- Hộp mã code có chức năng click-to-copy -->
+                                        {% if quiz.access_code %}
+                                            <div class="input-group input-group-sm" style="width: 140px;">
+                                                <input type="text" class="form-control bg-light text-center fw-bold border-end-0 access-code-box" 
+                                                       value="{{ quiz.access_code }}" readonly 
+                                                       onclick="copyToClipboard('{{ quiz.access_code }}')" 
+                                                       title="Bấm để copy"
+                                                       data-bs-toggle="tooltip">
+                                                <button class="btn btn-outline-secondary border-start-0" type="button" 
+                                                        onclick="copyToClipboard('{{ quiz.access_code }}')">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted small">--</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Cột 3: Trạng thái thời gian -->
+                            <td>
+                                {% if quiz.start_time > now %}
+                                    <span class="badge badge-soft-info rounded-pill px-3">
+                                        <i class="bi bi-hourglass-split me-1"></i>Sắp diễn ra
+                                    </span>
+                                    <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                                        Mở: {{ quiz.start_time|date:"d/m H:i" }}
+                                    </div>
+                                {% elif quiz.end_time < now %}
+                                    <span class="badge badge-soft-secondary rounded-pill px-3">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Đã kết thúc
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-soft-success rounded-pill px-3">
+                                        <i class="bi bi-play-circle-fill me-1"></i>Đang diễn ra
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Cột 4: Hành động -->
+                            <td class="text-end pe-4">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'quiz:quiz_results' quiz.pk %}" class="btn btn-sm btn-white border text-success hover-lift" title="Xem kết quả" data-bs-toggle="tooltip">
+                                        <i class="bi bi-bar-chart-line-fill"></i>
+                                    </a>
+                                    <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="btn btn-sm btn-white border text-primary hover-lift" title="Chỉnh sửa" data-bs-toggle="tooltip">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a href="{% url 'quiz:quiz_delete' quiz.pk %}" class="btn btn-sm btn-white border text-danger hover-lift" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa đề thi này?');">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="text-muted opacity-50 mb-3">
+                                    <i class="bi bi-inbox-fill display-4"></i>
+                                </div>
+                                <h5 class="text-muted">Chưa có đề thi nào</h5>
+                                <p class="text-muted small mb-4">Hãy bắt đầu tạo bài kiểm tra đầu tiên cho học sinh của bạn.</p>
+                                <a href="{% url 'quiz:quiz_create' %}" class="btn btn-primary btn-sm px-4 rounded-pill">
+                                    <i class="bi bi-plus-lg me-1"></i>Tạo ngay
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination (Nếu có) -->
+        {% if is_paginated %}
+        <div class="card-footer bg-white py-3">
+            <!-- Code phân trang giữ nguyên nếu bạn dùng ListView có paginate_by -->
+        </div>
+        {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hàm copy mã vào clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            // Tạo hiệu ứng thông báo nhỏ (Toast) hoặc Alert đơn giản
+            // Ở đây dùng alert đơn giản cho dễ tích hợp
+            // Tốt nhất nên dùng Toast của Bootstrap
+            const toastHtml = `
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                    <div id="liveToast" class="toast show align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-check-circle me-2"></i>Đã copy mã: <strong>${text}</strong>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // Tự động ẩn sau 2s
+            setTimeout(() => {
+                const toast = document.getElementById('liveToast');
+                if(toast) toast.remove();
+            }, 2000);
+            
+        }, function(err) {
+            alert('Lỗi khi copy: ' + err);
+        });
+    }
+
+    // Kích hoạt Tooltip của Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
 {% endblock %}

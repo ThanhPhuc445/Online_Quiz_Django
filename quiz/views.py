@@ -20,6 +20,9 @@ from users.decorators import student_required, teacher_required
 from results.models import Result, StudentAnswer
 from results.models import PracticeResult
 from django.db.models import Avg, F
+import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 # ===========================================================================
 # VIEWS CHUNG & PHÂN LUỒNG
 # ===========================================================================
@@ -208,7 +211,59 @@ def question_create(request):
         'is_edit': False
     })
 
+# === API TẠO CÂU HỎI NHANH (AJAX) ===
+@login_required
+@teacher_required
+@require_POST
+def api_quick_create_question(request):
+    try:
+        data = json.loads(request.body)
+        
+        # 1. Lấy dữ liệu từ Modal
+        text = data.get('text')
+        q_type = data.get('question_type')
+        subject_id = data.get('subject_id')
+        difficulty = data.get('difficulty', 'MEDIUM')
+        
+        # Dữ liệu cho câu tự luận / trắc nghiệm
+        correct_answer_text = data.get('correct_answer_text', '') # Cho tự luận
+        answers_data = data.get('answers', []) # Cho trắc nghiệm [{'text': 'A', 'is_correct': True}, ...]
 
+        # 2. Tạo câu hỏi
+        subject = Subject.objects.get(id=subject_id)
+        question = Question.objects.create(
+            text=text,
+            subject=subject,
+            question_type=q_type,
+            difficulty=difficulty,
+            created_by=request.user,
+            correct_answer_text=correct_answer_text if q_type == 'SHORT_ANSWER' else None
+        )
+
+        # 3. Tạo đáp án (Nếu là trắc nghiệm)
+        if q_type in ['SINGLE_CHOICE', 'MULTIPLE_CHOICE']:
+            for ans in answers_data:
+                if ans.get('text'): # Chỉ lưu đáp án có nội dung
+                    Answer.objects.create(
+                        question=question,
+                        text=ans.get('text'),
+                        is_correct=ans.get('is_correct', False)
+                    )
+        
+        # 4. Trả về dữ liệu để hiển thị ngay lập tức
+        return JsonResponse({
+            'status': 'success',
+            'question': {
+                'id': question.id,
+                'text': question.text,
+                'difficulty': question.get_difficulty_display(),
+                'type': question.get_question_type_display(),
+                'subject': question.subject.name
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 @login_required
 @teacher_required
 @transaction.atomic

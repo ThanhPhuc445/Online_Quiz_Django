@@ -18,6 +18,8 @@ urlpatterns = [
     path('teacher/quizzes/<int:pk>/edit/', views.quiz_edit, name='quiz_edit'),
     path('teacher/quizzes/<int:pk>/delete/', views.quiz_delete, name='quiz_delete'),
     path('teacher/quizzes/<int:pk>/results/', views.quiz_results, name='quiz_results'),
+
+    path('api/question/quick-create/', views.api_quick_create_question, name='api_quick_create_question'),
     
     # URLs chấm điểm tự luận
     path('grading/dashboard/', views.grading_dashboard, name='grading_dashboard'),

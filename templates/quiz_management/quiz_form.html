@@ -6,282 +6,482 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">
-    {% if is_edit %}
-        <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa: {{ quiz.title }}
-    {% else %}
-        <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
-    {% endif %}
-</h1>
+<div class="container-fluid py-4">
+    <h1 class="page-title mb-4">
+        {% if is_edit %}
+            <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa: {{ quiz.title }}
+        {% else %}
+            <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
+        {% endif %}
+    </h1>
 
-<form method="post" novalidate>
-    {% csrf_token %}
-    <div class="row gx-4">
-        
-        <!-- ======================= CỘT TRÁI (THÔNG TIN CHÍNH) ======================= -->
-        <div class="col-lg-8">
+    <form method="post" novalidate id="quizForm">
+        {% csrf_token %}
+        <div class="row gx-4">
             
-            <!-- Card Thông tin cơ bản -->
-            <div class="card mb-4">
-                <div class="card-header">Thông tin cơ bản</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">{{ form.title.label }}</label>
-                        {{ form.title }}
-                        {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors|striptags }}</div>{% endif %}
+            <!-- ======================= CỘT TRÁI (NỘI DUNG CHÍNH) ======================= -->
+            <div class="col-lg-8">
+                
+                <!-- 1. THÔNG TIN CƠ BẢN -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3 border-bottom">
+                        <i class="bi bi-info-circle me-2 text-primary"></i>Thông tin cơ bản
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.subject.id_for_label }}" class="form-label fw-bold">{{ form.subject.label }}</label>
-                        {{ form.subject }}
-                         {% if form.subject.errors %}<div class="text-danger small mt-1">{{ form.subject.errors|striptags }}</div>{% endif %}
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="{{ form.duration_minutes.id_for_label }}" class="form-label fw-bold">{{ form.duration_minutes.label }}</label>
-                            {{ form.duration_minutes }}
-                             {% if form.duration_minutes.errors %}<div class="text-danger small mt-1">{{ form.duration_minutes.errors|striptags }}</div>{% endif %}
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tiêu đề đề thi</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors|striptags }}</div>{% endif %}
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="{{ form.start_time.id_for_label }}" class="form-label fw-bold">{{ form.start_time.label }}</label>
-                            {{ form.start_time }}
-                             {% if form.start_time.errors %}<div class="text-danger small mt-1">{{ form.start_time.errors|striptags }}</div>{% endif %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Môn học</label>
+                            {{ form.subject }}
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="{{ form.end_time.id_for_label }}" class="form-label fw-bold">{{ form.end_time.label }}</label>
-                            {{ form.end_time }}
-                             {% if form.end_time.errors %}<div class="text-danger small mt-1">{{ form.end_time.errors|striptags }}</div>{% endif %}
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Thời gian (phút)</label>
+                                {{ form.duration_minutes }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Bắt đầu</label>
+                                {{ form.start_time }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Kết thúc</label>
+                                {{ form.end_time }}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Card Chọn câu hỏi -->
-            <div class="card">
-                <div class="card-header">{{ form.questions.label }} <small class="text-muted">(Chọn từ ngân hàng câu hỏi của bạn)</small></div>
-                <div class="card-body p-4 border rounded" style="max-height: 500px; overflow-y: auto;">
-                    {% if form.questions.field.queryset.exists %}
-                        <div class="question-selection-list">
-                            {% for checkbox in form.questions %}
-                                <div class="form-check mb-3 p-3 border rounded">
-                                    {{ checkbox.tag }}
-                                    <label for="{{ checkbox.id_for_label }}" class="form-check-label w-100">
-                                        <div class="fw-bold question-text">{{ checkbox.choice_label|safe }}</div>
-                                        <div class="small text-muted mt-1">
-                                            {% with question=checkbox.data.instance %}
-                                                <span class="badge bg-secondary me-1">{{ question.get_question_type_display }}</span>
-                                                {% if question.difficulty == 'EASY' %}
-                                                    <span class="badge bg-success">Dễ</span>
-                                                {% elif question.difficulty == 'MEDIUM' %}
-                                                    <span class="badge bg-warning text-dark">Trung bình</span>
-                                                {% elif question.difficulty == 'HARD' %}
-                                                    <span class="badge bg-danger">Khó</span>
-                                                {% endif %}
-                                                <span class="ms-2 text-muted">Môn: {{ question.subject.name }}</span>
-                                            {% endwith %}
-                                        </div>
-                                    </label>
+                <!-- 2. CHỌN CÂU HỎI (ĐÃ NÂNG CẤP) -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                        <div class="fw-bold"><i class="bi bi-list-check me-2 text-primary"></i>Chọn câu hỏi</div>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-primary rounded-pill d-flex align-items-center px-3" id="selectedCountBadge">Đã chọn: 0</span>
+                            
+                            <!-- NÚT MỞ MODAL SOẠN CÂU HỎI -->
+                            <button type="button" class="btn btn-sm btn-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#quickQuestionModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm câu hỏi nhanh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-0">
+                        <!-- Toolbar Tìm kiếm -->
+                        <div class="p-3 bg-light border-bottom">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Nhập từ khóa để tìm câu hỏi trong danh sách...">
+                            </div>
+                        </div>
+
+                        <!-- Danh sách câu hỏi -->
+                        <div class="question-list-container p-3" style="height: 500px; overflow-y: auto;">
+                            <!-- Tìm đoạn <div id="questionsWrapper"> và thay thế bằng đoạn này -->
+
+<div id="questionsWrapper">
+    {% for question in form.questions.field.queryset %}
+        <div class="question-item form-check mb-2 p-3 border rounded bg-white" 
+             data-difficulty="{{ question.difficulty }}" 
+             data-search="{{ question.text|lower }}">
+            
+            <!-- 1. Input Checkbox tự tạo -->
+            <input type="checkbox" 
+                   name="questions" 
+                   value="{{ question.pk }}" 
+                   id="id_questions_{{ question.pk }}" 
+                   class="form-check-input" 
+                   onchange="updateCount()"
+                   {% if is_edit and question in quiz.questions.all %}checked{% endif %}
+            >
+            
+            <!-- 2. Label hiển thị thông tin chi tiết -->
+            <label for="id_questions_{{ question.pk }}" class="form-check-label w-100 ps-1" style="cursor: pointer;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <!-- Nội dung câu hỏi -->
+                    <span class="fw-bold text-dark question-text mb-1 d-block" style="font-size: 0.95rem;">
+                        {{ question.text|truncatechars:100 }}
+                    </span>
+                    
+                    <!-- Loại câu hỏi -->
+                    <span class="badge rounded-pill bg-light text-dark border ms-2 flex-shrink-0">
+                        {{ question.get_question_type_display }}
+                    </span>
+                </div>
+                
+                <!-- Thông tin phụ: Môn học, Độ khó -->
+                <div class="small text-muted mt-1 d-flex gap-3 align-items-center">
+                    <span>
+                        <i class="bi bi-book me-1"></i>{{ question.subject.name }}
+                    </span>
+                    
+                    <span>
+                        <i class="bi bi-bar-chart me-1"></i>
+                        {% if question.difficulty == 'EASY' %}
+                            <span class="text-success">Dễ</span>
+                        {% elif question.difficulty == 'MEDIUM' %}
+                            <span class="text-warning">Trung bình</span>
+                        {% else %}
+                            <span class="text-danger">Khó</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </label>
+        </div>
+    {% endfor %}
+</div>
+                            
+                            <!-- Thông báo nếu trống -->
+                            {% if not form.questions.field.queryset.exists %}
+                                <div id="emptyMsg" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox display-4 mb-3 d-block opacity-25"></i>
+                                    <p>Chưa có câu hỏi nào. Hãy bấm "Thêm câu hỏi nhanh"!</p>
                                 </div>
-                            {% endfor %}
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <div class="text-center p-4 text-muted">
-                            <i class="bi bi-inbox display-4 d-block mb-3"></i>
-                            <h5>Ngân hàng câu hỏi trống</h5>
-                            <p>Bạn cần tạo câu hỏi trước khi có thể chọn cho đề thi.</p>
-                            <a href="{% url 'quiz:question_create' %}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-2"></i>Tạo câu hỏi mới
-                            </a>
-                        </div>
-                    {% endif %}
-                    {% if form.questions.errors %}
-                        <div class="text-danger small mt-2">{{ form.questions.errors|striptags }}</div>
-                    {% endif %}
+                    </div>
                 </div>
+            </div>
+
+            <!-- ======================= CỘT PHẢI (CÀI ĐẶT) ======================= -->
+            <div class="col-lg-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Chế độ hiển thị</h6>
+                        {% for radio in form.is_public %}
+                            <div class="form-check mb-2">
+                                {{ radio.tag }} <label for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-info text-white fw-bold"><i class="bi bi-gear me-2"></i>Cài đặt thi</div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            {{ form.allow_multiple_attempts }}
+                            <label class="form-check-label fw-bold" for="{{ form.allow_multiple_attempts.id_for_label }}">Cho phép thi nhiều lần</label>
+                        </div>
+                        <div class="alert alert-light border small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>Bật để học sinh có thể làm lại bài thi (Chế độ luyện tập).
+                        </div>
+                        
+                        {% if form.shuffle_questions %}
+                        <div class="form-check form-switch mb-3">
+                            {{ form.shuffle_questions }}
+                            <label class="form-check-label" for="{{ form.shuffle_questions.id_for_label }}">Đảo câu hỏi</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.instance.pk and not form.instance.is_public %}
+                <div class="card bg-warning bg-opacity-10 border-warning">
+                    <div class="card-body text-center">
+                        <small class="text-uppercase fw-bold text-warning-emphasis">Mã tham gia</small>
+                        <h3 class="font-monospace my-2 user-select-all">{{ form.instance.access_code }}</h3>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- ======================= CỘT PHẢI (TÙY CHỌN PHỤ) ======================= -->
-        <div class="col-lg-4">
-            <!-- Card Chế độ hiển thị -->
-            <div class="card mb-4">
-                 <div class="card-header">Chế độ hiển thị</div>
-                 <div class="card-body">
-                    {% for radio in form.is_public %}
-                        <div class="form-check mb-2">
-                            {{ radio.tag }}
-                            <label for="{{ radio.id_for_label }}" class="form-check-label">
-                                {{ radio.choice_label }}
-                            </label>
+        <!-- Footer Actions -->
+        <div class="fixed-bottom bg-white border-top p-3 shadow-lg" style="margin-left: 260px;"> <!-- Margin left tránh sidebar -->
+            <div class="container-fluid d-flex justify-content-end gap-2">
+                <a href="{% url 'quiz:quiz_list' %}" class="btn btn-secondary px-4">Hủy bỏ</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold"><i class="bi bi-save me-2"></i>Lưu đề thi</button>
+            </div>
+        </div>
+        <div style="height: 80px;"></div>
+    </form>
+</div>
+
+<!-- ======================= MODAL TẠO CÂU HỎI NHANH ======================= -->
+<div class="modal fade" id="quickQuestionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-lightning-charge-fill me-2"></i>Thêm câu hỏi nhanh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickQuestionForm">
+                    <!-- Nội dung câu hỏi -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                        <textarea id="quick_text" class="form-control" rows="3" required placeholder="Nhập nội dung câu hỏi vào đây..."></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Loại câu hỏi</label>
+                            <select id="quick_type" class="form-select" onchange="toggleAnswerFields()">
+                                <option value="SINGLE_CHOICE">Trắc nghiệm (1 đáp án đúng)</option>
+                                <option value="MULTIPLE_CHOICE">Nhiều lựa chọn (Checkbox)</option>
+                                <option value="SHORT_ANSWER">Tự luận / Trả lời ngắn</option>
+                            </select>
                         </div>
-                    {% endfor %}
-                 </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Độ khó</label>
+                            <select id="quick_difficulty" class="form-select">
+                                <option value="EASY">Dễ</option>
+                                <option value="MEDIUM" selected>Trung bình</option>
+                                <option value="HARD">Khó</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- KHU VỰC NHẬP ĐÁP ÁN (SẼ THAY ĐỔI THEO LOẠI CÂU HỎI) -->
+                    <div id="choice_answers_area" class="bg-light p-3 rounded border">
+                        <div class="d-flex justify-content-between mb-2">
+                            <label class="form-label fw-bold mb-0">Các lựa chọn đáp án</label>
+                            <small class="text-primary fw-bold" id="hint_text">
+                                <i class="bi bi-info-circle me-1"></i>Chọn 1 đáp án đúng duy nhất
+                            </small>
+                        </div>
+
+                        <!-- Dòng 1 -->
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-white">
+                                <!-- Class 'correct-opt' để JS thao tác -->
+                                <input type="radio" name="correct_group" class="form-check-input mt-0 correct-opt" title="Chọn làm đáp án đúng" checked>
+                            </div>
+                            <input type="text" class="form-control ans-input" placeholder="Đáp án A" required>
+                        </div>
+                        <!-- Dòng 2 -->
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-white">
+                                <input type="radio" name="correct_group" class="form-check-input mt-0 correct-opt" title="Chọn làm đáp án đúng">
+                            </div>
+                            <input type="text" class="form-control ans-input" placeholder="Đáp án B" required>
+                        </div>
+                        <!-- Dòng 3 -->
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-white">
+                                <input type="radio" name="correct_group" class="form-check-input mt-0 correct-opt" title="Chọn làm đáp án đúng">
+                            </div>
+                            <input type="text" class="form-control ans-input" placeholder="Đáp án C">
+                        </div>
+                        <!-- Dòng 4 -->
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-white">
+                                <input type="radio" name="correct_group" class="form-check-input mt-0 correct-opt" title="Chọn làm đáp án đúng">
+                            </div>
+                            <input type="text" class="form-control ans-input" placeholder="Đáp án D">
+                        </div>
+                    </div>
+
+                    <!-- KHU VỰC TỰ LUẬN -->
+                    <div id="essay_answer_area" class="d-none bg-light p-3 rounded border">
+                        <label class="form-label fw-bold">Đáp án gợi ý (cho tự luận)</label>
+                        <textarea id="quick_essay_answer" class="form-control" rows="2" placeholder="Nhập đáp án đúng để hệ thống tham khảo (không bắt buộc)..."></textarea>
+                        <small class="text-muted">* Học sinh sẽ nhập câu trả lời vào ô văn bản.</small>
+                    </div>
+                </form>
             </div>
-
-            <!-- Card Cài đặt thi - PHẦN QUAN TRỌNG ĐÃ ĐƯỢC SỬA -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <i class="bi bi-gear me-2"></i>Cài đặt thi
-                </div>
-                <div class="card-body">
-                    <!-- Cho phép thi nhiều lần -->
-                    <div class="form-check form-switch mb-3">
-                        {{ form.allow_multiple_attempts }}
-                        <label for="{{ form.allow_multiple_attempts.id_for_label }}" class="form-check-label fw-bold">
-                            {{ form.allow_multiple_attempts.label }}
-                        </label>
-                    </div>
-                    <div class="alert alert-info p-2 small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        <strong>Thi một lần:</strong> Học sinh chỉ được làm bài 1 lần duy nhất<br>
-                        <strong>Thi nhiều lần:</strong> Học sinh có thể luyện tập nhiều lần
-                    </div>
-
-                    <!-- Thêm các cài đặt khác nếu có -->
-                    {% if form.shuffle_questions %}
-                    <div class="form-check form-switch mb-3">
-                        {{ form.shuffle_questions }}
-                        <label for="{{ form.shuffle_questions.id_for_label }}" class="form-check-label">
-                            {{ form.shuffle_questions.label }}
-                        </label>
-                    </div>
-                    {% endif %}
-
-                    {% if form.show_results_immediately %}
-                    <div class="form-check form-switch mb-3">
-                        {{ form.show_results_immediately }}
-                        <label for="{{ form.show_results_immediately.id_for_label }}" class="form-check-label">
-                            {{ form.show_results_immediately.label }}
-                        </label>
-                    </div>
-                    {% endif %}
-                </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="saveQuickQuestion()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu & Chọn ngay
+                </button>
             </div>
-
-            <!-- Hiển thị Mã tham gia (chỉ khi là đề riêng tư và đã được lưu) -->
-            {% if form.instance.pk and form.instance.is_public == False %}
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <i class="bi bi-key me-2"></i>Mã tham gia
-                </div>
-                <div class="card-body text-center">
-                    <p class="small mb-2">Chia sẻ mã này cho học sinh để tham gia kỳ thi:</p>
-                    <h4 class="font-monospace p-3 bg-light border rounded mb-3">{{ form.instance.access_code }}</h4>
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Học sinh cần nhập mã này để truy cập đề thi riêng tư
-                    </small>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Nút bấm hành động -->
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary btn-lg">
-            <i class="bi bi-save me-2"></i>
-            {% if is_edit %}Cập nhật đề thi{% else %}Lưu đề thi{% endif %}
-        </button>
-        <a href="{% url 'quiz:quiz_list' %}" class="btn btn-secondary btn-lg">Hủy bỏ</a>
-    </div>
-</form>
-
-<!-- MathJax để hiển thị công thức toán học trong câu hỏi -->
+{% block extra_js %}
 <script>
-window.MathJax = {
-    tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true
-    }
-};
-</script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+// === PHẦN 1: LOGIC TÌM KIẾM & ĐẾM ===
+const searchInput = document.getElementById('searchInput');
+const badge = document.getElementById('selectedCountBadge');
 
-<style>
-.question-selection-list .form-check {
-    transition: all 0.2s ease;
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
-}
-
-.question-selection-list .form-check:hover {
-    background-color: #f8f9fa;
-    border-color: #0d6efd;
-}
-
-.question-selection-list .form-check-input:checked ~ .form-check-label {
-    color: #0d6efd;
-}
-
-.question-selection-list .form-check-input:checked ~ .form-check-label .question-text {
-    font-weight: bold;
-}
-
-.question-text {
-    line-height: 1.4;
-}
-
-.badge {
-    font-size: 0.7rem;
-}
-
-.card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-}
-
-.card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-    font-weight: 600;
-}
-
-/* Style cho phần cài đặt thi */
-.form-switch .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-.alert-info {
-    background-color: #d1ecf1;
-    border-color: #bee5eb;
-    color: #0c5460;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Kích hoạt MathJax để render công thức toán học
-    if (window.MathJax) {
-        MathJax.typesetPromise();
-    }
+function updateCount() {
+    const count = document.querySelectorAll('input[name="questions"]:checked').length;
+    if(badge) badge.innerText = `Đã chọn: ${count}`;
     
-    // Thêm hiệu ứng cho checkbox câu hỏi
-    const checkboxes = document.querySelectorAll('.question-selection-list .form-check-input');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const parent = this.closest('.form-check');
-            if (this.checked) {
-                parent.style.backgroundColor = '#e7f1ff';
-                parent.style.borderColor = '#0d6efd';
-            } else {
-                parent.style.backgroundColor = '';
-                parent.style.borderColor = '#dee2e6';
+    // Highlight background
+    document.querySelectorAll('.question-item').forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if(cb.checked) {
+            item.classList.add('border-primary', 'bg-primary-subtle');
+        } else {
+            item.classList.remove('border-primary', 'bg-primary-subtle');
+        }
+    });
+}
+
+searchInput.addEventListener('keyup', function() {
+    const val = this.value.toLowerCase();
+    document.querySelectorAll('.question-item').forEach(item => {
+        const text = item.getAttribute('data-search');
+        item.style.display = text.includes(val) ? 'block' : 'none';
+    });
+});
+
+document.querySelectorAll('input[name="questions"]').forEach(cb => {
+    cb.addEventListener('change', updateCount);
+});
+updateCount(); // Chạy lần đầu
+
+// === PHẦN 2: LOGIC MODAL TẠO CÂU HỎI (QUAN TRỌNG) ===
+
+// Hàm chuyển đổi giao diện Radio/Checkbox/Textarea
+function toggleAnswerFields() {
+    const type = document.getElementById('quick_type').value;
+    const inputs = document.querySelectorAll('.correct-opt');
+    const hint = document.getElementById('hint_text');
+    const choiceArea = document.getElementById('choice_answers_area');
+    const essayArea = document.getElementById('essay_answer_area');
+
+    if (type === 'SHORT_ANSWER') {
+        choiceArea.classList.add('d-none');
+        essayArea.classList.remove('d-none');
+    } else {
+        choiceArea.classList.remove('d-none');
+        essayArea.classList.add('d-none');
+        
+        if (type === 'SINGLE_CHOICE') {
+            // Radio: Chỉ chọn 1
+            hint.innerHTML = '<i class="bi bi-info-circle me-1"></i>Chọn 1 đáp án đúng duy nhất';
+            inputs.forEach(input => {
+                input.type = 'radio';
+                input.name = 'correct_group'; // Cùng name để group lại
+            });
+        } else if (type === 'MULTIPLE_CHOICE') {
+            // Checkbox: Chọn nhiều
+            hint.innerHTML = '<i class="bi bi-check2-all me-1"></i>Có thể chọn nhiều đáp án đúng';
+            inputs.forEach((input, index) => {
+                input.type = 'checkbox';
+                input.name = 'correct_group_' + index; // Khác name để không bị group
+            });
+        }
+    }
+}
+
+// Gọi hàm này khi mở modal để reset trạng thái về mặc định
+document.getElementById('quickQuestionModal').addEventListener('shown.bs.modal', function () {
+    toggleAnswerFields();
+});
+
+// Hàm Gửi dữ liệu lên Server
+function saveQuickQuestion() {
+    // 1. Validate dữ liệu
+    const text = document.getElementById('quick_text').value.trim();
+    if (!text) return alert("Vui lòng nhập nội dung câu hỏi!");
+    
+    const type = document.getElementById('quick_type').value;
+    const difficulty = document.getElementById('quick_difficulty').value;
+    const subjectId = document.getElementById('id_subject').value; // Lấy ID môn học từ form chính
+
+    if (!subjectId) return alert("Vui lòng chọn Môn học ở phần Thông tin cơ bản trước!");
+
+    let payload = {
+        text: text,
+        question_type: type,
+        difficulty: difficulty,
+        subject_id: subjectId,
+        answers: []
+    };
+
+    if (type === 'SHORT_ANSWER') {
+        payload.correct_answer_text = document.getElementById('quick_essay_answer').value;
+    } else {
+        // Lấy danh sách đáp án
+        const inputs = document.querySelectorAll('.ans-input');
+        const checkInputs = document.querySelectorAll('.correct-opt'); // Radio hoặc Checkbox
+        let hasCorrect = false;
+
+        inputs.forEach((inp, index) => {
+            if (inp.value.trim()) {
+                payload.answers.push({
+                    text: inp.value.trim(),
+                    is_correct: checkInputs[index].checked
+                });
+                if (checkInputs[index].checked) hasCorrect = true;
             }
         });
-    });
-
-    // Hiển thị thông tin giải thích cho phần cài đặt thi
-    const multipleAttemptsSwitch = document.getElementById('{{ form.allow_multiple_attempts.id_for_label }}');
-    if (multipleAttemptsSwitch) {
-        multipleAttemptsSwitch.addEventListener('change', function() {
-            const explanation = this.checked ? 
-                'Đã bật: Học sinh có thể thi nhiều lần (chế độ luyện tập)' :
-                'Đã tắt: Học sinh chỉ được thi 1 lần duy nhất';
-            console.log(explanation);
-        });
+        
+        if (payload.answers.length < 2) return alert("Vui lòng nhập ít nhất 2 đáp án!");
+        if (!hasCorrect) return alert("Vui lòng chọn ít nhất 1 đáp án đúng!");
     }
-});
+
+    // 2. Gửi AJAX (Fetch)
+    fetch("{% url 'quiz:api_quick_create_question' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // 3. Tạo HTML cho câu hỏi mới và chèn vào danh sách
+            const q = data.question;
+            const html = `
+                <div class="question-item form-check mb-2 p-3 border rounded bg-success-subtle border-success" 
+                     data-difficulty="${difficulty}" 
+                     data-search="${q.text.toLowerCase()}">
+                    
+                    <!-- Checkbox của Django form (quan trọng) -->
+                    <input type="checkbox" name="questions" value="${q.id}" id="id_questions_${q.id}" class="form-check-input" checked onchange="updateCount()">
+                    
+                    <label for="id_questions_${q.id}" class="form-check-label w-100 ps-1" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-dark">${q.text}</span>
+                            <span class="badge bg-secondary">${q.type}</span>
+                        </div>
+                        <div class="small text-muted mt-1">
+                            Môn: ${q.subject} | Độ khó: ${q.difficulty} 
+                            <span class="badge bg-success ms-2">Vừa tạo</span>
+                        </div>
+                    </label>
+                </div>
+            `;
+            
+            // Ẩn thông báo trống nếu có
+            const emptyMsg = document.getElementById('emptyMsg');
+            if(emptyMsg) emptyMsg.style.display = 'none';
+
+            // Chèn lên đầu danh sách
+            const wrapper = document.getElementById('questionsWrapper');
+            wrapper.insertAdjacentHTML('afterbegin', html);
+            
+            // Cập nhật số lượng đã chọn
+            updateCount();
+            
+            // Đóng modal & Reset form
+            bootstrap.Modal.getInstance(document.getElementById('quickQuestionModal')).hide();
+            document.getElementById('quickQuestionForm').reset();
+            
+            // Reset lại radio button mặc định
+            document.querySelectorAll('.correct-opt')[0].checked = true;
+            
+        } else {
+            alert("Lỗi server: " + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Có lỗi xảy ra khi kết nối server.");
+    });
+}
 </script>
+
+<style>
+/* CSS Scrollbar đẹp */
+.question-list-container::-webkit-scrollbar { width: 8px; }
+.question-list-container::-webkit-scrollbar-track { background: #f1f1f1; }
+.question-list-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+
+/* CSS cho input đáp án */
+.correct-opt { cursor: pointer; }
+.ans-input:focus { border-color: #198754; box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25); }
+</style>
 {% endblock %}
