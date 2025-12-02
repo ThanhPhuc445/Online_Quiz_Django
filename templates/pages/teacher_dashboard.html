@@ -1,306 +1,258 @@
-{% extends "base.html" %} {% load static %} {% block title %}Tổng quan - Giáo
-viên{% endblock %} {% block extra_css %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Giáo viên{% endblock %}
+
+{% block extra_css %}
 <style>
-  :root {
-    --primary-soft: rgba(13, 110, 253, 0.1);
-    --success-soft: rgba(25, 135, 84, 0.1);
-    --warning-soft: rgba(255, 193, 7, 0.15);
-    --info-soft: rgba(13, 202, 240, 0.1);
-  }
+    /* Card thống kê kiểu mới */
+    .stat-card {
+        background: #fff;
+        border: 1px solid #eef2f6;
+        border-radius: 12px;
+        padding: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        border-color: transparent;
+    }
+    
+    /* Icon box màu mè */
+    .icon-box {
+        width: 48px; height: 48px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    .icon-red { background: #fff5f5; color: #e53e3e; }
+    .icon-orange { background: #fffaf0; color: #dd6b20; }
+    .icon-blue { background: #ebf8ff; color: #3182ce; }
+    .icon-green { background: #f0fff4; color: #38a169; }
 
-  /* Hiệu ứng thẻ Card */
-  .card-dashboard {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    background-color: #fff;
-  }
-  .card-dashboard:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-  }
-
-  /* Icon thống kê */
-  .icon-shape {
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 1.75rem;
-  }
-  .bg-soft-primary {
-    background-color: var(--primary-soft);
-    color: #0d6efd;
-  }
-  .bg-soft-success {
-    background-color: var(--success-soft);
-    color: #198754;
-  }
-  .bg-soft-warning {
-    background-color: var(--warning-soft);
-    color: #ffc107;
-  }
-  .bg-soft-info {
-    background-color: var(--info-soft);
-    color: #0dcaf0;
-  }
-
-  /* Action Button Style */
-  .btn-action-card {
-    text-align: left;
-    padding: 1.25rem;
-    border: 1px solid #e9ecef;
-    background: #fff;
-    border-radius: 10px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    color: #495057;
-    text-decoration: none;
-  }
-  .btn-action-card:hover {
-    border-color: #0d6efd;
-    background-color: #f8f9fa;
-    color: #0d6efd;
-    transform: translateX(5px);
-  }
-  .btn-action-card i {
-    font-size: 1.5rem;
-    margin-right: 15px;
-    width: 40px;
-    text-align: center;
-  }
+    /* Bảng đề thi */
+    .card-table {
+        border: 1px solid #eef2f6;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .table th {
+        background: #f8fafc;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+        padding: 12px 20px;
+    }
+    .table td {
+        padding: 15px 20px;
+        vertical-align: middle;
+        color: #334155;
+    }
+    
+    /* Nút tác vụ nhanh */
+    .quick-link {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        color: #475569;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .quick-link:hover {
+        background: #f1f5f9;
+        color: var(--primary-color);
+    }
+    .quick-link i { font-size: 1.2rem; margin-right: 10px; }
 </style>
-{% endblock %} {% block content %}
-<div
-  class="container-fluid py-4"
-  style="background-color: #f5f7fa; min-height: 100vh"
->
-  <!-- HEADER SECTION -->
-  <div class="d-flex justify-content-between align-items-end mb-4">
+{% endblock %}
+
+{% block content %}
+<!-- Chào mừng -->
+<div class="d-flex justify-content-between align-items-end mb-4 mt-2">
     <div>
-      <h6 class="text-uppercase text-muted small fw-bold mb-1">Dashboard</h6>
-      <h2 class="fw-bold text-dark mb-0">Xin chào, {{ user.username }}! 👋</h2>
+        <h5 class="text-muted fw-normal mb-1">Chào mừng trở lại,</h5>
+        <h2 class="fw-bold mb-0 text-dark">{{ user.username }}! 👋</h2>
     </div>
     <div>
-      <span
-        class="badge bg-white text-dark border px-3 py-2 rounded-pill shadow-sm"
-      >
-        <i class="bi bi-calendar3 me-2"></i>{% now "d/m/Y" %}
-      </span>
+        <button class="btn btn-white border bg-white shadow-sm text-muted fw-bold">
+            <i class="bi bi-calendar-event me-2"></i>{% now "d/m/Y" %}
+        </button>
     </div>
-  </div>
+</div>
 
-  <!-- THỐNG KÊ (STATS) -->
-  <div class="row g-3 mb-4">
-    <div class="col-xl-3 col-sm-6">
-      <div class="card card-dashboard h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="icon-shape bg-soft-primary me-3">
-              <i class="bi bi-bank"></i>
+<!-- Hàng Thống kê (Có màu sắc như yêu cầu) -->
+<div class="row g-3 mb-4">
+    <!-- Card 1 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold">Ngân hàng câu hỏi</h6>
+                    <h2 class="fw-bold mb-0 mt-2">{{ total_questions }}</h2>
+                </div>
+                <div class="icon-box icon-red">
+                    <i class="bi bi-stack"></i>
+                </div>
             </div>
-            <div>
-              <p class="text-muted mb-0 small text-uppercase fw-bold">
-                Ngân hàng câu hỏi
-              </p>
-              <h3 class="fw-bold mb-0">{{ total_questions }}</h3>
-            </div>
-          </div>
+            <span class="badge bg-light text-muted mt-2 border">Total</span>
         </div>
-      </div>
     </div>
-    <div class="col-xl-3 col-sm-6">
-      <div class="card card-dashboard h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="icon-shape bg-soft-success me-3">
-              <i class="bi bi-journal-check"></i>
+    
+    <!-- Card 2 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold">Đề thi đã tạo</h6>
+                    <h2 class="fw-bold mb-0 mt-2">{{ total_quizzes }}</h2>
+                </div>
+                <div class="icon-box icon-orange">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
             </div>
-            <div>
-              <p class="text-muted mb-0 small text-uppercase fw-bold">
-                Đề thi đã tạo
-              </p>
-              <h3 class="fw-bold mb-0">{{ total_quizzes }}</h3>
-            </div>
-          </div>
+            <a href="{% url 'quiz:quiz_list' %}" class="small text-decoration-none fw-bold text-warning mt-2 d-block">
+                Xem chi tiết <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
-      </div>
     </div>
-    <div class="col-xl-3 col-sm-6">
-      <div class="card card-dashboard h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="icon-shape bg-soft-warning me-3">
-              <i class="bi bi-people"></i>
-            </div>
-            <div>
-              <p class="text-muted mb-0 small text-uppercase fw-bold">
-                Lượt tham gia
-              </p>
-              <h3 class="fw-bold mb-0">{{ total_attempts }}</h3>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-sm-6">
-      <div class="card card-dashboard h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="icon-shape bg-soft-info me-3">
-              <i class="bi bi-graph-up"></i>
-            </div>
-            <div>
-              <p class="text-muted mb-0 small text-uppercase fw-bold">
-                Tỉ lệ đúng TB
-              </p>
-              <h3 class="fw-bold mb-0">{{ average_correct_rate }}%</h3>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- CONTENT AREA -->
-  <div class="row g-4">
-    <!-- CỘT TRÁI: DANH SÁCH ĐỀ THI (CHIẾM 8 PHẦN) -->
+    <!-- Card 3 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold">Lượt tham gia</h6>
+                    <h2 class="fw-bold mb-0 mt-2">{{ total_attempts }}</h2>
+                </div>
+                <div class="icon-box icon-blue">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+            <span class="badge bg-light text-muted mt-2 border">Học sinh</span>
+        </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card h-100">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold">Tỉ lệ đúng TB</h6>
+                    <h2 class="fw-bold mb-0 mt-2">{{ average_correct_rate }}%</h2>
+                </div>
+                <div class="icon-box icon-green">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+            </div>
+            <div class="progress mt-2" style="height: 4px;">
+                <div class="progress-bar bg-success" style="width: {{ average_correct_rate }}%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Layout 2 Cột: Danh sách & Tác vụ -->
+<div class="row g-4">
+    
+    <!-- CỘT TRÁI: Danh sách đề thi -->
     <div class="col-lg-8">
-      <div class="card card-dashboard h-100">
-        <div
-          class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0"
-        >
-          <h5 class="fw-bold mb-0">
-            <i class="bi bi-clock-history text-primary me-2"></i>Đề thi gần đây
-          </h5>
-          <a
-            href="{% url 'quiz:quiz_list' %}"
-            class="btn btn-sm btn-light text-primary fw-bold"
-            >Xem tất cả</a
-          >
+        <div class="card card-table h-100 shadow-sm border-0">
+            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">Đề thi gần đây</h6>
+                <a href="{% url 'quiz:quiz_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Xem tất cả</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tên đề thi</th>
+                            <th>Môn học</th>
+                            <th>Thời lượng</th>
+                            <th>Ngày tạo</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for quiz in recent_quizzes %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded p-2 text-danger me-3">
+                                        <i class="bi bi-file-text-fill"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ quiz.title|truncatechars:25 }}</div>
+                                        <div class="small text-muted">{{ quiz.questions.count }} câu hỏi</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border fw-normal">{{ quiz.subject.name }}</span></td>
+                            <td class="text-muted small"><i class="bi bi-clock me-1"></i>{{ quiz.duration_minutes }}p</td>
+                            <td class="text-muted small">{{ quiz.created_at|date:"d/m/Y" }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'quiz:quiz_edit' quiz.pk %}" class="btn btn-sm btn-white border hover-shadow text-muted">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                Chưa có dữ liệu đề thi nào.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-secondary small text-uppercase">
-              <tr>
-                <th class="ps-4 border-0">Tên đề thi</th>
-                <th class="border-0">Môn học</th>
-                <th class="border-0">Ngày tạo</th>
-                <th class="text-end pe-4 border-0">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody class="border-top-0">
-              {% for quiz in recent_quizzes %}
-              <tr>
-                <td class="ps-4">
-                  <a
-                    href="{% url 'quiz:quiz_edit' quiz.pk %}"
-                    class="text-dark fw-bold text-decoration-none d-block"
-                  >
-                    {{ quiz.title }}
-                  </a>
-                  <span class="text-muted small">
-                    <i class="bi bi-stopwatch"></i> {{ quiz.duration_minutes }}
-                    phút
-                  </span>
-                </td>
-                <td>
-                  <span class="badge rounded-pill bg-light text-dark border">
-                    {{ quiz.subject.name }}
-                  </span>
-                </td>
-                <td class="text-muted small">
-                  {{ quiz.created_at|date:"d/m/Y" }}
-                </td>
-                <td class="text-end pe-4">
-                  <a
-                    href="{% url 'quiz:quiz_edit' quiz.pk %}"
-                    class="btn btn-sm btn-white border hover-lift text-secondary"
-                    title="Sửa"
-                  >
-                    <i class="bi bi-pencil"></i>
-                  </a>
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="4" class="text-center py-5 text-muted">
-                  <i class="bi bi-inbox display-4 opacity-25 mb-3 d-block"></i>
-                  Chưa có đề thi nào
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
-    <!-- CỘT PHẢI: TÁC VỤ NHANH (CHIẾM 4 PHẦN) -->
+    <!-- CỘT PHẢI: Tác vụ nhanh -->
     <div class="col-lg-4">
-      <div class="card card-dashboard">
-        <div class="card-header bg-white py-3 border-bottom-0">
-          <h5 class="fw-bold mb-0">Tác vụ quản lý</h5>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Tác vụ nhanh</h6>
+                
+                <a href="{% url 'quiz:quiz_create' %}" class="btn btn-danger w-100 py-2 mb-3 shadow-sm fw-bold">
+                    <i class="bi bi-plus-lg me-2"></i>Tạo đề thi mới
+                </a>
+
+                <div class="border-top pt-3">
+                    <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">Quản lý</small>
+                    <div class="mt-2">
+                        <a href="{% url 'quiz:question_list' %}" class="quick-link">
+                            <i class="bi bi-stack text-primary"></i>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Ngân hàng câu hỏi</div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">Quản lý kho dữ liệu</div>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'quiz:question_import' %}" class="quick-link">
+                            <i class="bi bi-file-earmark-spreadsheet text-success"></i>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Import Excel</div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">Thêm hàng loạt</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'quiz:grading_dashboard' %}" class="quick-link">
+                            <i class="bi bi-check-circle text-warning"></i>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Chấm bài tự luận</div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">Đánh giá bài làm</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body pt-0">
-          <div class="d-flex flex-column gap-3">
-            <!-- Nút 1: Tạo đề (Nổi bật) -->
-            <a
-              href="{% url 'quiz:quiz_create' %}"
-              class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center shadow-sm"
-            >
-              <i class="bi bi-plus-circle-fill me-2"></i>Tạo đề thi mới
-            </a>
-
-            <hr class="my-1 text-muted opacity-25" />
-
-            <!-- Các nút phụ dạng thẻ -->
-            <a href="{% url 'quiz:question_list' %}" class="btn-action-card">
-              <i class="bi bi-collection text-primary"></i>
-              <div>
-                <div class="fw-bold">Ngân hàng câu hỏi</div>
-                <div class="small text-muted">Quản lý kho câu hỏi</div>
-              </div>
-            </a>
-
-            <a href="{% url 'quiz:question_import' %}" class="btn-action-card">
-              <i class="bi bi-file-earmark-excel text-success"></i>
-              <div>
-                <div class="fw-bold">Import Excel</div>
-                <div class="small text-muted">Nhập câu hỏi hàng loạt</div>
-              </div>
-            </a>
-
-            <a
-              href="{% url 'quiz:grading_dashboard' %}"
-              class="btn-action-card"
-            >
-              <i class="bi bi-check2-square text-warning"></i>
-              <div>
-                <div class="fw-bold">Chấm tự luận</div>
-                <div class="small text-muted">Xem bài làm cần chấm</div>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Banner nhỏ hoặc Mẹo (Trang trí) -->
-      <div class="card card-dashboard mt-4 bg-soft-primary border-0">
-        <div class="card-body text-center p-4">
-          <i class="bi bi-lightbulb-fill text-primary mb-2 fs-3"></i>
-          <h6 class="fw-bold text-primary">Mẹo nhỏ</h6>
-          <p class="small text-muted mb-0">
-            Bạn có thể import danh sách câu hỏi từ Excel để tiết kiệm thời gian
-            tạo đề.
-          </p>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
 {% endblock %}
