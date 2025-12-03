@@ -163,7 +163,7 @@
         <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <i class="bi bi-grid-fill"></i> Tổng quan
         </a>
-        <a href="#" class="list-group-item list-group-item-action">
+        <a href="{% url 'quiz:explore' %}" class="list-group-item list-group-item-action">
             <i class="bi bi-compass"></i> Khám phá
         </a>
 

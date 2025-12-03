@@ -25,7 +25,8 @@ urlpatterns = [
     # URLs chấm điểm tự luận
     path('grading/dashboard/', views.grading_dashboard, name='grading_dashboard'),
     path('grading/grade/<int:result_id>/', views.grade_short_answer, name='grade_short_answer'),
-    
+    # Khám phá 
+    path('explore/', views.explore, name='explore'),
     # URLs của Học sinh - Thi thật
     path('take/<int:pk>/', views.take_quiz, name='take_quiz'),
     path('submit/<int:pk>/', views.submit_quiz, name='submit_quiz'),

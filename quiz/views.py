@@ -12,6 +12,7 @@ from openpyxl import load_workbook
 from django.db.models import Count, Q
 from django.core.exceptions import PermissionDenied
 from .models import Question, Quiz, Answer, Subject
+from django.db.models import Count
 
 # ===== IMPORT TỪ CÁC FILE KHÁC TRONG DỰ ÁN =====
 from .forms import QuestionForm, AnswerFormSet, QuizForm
@@ -24,6 +25,8 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 # ===========================================================================
 # VIEWS CHUNG & PHÂN LUỒNG
@@ -32,7 +35,6 @@ from django.shortcuts import render, redirect
 def landing_page(request):
     """View cho trang chủ công khai, ai cũng có thể xem được."""
     return render(request, 'pages/landing_page.html')
-
 
 @login_required
 def dashboard(request):
@@ -54,7 +56,27 @@ def dashboard(request):
         return render(request, 'pages/student_dashboard.html', context)
     
     else: # Admin
-        return render(request, 'pages/admin_dashboard.html')
+        # 1. Thống kê cơ bản
+        total_users = User.objects.count()
+        total_students = User.objects.filter(role='STUDENT').count()
+        total_teachers = User.objects.filter(role='TEACHER').count()
+        total_quizzes = Quiz.objects.count()
+        
+        # 2. Người dùng mới tham gia (5 người gần nhất)
+        recent_users = User.objects.order_by('-date_joined')[:5]
+        
+        # 3. Danh sách môn học
+        subjects = Subject.objects.annotate(quiz_count=Count('quiz'))
+
+        context = {
+            'total_users': total_users,
+            'total_students': total_students,
+            'total_teachers': total_teachers,
+            'total_quizzes': total_quizzes,
+            'recent_users': recent_users,
+            'subjects': subjects,
+        }
+        return render(request, 'pages/admin_dashboard.html', context)
 
 
 # ===========================================================================
@@ -1076,15 +1098,15 @@ def grading_dashboard(request):
     ).distinct()
     
     # Thêm số câu tự luận cho mỗi result
-    for result in pending_results:
-        result.short_answer_count = result.student_answers.filter(
-            question__question_type='SHORT_ANSWER'
-        ).count()
+    #for result in pending_results:
+    #    result.short_answer_count = result.student_answers.filter(
+    #        question__question_type='SHORT_ANSWER'
+    #    ).count()
     
-    for result in graded_results:
-        result.short_answer_count = result.student_answers.filter(
-            question__question_type='SHORT_ANSWER'
-        ).count()
+    #for result in graded_results:
+    #    result.short_answer_count = result.student_answers.filter(
+    #        question__question_type='SHORT_ANSWER'
+    #    ).count()
     
     context = {
         'pending_results': pending_results,
@@ -1139,3 +1161,30 @@ def grade_short_answer(request, result_id):
         'short_answers': short_answers,
     }
     return render(request, 'quiz_grading/grade_answers.html', context)
+
+# Giao diện của khám phá ở sidebar
+@login_required
+def explore(request):
+    # 1. Lấy tất cả môn học
+    subjects = Subject.objects.all()
+    
+    # 2. Lấy các đề thi CÔNG KHAI và ĐANG MỞ
+    now = timezone.now()
+    public_quizzes = Quiz.objects.filter(
+        is_public=True,
+        start_time__lte=now,
+        end_time__gte=now
+    ).order_by('-created_at')
+
+    # 3. Xử lý tìm kiếm (nếu người dùng gõ vào ô search)
+    query = request.GET.get('q')
+    if query:
+        public_quizzes = public_quizzes.filter(title__icontains=query)
+
+    context = {
+        'subjects': subjects,
+        'quizzes': public_quizzes,
+        'query': query
+    }
+    return render(request, 'pages/explore.html', context)
+     
