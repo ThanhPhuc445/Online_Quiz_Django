@@ -1,0 +1,152 @@
+<!-- support/contact_teacher.html -->
+{% extends "base.html" %}
+
+{% block title %}Liên hệ giáo viên{% endblock %}
+
+{% block extra_head %}
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(136, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'quiz:support_dashboard' %}" class="text-decoration-none me-3">
+                    <i class="bi bi-arrow-left fs-4"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-1">Liên hệ giáo viên</h2>
+                    <p class="text-muted mb-0">
+                        {% if teacher %}
+                        Gửi yêu cầu đến {{ teacher.get_full_name|default:teacher.username }}
+                        {% elif quiz %}
+                        Gửi yêu cầu về đề thi "{{ quiz.title }}"
+                        {% else %}
+                        Gửi yêu cầu hỗ trợ đến giáo viên
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Thông báo -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Thông tin người nhận -->
+                        {% if teacher or quiz %}
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill me-2 fs-4"></i>
+                                <div>
+                                    <strong>Yêu cầu sẽ được gửi đến:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        {% if teacher %}
+                                        <li>Giáo viên: {{ teacher.get_full_name|default:teacher.username }}</li>
+                                        {% endif %}
+                                        {% if quiz %}
+                                        <li>Đề thi: {{ quiz.title }} ({{ quiz.subject.name }})</li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Loại yêu cầu -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Loại yêu cầu *</label>
+                            <select name="ticket_type" class="form-select" required>
+                                <option value="" disabled selected>Chọn loại yêu cầu</option>
+                                {% for type_code, type_name in ticket_types %}
+                                <option value="{{ type_code }}">{{ type_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Tiêu đề -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Tiêu đề *</label>
+                            <input type="text" name="subject" class="form-control" 
+                                   placeholder="Nhập tiêu đề yêu cầu (tối đa 200 ký tự)" 
+                                   maxlength="200" required>
+                        </div>
+
+                        <!-- Nội dung -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Nội dung chi tiết *</label>
+                            <textarea name="message" class="form-control" rows="6" 
+                                      placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
+                            <div class="form-text">Hãy mô tả càng chi tiết càng tốt để giáo viên có thể hỗ trợ bạn nhanh chóng.</div>
+                        </div>
+
+                        <!-- File đính kèm (optional) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">File đính kèm (tùy chọn)</label>
+                            <input type="file" name="attachment" class="form-control">
+                            <div class="form-text">Có thể đính kèm ảnh chụp màn hình hoặc file liên quan. Kích thước tối đa: 5MB</div>
+                        </div>
+                        <div class="mt-3 text-center">
+    <a href="{% url 'quiz:my_support_tickets' %}" class="text-decoration-none small">
+        <i class="bi bi-clock-history me-1"></i> Xem lịch sử yêu cầu của bạn
+    </a>
+</div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i> Gửi yêu cầu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Hướng dẫn -->
+            <div class="mt-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-lightbulb me-2"></i> Mẹo để nhận được phản hồi nhanh chóng:
+                        </h6>
+                        <ul class="mb-0">
+                            <li class="mb-2">Mô tả rõ ràng vấn đề bạn gặp phải</li>
+                            <li class="mb-2">Chọn đúng loại yêu cầu để giáo viên dễ phân loại</li>
+                            <li class="mb-2">Nếu liên quan đến bài tập, hãy ghi rõ tên bài và trang số</li>
+                            <li>Thông thường bạn sẽ nhận được phản hồi trong vòng 24-48 giờ</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+<!-- support/support_dashboard.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Hệ thống hỗ trợ{% endblock %}
+
+{% block extra_head %}
+<style>
+    .support-card {
+        border: 1px solid #eef2f6;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .support-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .ticket-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    .status-open { background-color: #e3f2fd; color: #1976d2; }
+    .status-in-progress { background-color: #fff3e0; color: #f57c00; }
+    .status-resolved { background-color: #e8f5e9; color: #388e3c; }
+    .status-closed { background-color: #f5f5f5; color: #616161; }
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Hệ thống hỗ trợ</h2>
+            <p class="text-muted mb-0">Liên hệ giáo viên, quản trị viên và quản lý yêu cầu hỗ trợ</p>
+        </div>
+        {% if user.role == 'TEACHER' %}
+        <a href="{% url 'quiz:teacher_support_inbox' %}" class="btn btn-outline-primary">
+            <i class="bi bi-inbox me-1"></i> Hộp thư đến
+        </a>
+        {% elif user.role == 'ADMIN' %}
+        <a href="{% url 'quiz:admin_support_dashboard' %}" class="btn btn-outline-primary">
+            <i class="bi bi-speedometer2 me-1"></i> Quản lý hỗ trợ
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Thông báo -->
+    {% if messages %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Học sinh view -->
+    {% if user.role == 'STUDENT' %}
+    <div class="row mb-4">
+        <!-- Danh sách giáo viên -->
+        {% if teachers %}
+        <div class="col-lg-8">
+            <div class="card support-card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-person-video2 me-2"></i> Giáo viên có thể liên hệ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for teacher in teachers %}
+                        <div class="col-md-6">
+                            <div class="card border h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start">
+                                        <div class="me-3">
+                                            {% if teacher.avatar %}
+                                            <img src="{{ teacher.avatar.url }}" class="rounded-circle" width="50" height="50" alt="{{ teacher.username }}">
+                                            {% else %}
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="bi bi-person-fill text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">{{ teacher.get_full_name|default:teacher.username }}</h6>
+                                            <p class="text-muted small mb-2">{{ teacher.email }}</p>
+                                            <a href="{% url 'quiz:contact_teacher_with_id' teacher_id=teacher.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-chat-left-text me-1"></i> Liên hệ
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions sidebar -->
+        <div class="col-lg-4">
+            <!-- Liên hệ giáo viên -->
+            <div class="card support-card border-0 shadow-sm mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mx-auto mb-3" style="background-color: rgba(136, 0, 0, 0.1); color: var(--primary-color);">
+                        <i class="bi bi-chat-left-text"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Liên hệ giáo viên</h6>
+                    <p class="text-muted small mb-3">Gửi câu hỏi về bài học, đề thi</p>
+                    <a href="{% url 'quiz:contact_teacher' %}" class="btn btn-primary w-100">
+                        <i class="bi bi-send me-2"></i> Liên hệ ngay
+                    </a>
+                </div>
+            </div>
+
+            <!-- Liên hệ admin -->
+            <div class="card support-card border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mx-auto mb-3" style="background-color: rgba(23, 162, 184, 0.1); color: #17a2b8;">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Liên hệ quản trị viên</h6>
+                    <p class="text-muted small mb-3">Vấn đề kỹ thuật, tài khoản</p>
+                    <a href="{% url 'quiz:contact_admin' %}" class="btn btn-info w-100">
+                        <i class="bi bi-shield-check me-2"></i> Liên hệ Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Yêu cầu đã gửi -->
+    <div class="card support-card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-clock-history me-2"></i> Yêu cầu hỗ trợ đã gửi
+            </h5>
+            <a href="{% url 'quiz:my_support_tickets' %}" class="btn btn-sm btn-outline-secondary">
+                Xem tất cả
+            </a>
+        </div>
+        <div class="card-body">
+            {% if sent_tickets %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Mã ticket</th>
+                            <th>Tiêu đề</th>
+                            <th>Loại</th>
+                            <th>Gửi đến</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in sent_tickets %}
+                        <tr>
+                            <td><code>#{{ ticket.id|stringformat:"06d" }}</code></td>
+                            <td>{{ ticket.subject|truncatechars:30 }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark">
+                                    {{ ticket.get_ticket_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if ticket.teacher %}
+                                <span class="text-primary">{{ ticket.teacher.username }}</span>
+                                {% elif ticket.admin %}
+                                <span class="text-success">Admin</span>
+                                {% else %}
+                                <span class="text-muted">Hỗ trợ chung</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.status == 'OPEN' %}
+                                <span class="ticket-status status-open">Mở</span>
+                                {% elif ticket.status == 'IN_PROGRESS' %}
+                                <span class="ticket-status status-in-progress">Đang xử lý</span>
+                                {% elif ticket.status == 'RESOLVED' %}
+                                <span class="ticket-status status-resolved">Đã giải quyết</span>
+                                {% elif ticket.status == 'CLOSED' %}
+                                <span class="ticket-status status-closed">Đã đóng</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ticket.created_at|date:"d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="feature-icon bg-light text-muted mx-auto mb-3">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h6 class="text-muted">Chưa có yêu cầu hỗ trợ nào</h6>
+                <p class="text-muted small">Khi bạn gửi yêu cầu hỗ trợ, chúng sẽ xuất hiện ở đây</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

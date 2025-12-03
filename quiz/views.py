@@ -1,10 +1,13 @@
 # quiz/views.py
 
 # ===== CÁC THƯ VIỆN CẦN THIẾT =====
+# quiz/views.py
+
+# ===== CÁC THƯ VIỆN CẦN THIẾT =====
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, models
 from django.core.paginator import Paginator
 from django.contrib import messages
 import random
@@ -12,6 +15,9 @@ from openpyxl import load_workbook
 from django.db.models import Count, Q
 from django.core.exceptions import PermissionDenied
 from .models import Question, Quiz, Answer, Subject
+from support.models import SupportTicket
+from users.models import User 
+
 
 # ===== IMPORT TỪ CÁC FILE KHÁC TRONG DỰ ÁN =====
 from .forms import QuestionForm, AnswerFormSet, QuizForm
@@ -24,6 +30,8 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect
+from users.decorators import student_required, teacher_required, admin_required  # THÊM admin_required
+from django.utils import timezone
 
 # ===========================================================================
 # VIEWS CHUNG & PHÂN LUỒNG
@@ -1076,15 +1084,15 @@ def grading_dashboard(request):
     ).distinct()
     
     # Thêm số câu tự luận cho mỗi result
-    for result in pending_results:
-        result.short_answer_count = result.student_answers.filter(
-            question__question_type='SHORT_ANSWER'
-        ).count()
+    # for result in pending_results:
+    #     result.short_answer_count = result.student_answers.filter(
+    #         question__question_type='SHORT_ANSWER'
+    #     ).count()
     
-    for result in graded_results:
-        result.short_answer_count = result.student_answers.filter(
-            question__question_type='SHORT_ANSWER'
-        ).count()
+    # for result in graded_results:
+    #     result.short_answer_count = result.student_answers.filter(
+    #         question__question_type='SHORT_ANSWER'
+    #     ).count()
     
     context = {
         'pending_results': pending_results,
@@ -1139,3 +1147,383 @@ def grade_short_answer(request, result_id):
         'short_answers': short_answers,
     }
     return render(request, 'quiz_grading/grade_answers.html', context)
+
+# ===========================================================================
+# VIEWS CÀI ĐẶT VÀ HỖ TRỢ
+# ===========================================================================
+
+@login_required
+def settings_page(request):
+    """Trang cài đặt chung với các tab"""
+    user = request.user
+    active_tab = request.GET.get('tab', 'profile')  # Mặc định là tab profile
+    
+    # Lấy thống kê thật cho hiển thị
+    if user.role == 'TEACHER':
+        total_questions = Question.objects.filter(created_by=user).count()
+        total_quizzes = Quiz.objects.filter(created_by=user).count()
+        total_attempts = Result.objects.filter(quiz__created_by=user).count()
+        avg_score = Result.objects.filter(quiz__created_by=user).aggregate(Avg('score'))['score__avg'] or 0
+        
+        context = {
+            'user': user,
+            'active_tab': active_tab,
+            'role': user.role,
+            'total_questions': total_questions,
+            'total_quizzes': total_quizzes,
+            'total_attempts': total_attempts,
+            'average_correct_rate': round(avg_score, 1) if avg_score else 0,
+            'current_date': timezone.now(),  # Thêm thời gian hiện tại
+        }
+    else:  # STUDENT
+        total_quizzes_taken = Result.objects.filter(student=user).count()
+        total_practice = PracticeResult.objects.filter(student=user).count()
+        avg_result = Result.objects.filter(student=user).aggregate(Avg('score'))['score__avg'] or 0
+        
+        context = {
+            'user': user,
+            'active_tab': active_tab,
+            'role': user.role,
+            'total_quizzes_taken': total_quizzes_taken,
+            'total_practice': total_practice,
+            'avg_score': round(avg_result, 1) if avg_result else 0,
+            'current_date': timezone.now(),  # Thêm thời gian hiện tại
+        }
+    
+    return render(request, 'settings/base_settings.html', context)
+@login_required
+def update_profile(request):
+    """Cập nhật thông tin cá nhân"""
+    if request.method == 'POST':
+        try:
+            user = request.user
+            # Lấy dữ liệu từ form
+            user.first_name = request.POST.get('first_name', '').strip()
+            user.last_name = request.POST.get('last_name', '').strip()
+            user.email = request.POST.get('email', '').strip()
+            
+            # Xử lý avatar nếu có
+            if 'avatar' in request.FILES:
+                user.avatar = request.FILES['avatar']
+            
+            # Lưu thông tin bổ sung theo role (nếu model có các trường này)
+            if hasattr(user, 'student_id'):
+                user.student_id = request.POST.get('student_id', '').strip()
+            if hasattr(user, 'class_name'):
+                user.class_name = request.POST.get('class_name', '').strip()
+            if hasattr(user, 'school'):
+                user.school = request.POST.get('school', '').strip()
+            if hasattr(user, 'teacher_id'):
+                user.teacher_id = request.POST.get('teacher_id', '').strip()
+            if hasattr(user, 'department'):
+                user.department = request.POST.get('department', '').strip()
+            
+            user.save()
+            messages.success(request, "Cập nhật thông tin thành công!")
+            
+        except Exception as e:
+            messages.error(request, f"Có lỗi xảy ra: {str(e)}")
+    
+    return redirect('quiz:settings')
+
+@login_required
+def change_password(request):
+    """Thay đổi mật khẩu"""
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        user = request.user
+        
+        # Kiểm tra mật khẩu hiện tại
+        if not user.check_password(current_password):
+            messages.error(request, "Mật khẩu hiện tại không đúng!")
+            return redirect('quiz:settings')
+        
+        # Kiểm tra mật khẩu mới
+        if new_password != confirm_password:
+            messages.error(request, "Mật khẩu xác nhận không khớp!")
+            return redirect('quiz:settings')
+        
+        if len(new_password) < 6:
+            messages.error(request, "Mật khẩu phải có ít nhất 6 ký tự!")
+            return redirect('quiz:settings')
+        
+        # Cập nhật mật khẩu
+        user.set_password(new_password)
+        user.save()
+        
+        # Cập nhật lại session
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, user)
+        
+        messages.success(request, "Đổi mật khẩu thành công!")
+    
+    return redirect('quiz:settings')
+
+# ===========================================================================
+# VIEWS HỖ TRỢ - GỬI TIN NHẮN
+# ===========================================================================
+
+@login_required
+def support_dashboard(request):
+    """Trang chính hỗ trợ"""
+    user = request.user
+    
+    # Sửa dòng này:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    # Lấy danh sách giáo viên và đề thi (cho học sinh)
+    teacher_quizzes = None
+    teachers = None
+    
+    if user.role == 'STUDENT':
+        # Lấy đề thi mà học sinh có thể liên hệ giáo viên
+        teacher_quizzes = Quiz.objects.filter(
+            models.Q(is_public=True) | 
+            models.Q(allowed_students=user)
+        ).distinct().order_by('-created_at')[:10]
+        
+        # Lấy danh sách giáo viên - SỬA DÒNG NÀY
+        teachers = User.objects.filter(role='TEACHER').order_by('username')[:10]
+    
+    # Lấy yêu cầu hỗ trợ đã gửi
+    sent_tickets = SupportTicket.objects.filter(user=user).order_by('-created_at')[:5]
+    
+    context = {
+        'user': user,
+        'role': user.role,
+        'teacher_quizzes': teacher_quizzes,
+        'teachers': teachers,
+        'sent_tickets': sent_tickets,
+    }
+    
+    return render(request, 'support/support_dashboard.html', context)
+
+@login_required
+def contact_teacher(request, teacher_id=None, quiz_id=None):
+    """Liên hệ với giáo viên"""
+    user = request.user
+    
+    # Chỉ học sinh mới được liên hệ giáo viên
+    if user.role != 'STUDENT':
+        messages.error(request, "Chỉ học sinh mới có thể liên hệ giáo viên")
+        return redirect('quiz:support_dashboard')
+    
+    teacher = None
+    quiz = None
+    
+    # Lấy thông tin giáo viên và đề thi
+    if teacher_id:
+        teacher = get_object_or_404(User, id=teacher_id, role='TEACHER')
+    
+    if quiz_id:
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        teacher = quiz.created_by  # Giáo viên tạo đề thi
+    
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+        ticket_type = request.POST.get('ticket_type', 'QUESTION')
+        
+        if not subject or not message:
+            messages.error(request, "Vui lòng điền đầy đủ thông tin!")
+            return render(request, 'support/contact_teacher.html', {
+                'teacher': teacher,
+                'quiz': quiz,
+                'ticket_types': SupportTicket.TicketType.choices,
+            })
+        
+        try:
+            # Tạo ticket hỗ trợ
+            ticket = SupportTicket.objects.create(
+                user=user,
+                teacher=teacher,
+                quiz=quiz,
+                ticket_type=ticket_type,
+                subject=subject,
+                message=message,
+                status='OPEN'
+            )
+            
+            messages.success(request, "Đã gửi yêu cầu hỗ trợ đến giáo viên!")
+            return redirect('quiz:support_ticket_detail', ticket_id=ticket.id)
+            
+        except Exception as e:
+            messages.error(request, f"Có lỗi khi gửi yêu cầu: {str(e)}")
+    
+    context = {
+        'user': user,
+        'teacher': teacher,
+        'quiz': quiz,
+        'ticket_types': SupportTicket.TicketType.choices,
+    }
+    return render(request, 'support/contact_teacher.html', context)
+
+@login_required
+def contact_admin(request):
+    """Liên hệ với quản trị viên"""
+    user = request.user
+    
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+        ticket_type = request.POST.get('ticket_type', 'OTHER')
+        
+        if not subject or not message:
+            messages.error(request, "Vui lòng điền đầy đủ thông tin!")
+            return redirect('quiz:contact_admin')
+        
+        try:
+            # Tạo ticket hỗ trợ (không có teacher)
+            ticket = SupportTicket.objects.create(
+                user=user,
+                ticket_type=ticket_type,
+                subject=subject,
+                message=message,
+                status='OPEN'
+            )
+            
+            messages.success(request, "Đã gửi yêu cầu hỗ trợ đến quản trị viên!")
+            return redirect('quiz:support_ticket_detail', ticket_id=ticket.id)
+            
+        except Exception as e:
+            messages.error(request, f"Có lỗi khi gửi yêu cầu: {str(e)}")
+    
+    context = {
+        'user': user,
+        'ticket_types': SupportTicket.TicketType.choices,
+    }
+    return render(request, 'support/contact_admin.html', context)
+
+@login_required
+def support_ticket_detail(request, ticket_id):
+    """Xem chi tiết ticket hỗ trợ"""
+    ticket = get_object_or_404(SupportTicket, id=ticket_id)
+    user = request.user
+    
+    # Kiểm tra quyền truy cập
+    if ticket.user != user and user.role not in ['TEACHER', 'ADMIN']:
+        raise PermissionDenied
+    
+    # Kiểm tra nếu là giáo viên, chỉ được xem ticket gửi cho mình
+    if user.role == 'TEACHER' and ticket.teacher != user:
+        raise PermissionDenied
+    
+    if request.method == 'POST':
+        # Giáo viên/Admin phản hồi
+        if user.role in ['TEACHER', 'ADMIN']:
+            response = request.POST.get('response', '').strip()
+            status = request.POST.get('status', ticket.status)
+            
+            if response:
+                ticket.admin_response = response
+                ticket.admin = user if user.role == 'ADMIN' else None
+                ticket.status = status
+                ticket.save()
+                
+                messages.success(request, "Đã gửi phản hồi!")
+        else:
+            # Học sinh cập nhật ticket
+            new_message = request.POST.get('new_message', '').strip()
+            if new_message:
+                ticket.message += f"\n\n--- Cập nhật từ học sinh ---\n{new_message}"
+                ticket.save()
+                messages.success(request, "Đã cập nhật yêu cầu!")
+    
+    context = {
+        'ticket': ticket,
+        'can_reply': user.role in ['TEACHER', 'ADMIN'],  # Giáo viên/Admin mới được phản hồi
+        'is_owner': ticket.user == user,  # Người tạo ticket
+    }
+    return render(request, 'support/ticket_detail.html', context)
+
+@login_required
+def my_support_tickets(request):
+    """Danh sách yêu cầu hỗ trợ của tôi"""
+    user = request.user
+    tickets = SupportTicket.objects.filter(user=user).order_by('-created_at')
+    
+    # Thêm filter theo status
+    status_filter = request.GET.get('status')
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+    
+    # Thêm filter theo loại ticket
+    ticket_type_filter = request.GET.get('ticket_type')
+    if ticket_type_filter:
+        tickets = tickets.filter(ticket_type=ticket_type_filter)
+    
+    # Thêm search
+    search_query = request.GET.get('search')
+    if search_query:
+        tickets = tickets.filter(
+            Q(subject__icontains=search_query) | 
+            Q(message__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(tickets, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'tickets': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'ticket_types': SupportTicket.TicketType.choices,
+    }
+    return render(request, 'support/my_tickets.html', context)
+@login_required
+@teacher_required
+def teacher_support_inbox(request):
+    """Hộp thư hỗ trợ của giáo viên"""
+    teacher = request.user
+    
+    # Lấy các ticket gửi cho giáo viên này
+    tickets = SupportTicket.objects.filter(teacher=teacher).order_by('-created_at')
+    
+    # Thống kê
+    total_tickets = tickets.count()
+    open_tickets = tickets.filter(status='OPEN').count()
+    
+    context = {
+        'tickets': tickets,
+        'total_tickets': total_tickets,
+        'open_tickets': open_tickets,
+        'teacher': teacher,
+    }
+    return render(request, 'support/teacher_inbox.html', context)
+
+@login_required
+@admin_required
+def admin_support_dashboard(request):
+    """Dashboard hỗ trợ của admin"""
+    user = request.user
+    
+    # Lấy tất cả ticket
+    tickets = SupportTicket.objects.all().order_by('-created_at')
+    
+    # Thống kê
+    total_tickets = tickets.count()
+    open_tickets = tickets.filter(status='OPEN').count()
+    in_progress_tickets = tickets.filter(status='IN_PROGRESS').count()
+    
+    # Phân loại theo loại yêu cầu
+    ticket_types = {}
+    for ticket_type, display_name in SupportTicket.TicketType.choices:
+        count = tickets.filter(ticket_type=ticket_type).count()
+        if count > 0:
+            ticket_types[display_name] = count
+    
+    context = {
+        'tickets': tickets,
+        'total_tickets': total_tickets,
+        'open_tickets': open_tickets,
+        'in_progress_tickets': in_progress_tickets,
+        'ticket_types': ticket_types,
+        'user': user,
+    }
+    return render(request, 'support/admin_dashboard.html', context)

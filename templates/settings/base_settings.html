@@ -1,0 +1,338 @@
+[file name]: base_settings.html
+[file content begin]
+<!-- templates/settings/base_settings.html -->
+{% extends "base.html" %}
+
+{% block title %}Cài đặt{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(136, 0, 0, 0.1);
+    }
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    .user-badge {
+        font-size: 0.9rem;
+        padding: 5px 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-gear me-2"></i>Cài đặt
+                    </h2>
+                    <p class="text-muted mb-0">Quản lý thông tin tài khoản của bạn</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary user-badge">
+                        {{ user.get_role_display }}
+                    </span>
+                    <a href="{% url 'quiz:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thông báo -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi 
+                            {% if message.tags == 'success' %}bi-check-circle-fill text-success
+                            {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
+                            {% elif message.tags == 'error' %}bi-x-circle-fill text-danger
+                            {% else %}bi-info-circle-fill text-info{% endif %} 
+                            me-2 fs-5"></i>
+                        <div class="fw-medium">{{ message }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-4" id="settingsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if active_tab == 'profile' or not active_tab %}active{% endif %}" 
+                            id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
+                        <i class="bi bi-person me-2"></i> Thông tin cá nhân
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if active_tab == 'account' %}active{% endif %}" 
+                            id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button">
+                        <i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="settingsTabContent">
+                <!-- Tab 1: Thông tin cá nhân -->
+                <div class="tab-pane fade {% if active_tab == 'profile' or not active_tab %}show active{% endif %}" 
+                     id="profile" role="tabpanel">
+                    <div class="card settings-card">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4">
+                                <i class="bi bi-person me-2"></i> Cập nhật thông tin cá nhân
+                            </h5>
+                            
+                            <form method="post" action="{% url 'quiz:update_profile' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="tab" value="profile">
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Họ <span class="text-danger">*</span></label>
+                                        <input type="text" name="first_name" class="form-control" 
+                                               value="{{ user.first_name|default:'' }}" required
+                                               placeholder="Nhập họ của bạn">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tên <span class="text-danger">*</span></label>
+                                        <input type="text" name="last_name" class="form-control" 
+                                               value="{{ user.last_name|default:'' }}" required
+                                               placeholder="Nhập tên của bạn">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" name="email" class="form-control" 
+                                           value="{{ user.email|default:'' }}" required
+                                           placeholder="example@email.com">
+                                </div>
+                                
+                                {% if user.role == 'STUDENT' %}
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Mã học sinh</label>
+                                        <input type="text" name="student_id" class="form-control" 
+                                               value="{{ user.student_id|default:'' }}"
+                                               placeholder="HS001">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Lớp</label>
+                                        <input type="text" name="class_name" class="form-control" 
+                                               value="{{ user.class_name|default:'' }}"
+                                               placeholder="12A1">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Trường</label>
+                                    <input type="text" name="school" class="form-control" 
+                                           value="{{ user.school|default:'' }}"
+                                           placeholder="Tên trường học">
+                                </div>
+                                {% endif %}
+                                
+                                {% if user.role == 'TEACHER' %}
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Mã giáo viên</label>
+                                        <input type="text" name="teacher_id" class="form-control" 
+                                               value="{{ user.teacher_id|default:'' }}"
+                                               placeholder="GV001">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Bộ môn</label>
+                                        <input type="text" name="department" class="form-control" 
+                                               value="{{ user.department|default:'' }}"
+                                               placeholder="Toán, Lý, Hóa...">
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                    <button type="reset" class="btn btn-outline-secondary">Đặt lại</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-1"></i> Lưu thay đổi
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab 2: Đổi mật khẩu -->
+                <div class="tab-pane fade {% if active_tab == 'account' %}show active{% endif %}" 
+                     id="account" role="tabpanel">
+                    <div class="card settings-card">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-4">
+                                <i class="bi bi-shield-lock me-2"></i> Thay đổi mật khẩu
+                            </h5>
+                            
+                            <form method="post" action="{% url 'quiz:change_password' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="tab" value="account">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                                    <input type="password" name="current_password" class="form-control" required
+                                           placeholder="Nhập mật khẩu hiện tại">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Mật khẩu mới <span class="text-danger">*</span></label>
+                                    <input type="password" name="new_password" class="form-control" required
+                                           placeholder="Tối thiểu 6 ký tự">
+                                    <div class="form-text text-muted">Mật khẩu phải có ít nhất 6 ký tự</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                                    <input type="password" name="confirm_password" class="form-control" required
+                                           placeholder="Nhập lại mật khẩu mới">
+                                </div>
+                                
+                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                    <button type="reset" class="btn btn-outline-secondary">Đặt lại</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-key me-1"></i> Đổi mật khẩu
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Mẹo bảo mật -->
+                            <div class="alert alert-light mt-4">
+                                <h6 class="fw-bold mb-2">
+                                    <i class="bi bi-lightbulb me-2"></i> Mẹo bảo mật
+                                </h6>
+                                <ul class="mb-0 small ps-3">
+                                    <li>Không sử dụng mật khẩu quá đơn giản như "123456"</li>
+                                    <li>Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</li>
+                                    <li>Không chia sẻ mật khẩu với bất kỳ ai</li>
+                                    <li>Nên thay đổi mật khẩu định kỳ 3-6 tháng</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Thông tin tài khoản -->
+            <div class="card settings-card mt-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-info-circle me-2"></i> Thông tin tài khoản
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="40%"><strong>Tên đăng nhập:</strong></td>
+                                    <td><code>{{ user.username }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Vai trò:</strong></td>
+                                    <td>
+                                        <span class="badge {% if user.role == 'STUDENT' %}bg-info{% elif user.role == 'TEACHER' %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ngày tham gia:</strong></td>
+                                    <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="40%"><strong>Đăng nhập cuối:</strong></td>
+                                    <td>{{ user.last_login|date:"H:i d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Trạng thái:</strong></td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i> Hoạt động
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thời gian hiện tại:</strong></td>
+                                    <td>{{ current_date|date:"H:i d/m/Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Link hỗ trợ -->
+            <div class="text-center mt-4">
+                <p class="text-muted mb-2">Cần hỗ trợ thêm?</p>
+                <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-headset me-1"></i> Truy cập trang hỗ trợ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Xử lý form submit
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Đang xử lý...';
+                    submitBtn.disabled = true;
+                    
+                    // Reset sau 5s nếu có lỗi
+                    setTimeout(() => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }, 5000);
+                }
+            });
+        });
+        
+        // Giữ tab active khi refresh
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        
+        if (tab) {
+            const tabButton = document.querySelector(`button[data-bs-target="#${tab}"]`);
+            if (tabButton) {
+                // Kích hoạt tab
+                const tabInstance = new bootstrap.Tab(tabButton);
+                tabInstance.show();
+            }
+        }
+    });
+</script>
+{% endblock %}
+[file content end]

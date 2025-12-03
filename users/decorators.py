@@ -21,3 +21,10 @@ def teacher_required(function):
         else:
             raise PermissionDenied
     return wrap
+def admin_required(function):
+    def wrap(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.role == 'ADMIN':
+            return function(request, *args, **kwargs)
+        else:
+            raise PermissionDenied
+    return wrap
