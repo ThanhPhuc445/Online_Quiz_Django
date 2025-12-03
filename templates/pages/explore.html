@@ -1,0 +1,1122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Khám phá - Examify{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+    }
+
+    /* ===== HERO SECTION ===== */
+    .hero-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--dark);
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+        max-width: 800px;
+    }
+
+    .hero-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2.5rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--primary);
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+        background: #ffefef;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    .feature-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .feature-desc {
+        color: var(--gray);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* ===== SEARCH SECTION ===== */
+    .search-section {
+        margin-bottom: 2rem;
+    }
+
+    .search-box {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .search-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        text-align: center;
+    }
+
+    .search-input-group {
+        position: relative;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        height: 56px;
+        border-radius: var(--radius-lg);
+        padding: 0 5rem 0 3.5rem;
+        border: 2px solid #eee;
+        background: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(136, 0, 0, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .search-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 44px;
+        border-radius: var(--radius-md);
+        padding: 0 2rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-btn:hover {
+        background: #660000;
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    .search-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+
+    .search-tag {
+        padding: 6px 16px;
+        background: #ffefef;
+        color: var(--primary);
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    .search-tag:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ===== TRENDING QUIZZES ===== */
+    .trending-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--dark);
+        position: relative;
+        padding-left: 1rem;
+    }
+
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 24px;
+        background: var(--primary);
+        border-radius: 2px;
+    }
+
+    .view-all-btn {
+        padding: 8px 20px;
+        background: transparent;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .view-all-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .trending-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .trending-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border);
+        position: relative;
+    }
+
+    .trending-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .trending-card.featured {
+        border: 2px solid var(--primary);
+    }
+
+    .card-header {
+        padding: 1.5rem 1.5rem 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .featured-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .university-name {
+        font-size: 0.9rem;
+        color: var(--gray);
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .subject-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .quiz-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .quiz-meta {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .meta-item i {
+        color: var(--primary);
+    }
+
+    .card-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .author-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .author-details {
+        font-size: 0.9rem;
+    }
+
+    .author-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 2px;
+    }
+
+    .author-role {
+        color: var(--gray);
+        font-size: 0.8rem;
+    }
+
+    .quiz-action {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-primary {
+        padding: 8px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    .btn-secondary {
+        padding: 8px 20px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* ===== SUBJECTS SECTION ===== */
+    .subjects-section {
+        margin-bottom: 3rem;
+    }
+
+    .subjects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .subject-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-decoration: none;
+        color: var(--dark);
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .subject-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .subject-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary);
+    }
+
+    .subject-icon {
+        width: 60px;
+        height: 60px;
+        background: #ffefef;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--primary);
+        font-size: 1.8rem;
+    }
+
+    .subject-name-large {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--dark);
+    }
+
+    .subject-desc {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    .subject-stats {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .stats-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--dark);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: #ffefef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label-large {
+        font-size: 1rem;
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    /* ===== CTA SECTION ===== */
+    .cta-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .cta-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--dark);
+    }
+
+    .cta-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-cta-primary {
+        padding: 12px 30px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-cta-primary:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    .btn-cta-secondary {
+        padding: 12px 30px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cta-secondary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .trending-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+    }
+
+    @media (max-width: 992px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .subjects-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem;
+        }
+        
+        .hero-title {
+            font-size: 1.8rem;
+        }
+        
+        .hero-features {
+            grid-template-columns: 1fr;
+        }
+        
+        .trending-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .search-box {
+            padding: 1.5rem;
+        }
+        
+        .cta-title {
+            font-size: 1.8rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .subjects-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-cta-primary, .btn-cta-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .search-input {
+            height: 52px;
+            padding: 0 4.5rem 0 3rem;
+            font-size: 0.95rem;
+        }
+        
+        .search-btn {
+            padding: 0 1.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .card-footer {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .quiz-action {
+            width: 100%;
+        }
+        
+        .btn-primary, .btn-secondary {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+        <span class="hero-badge">
+            <i class="bi bi-stars"></i> Học tập mọi lúc mọi nơi
+        </span>
+        
+        <h1 class="hero-title">Khám Phá Thế Giới Kiến Thức</h1>
+        <p class="hero-subtitle">
+            Bất kể bạn đang ở đâu, chỉ cần có thiết bị kết nối Internet, bạn đều có thể học tập và rèn luyện với hàng ngàn đề thi chất lượng cao từ các trường đại học hàng đầu.
+        </p>
+        
+        <div class="hero-features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-phone"></i>
+                </div>
+                <h4 class="feature-title">Học trên mọi thiết bị</h4>
+                <p class="feature-desc">Bạn có thể học trên điện thoại thông minh, máy tính bảng, laptop hoặc máy tính để bàn.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <h4 class="feature-title">Học mọi lúc, mọi nơi</h4>
+                <p class="feature-desc">Truy cập và học tập 24/7 từ bất kỳ đâu có kết nối Internet.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h4 class="feature-title">Kho đề thi phong phú</h4>
+                <p class="feature-desc">Khám phá kho đề thi không giới hạn để giúp bạn học tập hiệu quả hơn.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEARCH SECTION -->
+    <div class="search-section">
+        <div class="search-box">
+            <h3 class="search-title">Tìm kiếm đề thi phù hợp</h3>
+            
+            <div class="search-input-group">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="form-control search-input" 
+                       placeholder="Tìm kiếm theo môn học, trường đại học, hoặc từ khóa...">
+                <button class="search-btn">
+                    <i class="bi bi-search"></i>Tìm kiếm
+                </button>
+            </div>
+            
+            <div class="search-tags">
+                <a href="#" class="search-tag">Toán học</a>
+                <a href="#" class="search-tag">Vật lý</a>
+                <a href="#" class="search-tag">Hóa học</a>
+                <a href="#" class="search-tag">Lập trình</a>
+                <a href="#" class="search-tag">Kinh tế</a>
+                <a href="#" class="search-tag">Ngoại ngữ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRENDING QUIZZES -->
+    <div class="trending-section">
+        <div class="section-header">
+            <h2 class="section-title">Đề thi lên xu hướng</h2>
+            <a href="#" class="view-all-btn">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="trending-grid">
+            <!-- Card 1 - Featured -->
+            <div class="trending-card featured">
+                <div class="card-header">
+                    <span class="featured-badge">Nổi bật</span>
+                    <div class="university-name">Trường Đại học Kinh doanh và Công nghệ Hà Nội</div>
+                    <h4 class="subject-name">LẬP TRÌNH C++</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="quiz-title">Bài kiểm tra cuối kỳ môn Lập trình C++ - Học phần cơ bản</h5>
+                    
+                    <div class="quiz-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span>60 phút</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-question-circle"></i>
+                            <span>40 câu hỏi</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-bar-chart"></i>
+                            <span>Nâng cao</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="author-info">
+                        <img src="https://ui-avatars.com/api/?name=Khoa+CNTT&background=880000&color=fff&size=128" 
+                             class="author-avatar" 
+                             alt="Khoa CNTT">
+                        <div class="author-details">
+                            <div class="author-name">Khoa CNTT</div>
+                            <div class="author-role">Giảng viên</div>
+                        </div>
+                    </div>
+                    <div class="quiz-action">
+                        <a href="#" class="btn-primary">
+                            <i class="bi bi-play-fill"></i>Vào thi
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="trending-card">
+                <div class="card-header">
+                    <div class="university-name">Trường Đại học Kinh doanh và Công nghệ Hà Nội</div>
+                    <h4 class="subject-name">QUẢN TRỊ CHUỖI CUNG ỨNG</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="quiz-title">Bài tập lớn môn Quản trị chuỗi cung ứng - Nhóm 5</h5>
+                    
+                    <div class="quiz-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span>45 phút</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-question-circle"></i>
+                            <span>30 câu hỏi</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-bar-chart"></i>
+                            <span>Trung bình</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="author-info">
+                        <img src="https://ui-avatars.com/api/?name=Khoa+QTKD&background=4a6cf7&color=fff&size=128" 
+                             class="author-avatar" 
+                             alt="Khoa QTKD">
+                        <div class="author-details">
+                            <div class="author-name">Khoa QTKD</div>
+                            <div class="author-role">Giảng viên</div>
+                        </div>
+                    </div>
+                    <div class="quiz-action">
+                        <a href="#" class="btn-primary">
+                            <i class="bi bi-play-fill"></i>Vào thi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBJECTS SECTION -->
+    <div class="subjects-section">
+        <div class="section-header">
+            <h2 class="section-title">Khối ngành phổ biến</h2>
+            <a href="#" class="view-all-btn">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="subjects-grid">
+            <!-- Business Card -->
+            <a href="#" class="subject-card">
+                <div class="subject-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h3 class="subject-name-large">KHỐI NGÀNH KINH DOANH</h3>
+                <p class="subject-desc">
+                    Quản trị kinh doanh, Marketing, Tài chính ngân hàng, Kế toán, Quản trị chuỗi cung ứng.
+                </p>
+                <div class="subject-stats">
+                    <div class="stat">
+                        <span class="stat-number">580+</span>
+                        <span class="stat-label">Đề thi</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">45+</span>
+                        <span class="stat-label">Giảng viên</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Technology Card -->
+            <a href="#" class="subject-card">
+                <div class="subject-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h3 class="subject-name-large">KHỐI NGÀNH CÔNG NGHỆ</h3>
+                <p class="subject-desc">
+                    Công nghệ thông tin, Khoa học máy tính, Kỹ thuật phần mềm, An toàn thông tin.
+                </p>
+                <div class="subject-stats">
+                    <div class="stat">
+                        <span class="stat-number">720+</span>
+                        <span class="stat-label">Đề thi</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">60+</span>
+                        <span class="stat-label">Giảng viên</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Engineering Card -->
+            <a href="#" class="subject-card">
+                <div class="subject-icon">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <h3 class="subject-name-large">KHỐI NGÀNH KỸ THUẬT</h3>
+                <p class="subject-desc">
+                    Điện - Điện tử, Cơ khí, Xây dựng, Công nghệ ô tô, Kỹ thuật hóa học.
+                </p>
+                <div class="subject-stats">
+                    <div class="stat">
+                        <span class="stat-number">420+</span>
+                        <span class="stat-label">Đề thi</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">35+</span>
+                        <span class="stat-label">Giảng viên</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- STATS SECTION -->
+    <div class="stats-section">
+        <h2 class="stats-title">Examify trong số</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">50,000+</div>
+                <div class="stat-label-large">Học viên</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="stat-value">2,000+</div>
+                <div class="stat-label-large">Đề thi</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="stat-value">150+</div>
+                <div class="stat-label-large">Giảng viên</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-value">20+</div>
+                <div class="stat-label-large">Trường ĐH</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA SECTION -->
+    <div class="cta-section">
+        <h2 class="cta-title">Bạn muốn thi đạt điểm cao?</h2>
+        <p class="cta-subtitle">
+            Giải pháp ôn thi trắc nghiệm thông minh - Examify. Hàng ngàn học viên đã thành công với phương pháp học tập hiệu quả của chúng tôi.
+        </p>
+        
+        <div class="cta-buttons">
+            <a href="#" class="btn-cta-primary">
+                <i class="bi bi-rocket-takeoff"></i>Bắt đầu học ngay
+            </a>
+            <a href="#" class="btn-cta-secondary">
+                <i class="bi bi-play-circle"></i>Xem hướng dẫn
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchBtn = document.querySelector('.search-btn');
+    const searchInput = document.querySelector('.search-input');
+    
+    searchBtn?.addEventListener('click', function() {
+        if (searchInput.value.trim()) {
+            // Implement search logic
+            alert('Tìm kiếm: ' + searchInput.value);
+        }
+    });
+    
+    // Enter key for search
+    searchInput?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchBtn.click();
+        }
+    });
+    
+    // Tag click
+    const searchTags = document.querySelectorAll('.search-tag');
+    searchTags.forEach(tag => {
+        tag.addEventListener('click', function(e) {
+            e.preventDefault();
+            searchInput.value = this.textContent;
+            searchBtn.click();
+        });
+    });
+    
+    // Card hover effects
+    const cards = document.querySelectorAll('.trending-card, .subject-card, .feature-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.zIndex = '';
+        });
+    });
+    
+    // View all button animation
+    const viewAllBtns = document.querySelectorAll('.view-all-btn');
+    viewAllBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.querySelector('i').style.transform = 'translateX(5px)';
+            this.querySelector('i').style.transition = 'transform 0.3s ease';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.querySelector('i').style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

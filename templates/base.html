@@ -184,8 +184,8 @@
                     <i class="bi bi-grid-fill"></i> Tổng quan
                 </a>
                 
-                <a href="{% url 'quiz:practice_selection' %}" 
-                   class="list-group-item list-group-item-action {% if 'practice' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'quiz:explore' %}" 
+                   class="list-group-item list-group-item-action {% if 'explore' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="bi bi-compass"></i> Khám phá
                 </a>
 
@@ -194,7 +194,7 @@
                     <div class="sidebar-heading">Quản lý Đào tạo</div>
 
                     <a href="{% url 'quiz:quiz_list' %}" 
-                       class="list-group-item list-group-item-action {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name %}active{% endif %}">
+                       class="list-group-item list-group-item-action {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name or 'quiz_edit' in request.resolver_match.url_name %}active{% endif %}">
                         <i class="bi bi-journal-text"></i> Thư viện đề thi
                     </a>
                     <a href="{% url 'quiz:question_list' %}" 
@@ -286,6 +286,10 @@
                         <li class="breadcrumb-item active">Ngân hàng câu hỏi</li>
                     {% elif 'quiz' in request.resolver_match.url_name %}
                         <li class="breadcrumb-item active">Đề thi</li>
+                    {% elif 'explore' in request.resolver_match.url_name %}
+                        <li class="breadcrumb-item active">Khám phá</li>
+                    {% elif 'grading' in request.resolver_match.url_name %}
+                        <li class="breadcrumb-item active">Chấm bài</li>
                     {% endif %}
                 </ol>
             </nav>

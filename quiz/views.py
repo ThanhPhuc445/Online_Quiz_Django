@@ -1475,7 +1475,7 @@ def my_support_tickets(request):
         'is_paginated': page_obj.has_other_pages(),
         'ticket_types': SupportTicket.TicketType.choices,
     }
-    return render(request, 'support/my_tickets.html', context)
+    return render(request, 'support/my_ticket.html', context)
 @login_required
 @teacher_required
 def teacher_support_inbox(request):
@@ -1527,3 +1527,32 @@ def admin_support_dashboard(request):
         'user': user,
     }
     return render(request, 'support/admin_dashboard.html', context)
+# ===========================================================================
+# VIEWS KHÁM PHÁ ĐỀ THI
+# ===========================================================================
+
+@login_required
+def explore(request):
+    """Trang khám phá đề thi"""
+    # 1. Lấy tất cả môn học
+    subjects = Subject.objects.all()
+    
+    # 2. Lấy các đề thi CÔNG KHAI và ĐANG MỞ
+    now = timezone.now()
+    public_quizzes = Quiz.objects.filter(
+        is_public=True,
+        start_time__lte=now,
+        end_time__gte=now
+    ).order_by('-created_at')
+
+    # 3. Xử lý tìm kiếm (nếu người dùng gõ vào ô search)
+    query = request.GET.get('q')
+    if query:
+        public_quizzes = public_quizzes.filter(title__icontains=query)
+
+    context = {
+        'subjects': subjects,
+        'quizzes': public_quizzes,
+        'query': query
+    }
+    return render(request, 'pages/explore.html', context)
