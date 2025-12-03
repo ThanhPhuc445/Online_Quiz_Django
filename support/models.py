@@ -43,6 +43,11 @@ class SupportTicket(models.Model):
                              verbose_name="Trạng thái")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
+    is_read = models.BooleanField(default=False, verbose_name="Đã đọc?")
+    replied_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, 
+                                   null=True, blank=True, verbose_name="Người phản hồi",
+                                   related_name='replied_tickets')
+    replied_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian phản hồi")
     
     class Meta:
         ordering = ['-created_at']

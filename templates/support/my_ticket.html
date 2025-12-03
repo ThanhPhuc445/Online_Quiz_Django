@@ -1,206 +1,1317 @@
 <!-- support/my_tickets.html -->
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Yêu cầu hỗ trợ của tôi{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+    }
+
+    /* ===== HEADER SECTION ===== */
+    .hero-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        color: var(--gray);
+        line-height: 1.6;
+        max-width: 800px;
+    }
+
+    /* ===== FILTERS SECTION ===== */
+    .filter-section {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+    }
+
+    .filter-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-title i {
+        color: var(--primary);
+    }
+
+    /* ===== TICKETS TABLE ===== */
+    .table-container {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8f9fa, #f1f3f4);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table-header h5 {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .table-header h5 i {
+        color: var(--primary);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table {
+        margin: 0;
+        min-width: 1000px;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid var(--border);
+        font-weight: 600;
+        color: var(--dark);
+        padding: 1rem 1.5rem;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.3s ease;
+    }
+
+    .table tbody tr:hover td {
+        background: rgba(136, 0, 0, 0.02);
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* ===== TICKET STYLES ===== */
+    .ticket-code {
+        font-family: 'SF Mono', Monaco, 'Cascadia Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--gray);
+        background: #f8f9fa;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
+    }
+
+    .ticket-subject {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .ticket-time {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .ticket-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .badge-QUESTION { background: #e3f2fd; color: #1976d2; }
+    .badge-TECHNICAL { background: #e8f5e9; color: #388e3c; }
+    .badge-ACCOUNT { background: #fff3e0; color: #f57c00; }
+    .badge-OTHER { background: #f3e5f5; color: #7b1fa2; }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        position: relative;
+    }
+
+    .status-OPEN { 
+        background: rgba(25, 118, 210, 0.1); 
+        color: #1976d2;
+        border-color: rgba(25, 118, 210, 0.3);
+    }
+
+    .status-IN_PROGRESS { 
+        background: rgba(255, 152, 0, 0.1); 
+        color: #f57c00;
+        border-color: rgba(255, 152, 0, 0.3);
+    }
+
+    .status-RESOLVED { 
+        background: rgba(56, 142, 60, 0.1); 
+        color: #388e3c;
+        border-color: rgba(56, 142, 60, 0.3);
+    }
+
+    .status-CLOSED { 
+        background: rgba(158, 158, 158, 0.1); 
+        color: #616161;
+        border-color: rgba(158, 158, 158, 0.3);
+    }
+
+    /* ===== STATUS UPDATE DROPDOWN ===== */
+    .status-update-dropdown {
+        position: relative;
+        display: inline-flex;
+        margin-left: 8px;
+    }
+
+    .status-edit-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: white;
+        border: 1px solid var(--border);
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .status-edit-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        transform: scale(1.1);
+    }
+
+    .status-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        min-width: 180px;
+        padding: 0.5rem 0;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        display: none;
+        margin-top: 5px;
+    }
+
+    .status-dropdown-menu.show {
+        display: block;
+    }
+
+    .status-option {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--dark);
+        font-size: 0.9rem;
+    }
+
+    .status-option:hover {
+        background: rgba(136, 0, 0, 0.05);
+        color: var(--primary);
+    }
+
+    .status-option i {
+        font-size: 0.85rem;
+        width: 16px;
+    }
+
+    .teacher-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .teacher-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .teacher-details {
+        font-size: 0.9rem;
+    }
+
+    .teacher-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 2px;
+    }
+
+    .teacher-role {
+        color: var(--gray);
+        font-size: 0.8rem;
+    }
+
+    .action-btn {
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view {
+        background: var(--primary);
+        color: white;
+        border: none;
+    }
+
+    .btn-view:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    .btn-create {
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+    }
+
+    .btn-create:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ===== UPDATE STATUS MODAL ===== */
+    .status-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .status-modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .status-modal-content {
+        background: white;
+        border-radius: var(--radius-lg);
+        width: 90%;
+        max-width: 400px;
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-20px);
+        transition: transform 0.3s ease;
+    }
+
+    .status-modal.show .status-modal-content {
+        transform: translateY(0);
+    }
+
+    .status-modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .status-modal-title {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .status-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        color: var(--gray);
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .status-modal-close:hover {
+        color: var(--primary);
+    }
+
+    .status-modal-body {
+        padding: 1.5rem;
+    }
+
+    .status-options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .status-option-card {
+        padding: 1rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .status-option-card:hover {
+        border-color: var(--primary);
+        background: rgba(136, 0, 0, 0.02);
+        transform: translateY(-2px);
+    }
+
+    .status-option-card.selected {
+        border-color: var(--primary);
+        background: rgba(136, 0, 0, 0.1);
+    }
+
+    .status-option-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .status-option-text {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .status-comment-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        resize: vertical;
+        min-height: 80px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .status-comment-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(136, 0, 0, 0.1);
+    }
+
+    .status-modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-secondary {
+        padding: 0.5rem 1.5rem;
+        background: white;
+        color: var(--gray);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #f8f9fa;
+        color: var(--dark);
+    }
+
+    .btn-success {
+        padding: 0.5rem 1.5rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        background: #660000;
+        transform: translateY(-1px);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: var(--gray);
+        font-size: 2rem;
+    }
+
+    .empty-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .empty-desc {
+        color: var(--gray);
+        margin-bottom: 2rem;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ===== PAGINATION ===== */
+    .pagination-container {
+        background: white;
+        padding: 1.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .pagination .page-item .page-link {
+        border: 1px solid var(--border);
+        color: var(--gray);
+        margin: 0 4px;
+        border-radius: var(--radius-sm);
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .pagination .page-item:not(.active) .page-link:hover {
+        background: rgba(136, 0, 0, 0.05);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* ===== LOADING OVERLAY ===== */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .loading-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ===== TOAST NOTIFICATION ===== */
+    .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: white;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: 2000;
+        transform: translateX(150%);
+        transition: transform 0.3s ease;
+        border-left: 4px solid var(--primary);
+    }
+
+    .toast.show {
+        transform: translateX(0);
+    }
+
+    .toast-success {
+        border-left-color: var(--accent);
+    }
+
+    .toast-error {
+        border-left-color: #dc3545;
+    }
+
+    .toast-icon {
+        font-size: 1.25rem;
+    }
+
+    .toast-success .toast-icon {
+        color: var(--accent);
+    }
+
+    .toast-error .toast-icon {
+        color: #dc3545;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .toast-message {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .table {
+            min-width: 800px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .hero-title {
+            font-size: 1.8rem;
+        }
+        
+        .filter-section .row {
+            gap: 1rem;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .ticket-badge, .status-badge {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+        }
+        
+        .status-options-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-title {
+            font-size: 1.6rem;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+        }
+        
+        .teacher-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .teacher-avatar {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .status-modal-content {
+            width: 95%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Yêu cầu hỗ trợ của tôi</h2>
-            <p class="text-muted mb-0">Quản lý tất cả yêu cầu hỗ trợ bạn đã gửi</p>
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="hero-title">Yêu cầu hỗ trợ của tôi</h1>
+                <p class="hero-subtitle">Theo dõi và quản lý tất cả yêu cầu hỗ trợ bạn đã gửi đến giáo viên và quản trị viên</p>
+            </div>
+            <a href="{% url 'quiz:support_dashboard' %}" class="action-btn btn-create">
+                <i class="bi bi-plus-circle"></i> Tạo mới
+            </a>
         </div>
-        <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-primary">
-            <i class="bi bi-plus-circle me-1"></i> Tạo yêu cầu mới
-        </a>
     </div>
 
-    <!-- Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label small">Trạng thái</label>
-                    <select name="status" class="form-select">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Mở</option>
-                        <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>Đang xử lý</option>
-                        <option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Đã giải quyết</option>
-                        <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Đã đóng</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small">Loại yêu cầu</label>
-                    <select name="ticket_type" class="form-select">
-                        <option value="">Tất cả loại</option>
-                        {% for type_code, type_name in ticket_types %}
-                        <option value="{{ type_code }}" {% if request.GET.ticket_type == type_code %}selected{% endif %}>
-                            {{ type_name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small">Tìm kiếm</label>
-                    <input type="text" name="search" class="form-control" 
+    <!-- FILTERS SECTION -->
+    <div class="filter-section">
+        <h5 class="filter-title">
+            <i class="bi bi-funnel"></i> Bộ lọc nâng cao
+        </h5>
+        
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Trạng thái</label>
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Mở</option>
+                    <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>Đang xử lý</option>
+                    <option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Đã giải quyết</option>
+                    <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Đã đóng</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Loại yêu cầu</label>
+                <select name="ticket_type" class="form-select">
+                    <option value="">Tất cả loại</option>
+                    {% for type_code, type_name in ticket_types %}
+                    <option value="{{ type_code }}" {% if request.GET.ticket_type == type_code %}selected{% endif %}>
+                        {{ type_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label fw-medium">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0" 
                            placeholder="Tìm theo tiêu đề hoặc nội dung..."
                            value="{{ request.GET.search|default:'' }}">
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel me-1"></i> Lọc
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100" style="height: 46px;">
+                    <i class="bi bi-funnel me-2"></i> Lọc
+                </button>
+            </div>
+        </form>
     </div>
 
-    <!-- Danh sách tickets -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            {% if tickets %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Mã</th>
-                            <th>Tiêu đề</th>
-                            <th>Loại</th>
-                            <th>Người nhận</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày tạo</th>
-                            <th class="text-end pe-4">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ticket in tickets %}
-                        <tr>
-                            <td class="ps-4">
-                                <code class="text-muted">#{{ ticket.id|stringformat:"06d" }}</code>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="me-2">
-                                        {% if ticket.status == 'OPEN' %}
-                                        <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
-                                        {% elif ticket.status == 'IN_PROGRESS' %}
-                                        <i class="bi bi-circle-fill text-warning" style="font-size: 0.5rem;"></i>
-                                        {% elif ticket.status == 'RESOLVED' %}
-                                        <i class="bi bi-circle-fill text-success" style="font-size: 0.5rem;"></i>
-                                        {% elif ticket.status == 'CLOSED' %}
-                                        <i class="bi bi-circle-fill text-secondary" style="font-size: 0.5rem;"></i>
-                                        {% endif %}
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">{{ ticket.subject|truncatechars:40 }}</div>
-                                        <small class="text-muted">{{ ticket.created_at|timesince }} trước</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark">
-                                    {{ ticket.get_ticket_type_display }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if ticket.teacher %}
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-person-video2 me-1 text-primary"></i>
-                                    <span>{{ ticket.teacher.username|truncatechars:15 }}</span>
-                                </div>
-                                {% elif ticket.admin %}
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-shield-check me-1 text-success"></i>
-                                    <span>Admin</span>
-                                </div>
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if ticket.status == 'OPEN' %}
-                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">Mở</span>
-                                {% elif ticket.status == 'IN_PROGRESS' %}
-                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Đang xử lý</span>
-                                {% elif ticket.status == 'RESOLVED' %}
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success">Đã giải quyết</span>
-                                {% elif ticket.status == 'CLOSED' %}
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">Đã đóng</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-muted">{{ ticket.created_at|date:"d/m/Y" }}</td>
-                            <td class="text-end pe-4">
-                                <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            {% if is_paginated %}
-            <div class="card-footer border-0">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center mb-0">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-double-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                        
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                            </li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-double-right"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
-            
-            {% else %}
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i class="bi bi-inbox fs-1 text-muted"></i>
-                </div>
-                <h6 class="text-muted">Chưa có yêu cầu hỗ trợ nào</h6>
-                <p class="text-muted small mb-3">Tạo yêu cầu hỗ trợ đầu tiên của bạn</p>
-                <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Tạo yêu cầu mới
-                </a>
-            </div>
-            {% endif %}
+    <!-- TICKETS TABLE -->
+    <div class="table-container">
+        <div class="table-header">
+            <h5><i class="bi bi-ticket-detailed"></i> Danh sách yêu cầu hỗ trợ</h5>
         </div>
+        
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Mã ticket</th>
+                        <th style="min-width: 250px;">Thông tin yêu cầu</th>
+                        <th style="width: 120px;">Loại</th>
+                        <th style="width: 180px;">Người nhận</th>
+                        <th style="width: 150px;">Trạng thái</th>
+                        <th style="width: 100px;">Ngày tạo</th>
+                        <th style="width: 80px;" class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr id="ticket-row-{{ ticket.id }}">
+                        <td>
+                            <span class="ticket-code">#{{ ticket.id|stringformat:"06d" }}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <div class="ticket-subject">{{ ticket.subject|truncatechars:40 }}</div>
+                                <div class="ticket-time">
+                                    <i class="bi bi-clock text-muted" style="font-size: 0.8rem;"></i>
+                                    <small class="text-muted ms-1">{{ ticket.created_at|timesince }} trước</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="ticket-badge badge-{{ ticket.ticket_type }}">
+                                {{ ticket.get_ticket_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if ticket.teacher %}
+                            <div class="teacher-info">
+                                <img src="https://ui-avatars.com/api/?name={{ ticket.teacher.username }}&background=4a6cf7&color=fff&size=128" 
+                                     class="teacher-avatar" 
+                                     alt="{{ ticket.teacher.username }}">
+                                <div class="teacher-details">
+                                    <div class="teacher-name">{{ ticket.teacher.username|truncatechars:15 }}</div>
+                                    <div class="teacher-role">Giáo viên</div>
+                                </div>
+                            </div>
+                            {% elif ticket.admin %}
+                            <div class="teacher-info">
+                                <img src="https://ui-avatars.com/api/?name=Admin&background=00b894&color=fff&size=128" 
+                                     class="teacher-avatar" 
+                                     alt="Admin">
+                                <div class="teacher-details">
+                                    <div class="teacher-name">Admin</div>
+                                    <div class="teacher-role">Quản trị viên</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-muted fst-italic">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ ticket.status }}">
+                                <i class="bi {% if ticket.status == 'OPEN' %}bi-circle
+                                          {% elif ticket.status == 'IN_PROGRESS' %}bi-clock
+                                          {% elif ticket.status == 'RESOLVED' %}bi-check-circle
+                                          {% elif ticket.status == 'CLOSED' %}bi-x-circle{% endif %}">
+                                </i>
+                                {{ ticket.get_status_display }}
+                            </span>
+                            
+                            <!-- Kiểm tra quyền cập nhật trạng thái -->
+                            {% if user.role == 'ADMIN' or user == ticket.teacher %}
+                            <div class="status-update-dropdown">
+                                <button class="status-edit-btn" onclick="openStatusModal({{ ticket.id }}, '{{ ticket.status }}', '{{ ticket.get_status_display }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">
+                            {{ ticket.created_at|date:"d/m/Y" }}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" 
+                               class="action-btn btn-view" title="Xem chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <h4 class="empty-title">Chưa có yêu cầu hỗ trợ nào</h4>
+            <p class="empty-desc">
+                Tạo yêu cầu hỗ trợ đầu tiên của bạn để nhận được sự giúp đỡ từ giáo viên hoặc quản trị viên
+            </p>
+            <a href="{% url 'quiz:support_dashboard' %}" class="action-btn btn-create">
+                <i class="bi bi-plus-circle me-2"></i> Tạo yêu cầu mới
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<!-- Status Update Modal -->
+<div id="statusModal" class="status-modal">
+    <div class="status-modal-content">
+        <div class="status-modal-header">
+            <h5 class="status-modal-title">Cập nhật trạng thái ticket</h5>
+            <button type="button" class="status-modal-close" onclick="closeStatusModal()">&times;</button>
+        </div>
+        <form id="statusUpdateForm">
+            {% csrf_token %}
+            <input type="hidden" name="ticket_id" id="updateTicketId">
+            
+            <div class="status-modal-body">
+                <p class="mb-3">
+                    Ticket: <strong id="ticketCode"></strong>
+                    <br>
+                    Trạng thái hiện tại: <span id="currentStatus" class="status-badge"></span>
+                </p>
+                
+                <div class="status-options-grid">
+                    <div class="status-option-card" onclick="selectStatus('OPEN')">
+                        <div class="status-option-icon" style="color: #1976d2;">
+                            <i class="bi bi-circle"></i>
+                        </div>
+                        <div class="status-option-text">Mở</div>
+                    </div>
+                    
+                    <div class="status-option-card" onclick="selectStatus('IN_PROGRESS')">
+                        <div class="status-option-icon" style="color: #f57c00;">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="status-option-text">Đang xử lý</div>
+                    </div>
+                    
+                    <div class="status-option-card" onclick="selectStatus('RESOLVED')">
+                        <div class="status-option-icon" style="color: #388e3c;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="status-option-text">Đã giải quyết</div>
+                    </div>
+                    
+                    <div class="status-option-card" onclick="selectStatus('CLOSED')">
+                        <div class="status-option-icon" style="color: #616161;">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div class="status-option-text">Đã đóng</div>
+                    </div>
+                </div>
+                
+                <input type="hidden" name="status" id="selectedStatus" value="">
+                
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Bình luận (tùy chọn)</label>
+                    <textarea name="comment" id="statusComment" class="status-comment-input" 
+                              placeholder="Thêm bình luận cho việc thay đổi trạng thái..."></textarea>
+                </div>
+            </div>
+            
+            <div class="status-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Hủy</button>
+                <button type="submit" class="btn btn-success">Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toastNotification">
+    <div class="toast-icon">
+        <i class="bi bi-check-circle"></i>
+    </div>
+    <div class="toast-content">
+        <div class="toast-title" id="toastTitle">Thành công!</div>
+        <div class="toast-message" id="toastMessage">Đã cập nhật trạng thái thành công.</div>
+    </div>
+    <button type="button" class="toast-close" onclick="hideToast()">&times;</button>
+</div>
+
+<script>
+// Biến lưu trữ trạng thái hiện tại
+let currentStatus = '';
+let currentTicketId = '';
+
+// Mở modal cập nhật trạng thái
+function openStatusModal(ticketId, status, statusDisplay) {
+    currentTicketId = ticketId;
+    currentStatus = status;
+    
+    // Cập nhật thông tin modal
+    document.getElementById('updateTicketId').value = ticketId;
+    document.getElementById('ticketCode').textContent = `#${String(ticketId).padStart(6, '0')}`;
+    
+    // Cập nhật trạng thái hiện tại
+    const currentStatusEl = document.getElementById('currentStatus');
+    currentStatusEl.textContent = statusDisplay;
+    currentStatusEl.className = `status-badge status-${status}`;
+    
+    // Chọn trạng thái hiện tại
+    selectStatus(status);
+    
+    // Hiển thị modal
+    document.getElementById('statusModal').classList.add('show');
+}
+
+// Đóng modal
+function closeStatusModal() {
+    document.getElementById('statusModal').classList.remove('show');
+    resetStatusForm();
+}
+
+// Chọn trạng thái
+function selectStatus(status) {
+    // Xóa tất cả selected
+    document.querySelectorAll('.status-option-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Thêm selected cho card được chọn
+    const selectedCard = document.querySelector(`.status-option-card[onclick="selectStatus('${status}')"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+    
+    // Cập nhật input ẩn
+    document.getElementById('selectedStatus').value = status;
+}
+
+// Reset form
+function resetStatusForm() {
+    document.getElementById('statusComment').value = '';
+    selectStatus(currentStatus);
+}
+
+// Hiển thị loading
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.add('show');
+}
+
+// Ẩn loading
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+// Hiển thị toast
+function showToast(title, message, type = 'success') {
+    const toast = document.getElementById('toastNotification');
+    const titleEl = document.getElementById('toastTitle');
+    const messageEl = document.getElementById('toastMessage');
+    const icon = toast.querySelector('.toast-icon i');
+    
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    
+    // Cập nhật kiểu toast
+    toast.className = 'toast';
+    toast.classList.add('show');
+    
+    if (type === 'success') {
+        toast.classList.add('toast-success');
+        icon.className = 'bi bi-check-circle';
+    } else {
+        toast.classList.add('toast-error');
+        icon.className = 'bi bi-x-circle';
+    }
+    
+    // Tự động ẩn sau 5 giây
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 5000);
+}
+
+// Ẩn toast
+function hideToast() {
+    document.getElementById('toastNotification').classList.remove('show');
+}
+
+// Xử lý submit form cập nhật trạng thái
+document.getElementById('statusUpdateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const ticketId = formData.get('ticket_id');
+    const status = formData.get('status');
+    const comment = formData.get('comment');
+    
+    // Kiểm tra nếu chưa chọn trạng thái
+    if (!status) {
+        showToast('Lỗi', 'Vui lòng chọn trạng thái mới', 'error');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const response = await fetch(`/quiz/support/ticket/${ticketId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: status,
+                comment: comment
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.status === 'success') {
+            // Cập nhật giao diện
+            updateTicketStatusUI(ticketId, status, data.new_status_display);
+            
+            // Hiển thị thông báo
+            showToast('Thành công', data.message || 'Đã cập nhật trạng thái thành công');
+            
+            // Đóng modal
+            closeStatusModal();
+        } else {
+            showToast('Lỗi', data.message || 'Có lỗi xảy ra khi cập nhật', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
+    } finally {
+        hideLoading();
+    }
+});
+
+// Cập nhật giao diện sau khi thay đổi trạng thái
+function updateTicketStatusUI(ticketId, status, statusDisplay) {
+    const row = document.getElementById(`ticket-row-${ticketId}`);
+    if (!row) return;
+    
+    // Cập nhật badge trạng thái
+    const statusBadge = row.querySelector('.status-badge');
+    if (statusBadge) {
+        statusBadge.className = `status-badge status-${status}`;
+        statusBadge.innerHTML = `
+            <i class="bi ${getStatusIcon(status)}"></i>
+            ${statusDisplay}
+        `;
+    }
+}
+
+// Lấy icon theo trạng thái
+function getStatusIcon(status) {
+    switch(status) {
+        case 'OPEN': return 'bi-circle';
+        case 'IN_PROGRESS': return 'bi-clock';
+        case 'RESOLVED': return 'bi-check-circle';
+        case 'CLOSED': return 'bi-x-circle';
+        default: return 'bi-circle';
+    }
+}
+
+// Lấy CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Đóng modal khi click ra ngoài
+document.getElementById('statusModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStatusModal();
+    }
+});
+
+// Đóng modal bằng phím ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeStatusModal();
+    }
+});
+
+// Animation cho các hàng trong bảng
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach((row, index) => {
+        setTimeout(() => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(10px)';
+            row.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 50);
+    });
+    
+    // Filter form animation
+    const filterForm = document.querySelector('form');
+    const filterBtn = filterForm?.querySelector('button[type="submit"]');
+    
+    filterBtn?.addEventListener('click', function() {
+        this.innerHTML = '<i class="bi bi-funnel me-2"></i> Đang lọc...';
+        this.disabled = true;
+        setTimeout(() => {
+            this.innerHTML = '<i class="bi bi-funnel me-2"></i> Lọc';
+            this.disabled = false;
+        }, 1000);
+    });
+    
+    // View button animation
+    const viewBtns = document.querySelectorAll('.btn-view');
+    viewBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.querySelector('i').style.transform = 'scale(1.2)';
+            this.querySelector('i').style.transition = 'transform 0.3s ease';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.querySelector('i').style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
 {% endblock %}

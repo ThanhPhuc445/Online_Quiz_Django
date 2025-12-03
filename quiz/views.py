@@ -1367,6 +1367,16 @@ def contact_admin(request):
     """Liên hệ với quản trị viên"""
     user = request.user
     
+    # Tính số ticket đang mở của user
+    open_tickets_count = SupportTicket.objects.filter(
+        user=user,
+        status='OPEN'
+    ).count()
+    
+    # Tính ID ticket tiếp theo
+    last_ticket = SupportTicket.objects.order_by('-id').first()
+    next_ticket_id = (last_ticket.id + 1) if last_ticket else 1
+    
     if request.method == 'POST':
         subject = request.POST.get('subject', '').strip()
         message = request.POST.get('message', '').strip()
@@ -1386,7 +1396,7 @@ def contact_admin(request):
                 status='OPEN'
             )
             
-            messages.success(request, "Đã gửi yêu cầu hỗ trợ đến quản trị viên!")
+            messages.success(request, f"Đã tạo ticket #{ticket.id:06d}! Quản trị viên sẽ liên hệ với bạn sớm.")
             return redirect('quiz:support_ticket_detail', ticket_id=ticket.id)
             
         except Exception as e:
@@ -1395,6 +1405,8 @@ def contact_admin(request):
     context = {
         'user': user,
         'ticket_types': SupportTicket.TicketType.choices,
+        'open_tickets_count': open_tickets_count,
+        'next_ticket_id': f"{next_ticket_id:06d}",
     }
     return render(request, 'support/contact_admin.html', context)
 
@@ -1412,6 +1424,11 @@ def support_ticket_detail(request, ticket_id):
     if user.role == 'TEACHER' and ticket.teacher != user:
         raise PermissionDenied
     
+    # Đánh dấu là đã đọc nếu là giáo viên/admin
+    if user.role in ['TEACHER', 'ADMIN'] and not ticket.is_read:
+        ticket.is_read = True
+        ticket.save()
+    
     if request.method == 'POST':
         # Giáo viên/Admin phản hồi
         if user.role in ['TEACHER', 'ADMIN']:
@@ -1421,6 +1438,8 @@ def support_ticket_detail(request, ticket_id):
             if response:
                 ticket.admin_response = response
                 ticket.admin = user if user.role == 'ADMIN' else None
+                ticket.replied_by = user
+                ticket.replied_at = timezone.now()
                 ticket.status = status
                 ticket.save()
                 
@@ -1429,7 +1448,8 @@ def support_ticket_detail(request, ticket_id):
             # Học sinh cập nhật ticket
             new_message = request.POST.get('new_message', '').strip()
             if new_message:
-                ticket.message += f"\n\n--- Cập nhật từ học sinh ---\n{new_message}"
+                ticket.message += f"\n\n--- Cập nhật từ học sinh ({timezone.now().strftime('%d/%m/%Y %H:%M')}) ---\n{new_message}"
+                ticket.is_read = False  # Đánh dấu là chưa đọc để giáo viên biết có cập nhật mới
                 ticket.save()
                 messages.success(request, "Đã cập nhật yêu cầu!")
     
@@ -1437,9 +1457,55 @@ def support_ticket_detail(request, ticket_id):
         'ticket': ticket,
         'can_reply': user.role in ['TEACHER', 'ADMIN'],  # Giáo viên/Admin mới được phản hồi
         'is_owner': ticket.user == user,  # Người tạo ticket
+        'has_replied': ticket.replied_by is not None,  # Đã có phản hồi chưa
     }
     return render(request, 'support/ticket_detail.html', context)
-
+# views.py - Thêm sau view support_ticket_detail
+@login_required
+@require_POST
+def update_ticket_status(request, ticket_id):
+    """View cập nhật trạng thái ticket"""
+    ticket = get_object_or_404(SupportTicket, id=ticket_id)
+    
+    # Kiểm tra quyền: chỉ admin hoặc giáo viên được chỉ định mới được cập nhật
+    user = request.user
+    is_authorized = False
+    
+    if user.role == 'ADMIN':
+        is_authorized = True
+    elif user.role == 'TEACHER':
+        # Giáo viên chỉ được cập nhật ticket gửi cho mình
+        if ticket.teacher == user:
+            is_authorized = True
+    
+    if not is_authorized:
+        messages.error(request, "Bạn không có quyền cập nhật trạng thái ticket này.")
+        return redirect('quiz:support_ticket_detail', ticket_id=ticket_id)
+    
+    # Lấy trạng thái mới từ form
+    new_status = request.POST.get('status')
+    
+    if new_status and new_status in dict(SupportTicket.STATUS_CHOICES):
+        old_status_display = ticket.get_status_display()
+        ticket.status = new_status
+        
+        # Ghi lại lịch sử cập nhật
+        ticket.status_history = f"{ticket.status_history or ''}\n{timezone.now().strftime('%d/%m/%Y %H:%M')} - {user.username} cập nhật từ {old_status_display} thành {ticket.get_status_display()}"
+        
+        # Nếu là admin và có comment, thêm vào admin_response
+        admin_comment = request.POST.get('admin_comment', '').strip()
+        if admin_comment and user.role == 'ADMIN':
+            ticket.admin_response = f"{ticket.admin_response or ''}\n\n--- Cập nhật trạng thái ({timezone.now().strftime('%d/%m/%Y %H:%M')}) ---\n{admin_comment}"
+            ticket.replied_by = user
+            ticket.replied_at = timezone.now()
+            ticket.is_read = False  # Đánh dấu để người dùng biết có cập nhật
+        
+        ticket.save()
+        messages.success(request, f"Đã cập nhật trạng thái thành {ticket.get_status_display()}.")
+    else:
+        messages.error(request, "Trạng thái không hợp lệ.")
+    
+    return redirect('quiz:support_ticket_detail', ticket_id=ticket_id)
 @login_required
 def my_support_tickets(request):
     """Danh sách yêu cầu hỗ trợ của tôi"""
@@ -1485,18 +1551,53 @@ def teacher_support_inbox(request):
     # Lấy các ticket gửi cho giáo viên này
     tickets = SupportTicket.objects.filter(teacher=teacher).order_by('-created_at')
     
+    # Thêm filter
+    status_filter = request.GET.get('status')
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+    
+    # Tìm kiếm
+    search_query = request.GET.get('search')
+    if search_query:
+        tickets = tickets.filter(
+            Q(subject__icontains=search_query) | 
+            Q(message__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+    
     # Thống kê
     total_tickets = tickets.count()
     open_tickets = tickets.filter(status='OPEN').count()
+    in_progress_tickets = tickets.filter(status='IN_PROGRESS').count()
+    resolved_tickets = tickets.filter(status='RESOLVED').count()
+    unread_tickets = tickets.filter(is_read=False).count()
+    
+    # Phân loại theo loại ticket
+    ticket_type_stats = {}
+    for ticket_type, display_name in SupportTicket.TicketType.choices:
+        count = tickets.filter(ticket_type=ticket_type).count()
+        if count > 0:
+            ticket_type_stats[display_name] = count
+    
+    # Pagination
+    paginator = Paginator(tickets, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     context = {
-        'tickets': tickets,
+        'tickets': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'total_tickets': total_tickets,
         'open_tickets': open_tickets,
+        'in_progress_tickets': in_progress_tickets,
+        'resolved_tickets': resolved_tickets,
+        'unread_tickets': unread_tickets,
+        'ticket_types': SupportTicket.TicketType.choices,
+        'ticket_type_stats': ticket_type_stats,
         'teacher': teacher,
     }
     return render(request, 'support/teacher_inbox.html', context)
-
 @login_required
 @admin_required
 def admin_support_dashboard(request):
@@ -1506,24 +1607,63 @@ def admin_support_dashboard(request):
     # Lấy tất cả ticket
     tickets = SupportTicket.objects.all().order_by('-created_at')
     
+    # Thêm filter
+    status_filter = request.GET.get('status')
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+    
+    # Tìm kiếm
+    search_query = request.GET.get('search')
+    if search_query:
+        tickets = tickets.filter(
+            Q(subject__icontains=search_query) | 
+            Q(message__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+    
     # Thống kê
     total_tickets = tickets.count()
     open_tickets = tickets.filter(status='OPEN').count()
     in_progress_tickets = tickets.filter(status='IN_PROGRESS').count()
+    resolved_tickets = tickets.filter(status='RESOLVED').count()
+    closed_tickets = tickets.filter(status='CLOSED').count()
     
     # Phân loại theo loại yêu cầu
-    ticket_types = {}
+    ticket_types_stats = {}
     for ticket_type, display_name in SupportTicket.TicketType.choices:
         count = tickets.filter(ticket_type=ticket_type).count()
         if count > 0:
-            ticket_types[display_name] = count
+            ticket_types_stats[display_name] = count
+    
+    # Phân loại theo giáo viên (nếu có)
+    teacher_tickets = {}
+    teacher_tickets_data = tickets.filter(teacher__isnull=False).values('teacher__username').annotate(count=Count('id'))
+    for item in teacher_tickets_data:
+        teacher_tickets[item['teacher__username']] = item['count']
+    
+    # Phân loại theo học sinh
+    student_tickets = {}
+    student_tickets_data = tickets.values('user__username').annotate(count=Count('id')).order_by('-count')[:10]
+    for item in student_tickets_data:
+        student_tickets[item['user__username']] = item['count']
+    
+    # Pagination
+    paginator = Paginator(tickets, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     context = {
-        'tickets': tickets,
+        'tickets': page_obj,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
         'total_tickets': total_tickets,
         'open_tickets': open_tickets,
         'in_progress_tickets': in_progress_tickets,
-        'ticket_types': ticket_types,
+        'resolved_tickets': resolved_tickets,
+        'closed_tickets': closed_tickets,
+        'ticket_types_stats': ticket_types_stats,
+        'teacher_tickets': teacher_tickets,
+        'student_tickets': student_tickets,
         'user': user,
     }
     return render(request, 'support/admin_dashboard.html', context)

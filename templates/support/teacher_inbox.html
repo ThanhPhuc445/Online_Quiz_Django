@@ -1,343 +1,1137 @@
-[file name]: teacher_inbox.html
-[file content begin]
 <!-- support/teacher_inbox.html -->
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Hộp thư hỗ trợ - Giáo viên{% endblock %}
 
-{% block extra_head %}
+{% block extra_css %}
 <style>
-    .ticket-card {
-        border-left: 4px solid #dee2e6;
-        transition: all 0.2s;
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
     }
-    .ticket-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+
+    /* ===== HERO SECTION ===== */
+    .hero-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
     }
-    .ticket-card.unread {
-        border-left-color: var(--primary-color);
-        background-color: rgba(136, 0, 0, 0.03);
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
     }
-    .ticket-card.open {
-        border-left-color: #28a745;
+
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
     }
-    .ticket-card.in-progress {
-        border-left-color: #ffc107;
+
+    .hero-subtitle {
+        font-size: 1rem;
+        color: var(--gray);
+        line-height: 1.6;
+        max-width: 800px;
     }
-    .ticket-card.closed {
-        border-left-color: #6c757d;
+
+    .unread-badge {
+        background: var(--primary);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
-    .status-badge {
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.75rem;
+
+    /* ===== STATS CARDS ===== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: var(--primary);
+        font-size: 1.8rem;
+        background: rgba(136, 0, 0, 0.1);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: var(--gray);
+        font-size: 0.95rem;
         font-weight: 500;
     }
-    .badge-unread {
-        background-color: var(--primary-color);
+
+    /* ===== FILTERS SECTION ===== */
+    .filter-section {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+    }
+
+    .filter-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-title i {
+        color: var(--primary);
+    }
+
+    /* ===== TICKETS TABLE ===== */
+    .table-container {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8f9fa, #f1f3f4);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-header h5 {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .table-header h5 i {
+        color: var(--primary);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table {
+        margin: 0;
+        min-width: 1200px;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid var(--border);
+        font-weight: 600;
+        color: var(--dark);
+        padding: 1rem 1.5rem;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.3s ease;
+    }
+
+    .table tbody tr.unread {
+        background: rgba(136, 0, 0, 0.02);
+        border-left: 3px solid var(--primary);
+    }
+
+    .table tbody tr:hover td {
+        background: rgba(136, 0, 0, 0.05);
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* ===== TICKET STYLES ===== */
+    .ticket-code {
+        font-family: 'SF Mono', Monaco, 'Cascadia Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--gray);
+        background: #f8f9fa;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
+    }
+
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .student-details {
+        flex: 1;
+    }
+
+    .student-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 2px;
+    }
+
+    .student-email {
+        color: var(--gray);
+        font-size: 0.85rem;
+    }
+
+    .ticket-subject {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    .ticket-time {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .ticket-quiz {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    .ticket-quiz:hover {
+        color: #660000;
+        text-decoration: underline;
+    }
+
+    /* ===== TICKET TYPE BADGES ===== */
+    .ticket-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .badge-QUESTION { background: #e3f2fd; color: #1976d2; }
+    .badge-TECHNICAL { background: #e8f5e9; color: #388e3c; }
+    .badge-ACCOUNT { background: #fff3e0; color: #f57c00; }
+    .badge-FEEDBACK { background: #f3e5f5; color: #7b1fa2; }
+    .badge-OTHER { background: #f5f5f5; color: #616161; }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+
+    .status-OPEN { 
+        background: rgba(25, 118, 210, 0.1); 
+        color: #1976d2;
+        border-color: rgba(25, 118, 210, 0.3);
+    }
+
+    .status-IN_PROGRESS { 
+        background: rgba(255, 152, 0, 0.1); 
+        color: #f57c00;
+        border-color: rgba(255, 152, 0, 0.3);
+    }
+
+    .status-RESOLVED { 
+        background: rgba(56, 142, 60, 0.1); 
+        color: #388e3c;
+        border-color: rgba(56, 142, 60, 0.3);
+    }
+
+    .status-CLOSED { 
+        background: rgba(158, 158, 158, 0.1); 
+        color: #616161;
+        border-color: rgba(158, 158, 158, 0.3);
+    }
+
+    /* ===== REPLY STATUS ===== */
+    .reply-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .reply-status.replied {
+        background: rgba(56, 142, 60, 0.1);
+        color: #388e3c;
+        border: 1px solid rgba(56, 142, 60, 0.3);
+    }
+
+    .reply-status.pending {
+        background: rgba(255, 152, 0, 0.1);
+        color: #f57c00;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+
+    .reply-time {
+        font-size: 0.8rem;
+        color: var(--gray);
+        margin-top: 4px;
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-btn {
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view {
+        background: var(--primary);
         color: white;
+        border: none;
+    }
+
+    .btn-view:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    .btn-mark-read {
+        background: #f8f9fa;
+        color: var(--gray);
+        border: 1px solid var(--border);
+    }
+
+    .btn-mark-read:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: var(--gray);
+        font-size: 2rem;
+    }
+
+    .empty-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .empty-desc {
+        color: var(--gray);
+        margin-bottom: 2rem;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ===== STATS INFO ===== */
+    .stats-info {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .type-stats {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .type-stats-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .type-stats-title i {
+        color: var(--primary);
+    }
+
+    .type-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .type-item:last-child {
+        border-bottom: none;
+    }
+
+    .type-name {
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    .type-count {
+        background: var(--primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .guide-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .guide-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .guide-title i {
+        color: var(--primary);
+    }
+
+    .guide-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .guide-list li {
+        padding: 0.5rem 0 0.5rem 1.5rem;
+        position: relative;
+        color: var(--gray);
+    }
+
+    .guide-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .action-card {
+        flex: 1;
+        min-width: 200px;
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .action-card:nth-child(1) .action-icon { background: var(--primary); }
+    .action-card:nth-child(2) .action-icon { background: var(--secondary); }
+    .action-card:nth-child(3) .action-icon { background: var(--accent); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .table {
+            min-width: 1000px;
+        }
+        
+        .stats-info {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .hero-title {
+            font-size: 1.8rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filter-section .row {
+            gap: 1rem;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .status-badge, .reply-status {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+        }
+        
+        .quick-actions {
+            flex-direction: column;
+        }
+        
+        .action-card {
+            min-width: 100%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-title {
+            font-size: 1.6rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+        }
+        
+        .student-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .student-avatar {
+            width: 32px;
+            height: 32px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Hộp thư hỗ trợ</h2>
-            <p class="text-muted mb-0">Quản lý các yêu cầu hỗ trợ từ học sinh</p>
-        </div>
-        <div class="d-flex align-items-center gap-3">
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="hero-title">Hộp thư hỗ trợ</h1>
+                <p class="hero-subtitle">Quản lý các yêu cầu hỗ trợ từ học sinh và cung cấp phản hồi kịp thời</p>
+            </div>
             {% if unread_tickets > 0 %}
-            <span class="badge badge-unread">
-                <i class="bi bi-envelope-fill me-1"></i> {{ unread_tickets }} chưa đọc
+            <span class="unread-badge">
+                <i class="bi bi-envelope-fill"></i> {{ unread_tickets }} yêu cầu chưa đọc
             </span>
             {% endif %}
-            <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left me-1"></i> Quay lại
-            </a>
         </div>
     </div>
 
-    <!-- Thống kê -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="fw-bold text-primary mb-1">{{ total_tickets }}</h3>
-                    <p class="text-muted mb-0">Tổng số yêu cầu</p>
-                </div>
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+        <a href="{% url 'quiz:support_dashboard' %}" class="action-card">
+            <div class="action-icon">
+                <i class="bi bi-house"></i>
             </div>
+            <h6 class="fw-bold mb-2">Trang chủ hỗ trợ</h6>
+            <p class="text-muted small mb-0">Quay lại trang hỗ trợ chính</p>
+        </a>
+        
+        <a href="{% url 'quiz:my_support_tickets' %}" class="action-card">
+            <div class="action-icon">
+                <i class="bi bi-ticket-detailed"></i>
+            </div>
+            <h6 class="fw-bold mb-2">Ticket của tôi</h6>
+            <p class="text-muted small mb-0">Xem ticket bạn đã gửi</p>
+        </a>
+        
+        <a href="#" class="action-card">
+            <div class="action-icon">
+                <i class="bi bi-bar-chart"></i>
+            </div>
+            <h6 class="fw-bold mb-2">Thống kê</h6>
+            <p class="text-muted small mb-0">Xem báo cáo hiệu suất</p>
+        </a>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <h3 class="stat-value">{{ total_tickets }}</h3>
+            <p class="stat-label">Tổng số yêu cầu</p>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="fw-bold text-success mb-1">{{ open_tickets }}</h3>
-                    <p class="text-muted mb-0">Đang chờ xử lý</p>
-                </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-clock"></i>
             </div>
+            <h3 class="stat-value">{{ open_tickets }}</h3>
+            <p class="stat-label">Đang chờ xử lý</p>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="fw-bold text-warning mb-1">{{ in_progress_tickets|default:0 }}</h3>
-                    <p class="text-muted mb-0">Đang xử lý</p>
-                </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-gear"></i>
             </div>
+            <h3 class="stat-value">{{ in_progress_tickets|default:0 }}</h3>
+            <p class="stat-label">Đang xử lý</p>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="fw-bold text-secondary mb-1">{{ resolved_tickets|default:0 }}</h3>
-                    <p class="text-muted mb-0">Đã giải quyết</p>
-                </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-check-circle"></i>
             </div>
+            <h3 class="stat-value">{{ resolved_tickets|default:0 }}</h3>
+            <p class="stat-label">Đã giải quyết</p>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label small">Trạng thái</label>
-                    <select name="status" class="form-select">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Mở</option>
-                        <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>Đang xử lý</option>
-                        <option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Đã giải quyết</option>
-                        <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Đã đóng</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small">Loại yêu cầu</label>
-                    <select name="ticket_type" class="form-select">
-                        <option value="">Tất cả loại</option>
-                        {% for type_code, type_name in ticket_types %}
-                        <option value="{{ type_code }}" {% if request.GET.ticket_type == type_code %}selected{% endif %}>
-                            {{ type_name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label small">Tìm kiếm</label>
-                    <input type="text" name="search" class="form-control" 
+    <!-- FILTERS SECTION -->
+    <div class="filter-section">
+        <h5 class="filter-title">
+            <i class="bi bi-funnel"></i> Lọc yêu cầu hỗ trợ
+        </h5>
+        
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Trạng thái</label>
+                <select name="status" class="form-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Mở</option>
+                    <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>Đang xử lý</option>
+                    <option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Đã giải quyết</option>
+                    <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Đã đóng</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label fw-medium">Loại yêu cầu</label>
+                <select name="ticket_type" class="form-select">
+                    <option value="">Tất cả loại</option>
+                    {% for type_code, type_name in ticket_types %}
+                    <option value="{{ type_code }}" {% if request.GET.ticket_type == type_code %}selected{% endif %}>
+                        {{ type_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label fw-medium">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0" 
                            placeholder="Tìm theo học sinh hoặc tiêu đề..."
                            value="{{ request.GET.search|default:'' }}">
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel me-1"></i> Lọc
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100" style="height: 46px;">
+                    <i class="bi bi-funnel me-2"></i> Lọc
+                </button>
+            </div>
+        </form>
     </div>
 
-    <!-- Danh sách tickets -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            {% if tickets %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Mã</th>
-                            <th>Học sinh</th>
-                            <th>Tiêu đề</th>
-                            <th>Loại</th>
-                            <th>Đề thi</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày gửi</th>
-                            <th class="text-end pe-4">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ticket in tickets %}
-                        <tr class="{% if not ticket.is_read %}table-primary{% endif %}">
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    {% if not ticket.is_read %}
-                                    <span class="badge badge-unread me-2" title="Chưa đọc">
-                                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
-                                    </span>
-                                    {% endif %}
-                                    <code class="text-muted">#{{ ticket.id|stringformat:"06d" }}</code>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if ticket.user.avatar %}
-                                    <img src="{{ ticket.user.avatar.url }}" class="rounded-circle me-2" width="30" height="30" alt="{{ ticket.user.username }}">
-                                    {% else %}
-                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
-                                        <i class="bi bi-person text-muted" style="font-size: 0.8rem;"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="fw-medium">{{ ticket.user.get_full_name|default:ticket.user.username }}</div>
-                                        <small class="text-muted">{{ ticket.user.email|truncatechars:20 }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="fw-medium">{{ ticket.subject|truncatechars:40 }}</div>
-                                <small class="text-muted">{{ ticket.created_at|timesince }} trước</small>
-                            </td>
-                            <td>
-                                <span class="badge bg-light text-dark">
-                                    {{ ticket.get_ticket_type_display }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if ticket.quiz %}
-                                <a href="{% url 'quiz:quiz_results' ticket.quiz.id %}" class="text-decoration-none">
-                                    {{ ticket.quiz.title|truncatechars:20 }}
-                                </a>
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if ticket.status == 'OPEN' %}
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success">Mở</span>
-                                {% elif ticket.status == 'IN_PROGRESS' %}
-                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Đang xử lý</span>
-                                {% elif ticket.status == 'RESOLVED' %}
-                                <span class="badge bg-info bg-opacity-10 text-info border border-info">Đã giải quyết</span>
-                                {% elif ticket.status == 'CLOSED' %}
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">Đã đóng</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-muted">{{ ticket.created_at|date:"d/m/Y" }}</td>
-                            <td class="text-end pe-4">
-                                <div class="d-flex justify-content-end">
-                                    <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" 
-                                       class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            {% if is_paginated %}
-            <div class="card-footer border-0">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center mb-0">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-double-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                        
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
-                            </li>
-                            {% endif %}
-                        {% endfor %}
-                        
-                        {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                <i class="bi bi-chevron-double-right"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            </div>
-            {% endif %}
-            
-            {% else %}
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i class="bi bi-inbox fs-1 text-muted"></i>
-                </div>
-                <h6 class="text-muted">Hộp thư trống</h6>
-                <p class="text-muted small mb-3">Hiện chưa có yêu cầu hỗ trợ nào từ học sinh</p>
-                <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-primary">
-                    <i class="bi bi-arrow-left me-1"></i> Quay lại trang hỗ trợ
+    <!-- TICKETS TABLE -->
+    <div class="table-container">
+        <div class="table-header">
+            <h5><i class="bi bi-ticket-detailed"></i> Danh sách yêu cầu từ học sinh</h5>
+            <div class="d-flex gap-2">
+                <a href="{% url 'quiz:support_dashboard' %}" class="action-btn btn-view">
+                    <i class="bi bi-arrow-left me-2"></i> Quay lại
                 </a>
+                <button type="button" class="action-btn btn-mark-read" onclick="markAllAsRead()">
+                    <i class="bi bi-check-all me-2"></i> Đánh dấu tất cả đã đọc
+                </button>
             </div>
-            {% endif %}
         </div>
-    </div>
-
-    <!-- Thống kê phân loại -->
-    {% if ticket_type_stats %}
-    <div class="row mt-4">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-bar-chart me-2"></i> Phân loại yêu cầu
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for type_name, count in ticket_type_stats.items %}
-                        <div class="col-md-3 mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3" 
-                                     style="width: 40px; height: 40px;">
-                                    <i class="bi bi-chat-left-text"></i>
-                                </div>
-                                <div>
-                                    <h5 class="fw-bold mb-0">{{ count }}</h5>
-                                    <small class="text-muted">{{ type_name }}</small>
+        
+        {% if tickets %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Mã ticket</th>
+                        <th style="min-width: 200px;">Học sinh</th>
+                        <th style="min-width: 250px;">Thông tin yêu cầu</th>
+                        <th style="width: 120px;">Loại</th>
+                        <th style="width: 150px;">Đề thi</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                        <th style="width: 120px;">Phản hồi</th>
+                        <th style="width: 100px;">Ngày gửi</th>
+                        <th style="width: 100px;" class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr class="{% if not ticket.is_read %}unread{% endif %}" id="ticket-{{ ticket.id }}">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if not ticket.is_read %}
+                                <span class="badge rounded-circle bg-primary p-1" 
+                                      title="Chưa đọc"
+                                      style="width: 10px; height: 10px;"></span>
+                                {% endif %}
+                                <span class="ticket-code">#{{ ticket.id|stringformat:"06d" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="student-info">
+                                <img src="https://ui-avatars.com/api/?name={{ ticket.user.username }}&background=4a6cf7&color=fff&size=128" 
+                                     class="student-avatar" 
+                                     alt="{{ ticket.user.username }}">
+                                <div class="student-details">
+                                    <div class="student-name">{{ ticket.user.get_full_name|default:ticket.user.username }}</div>
+                                    <div class="student-email">{{ ticket.user.email|truncatechars:20 }}</div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <div class="ticket-subject">{{ ticket.subject|truncatechars:40 }}</div>
+                                <div class="ticket-time">
+                                    <i class="bi bi-clock text-muted" style="font-size: 0.8rem;"></i>
+                                    <small class="text-muted ms-1">{{ ticket.created_at|timesince }} trước</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="ticket-badge badge-{{ ticket.ticket_type }}">
+                                {{ ticket.get_ticket_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if ticket.quiz %}
+                            <a href="{% url 'quiz:quiz_results' ticket.quiz.id %}" 
+                               class="ticket-quiz">
+                                {{ ticket.quiz.title|truncatechars:20 }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted fst-italic">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ ticket.status }}">
+                                <i class="bi {% if ticket.status == 'OPEN' %}bi-circle
+                                          {% elif ticket.status == 'IN_PROGRESS' %}bi-clock
+                                          {% elif ticket.status == 'RESOLVED' %}bi-check-circle
+                                          {% elif ticket.status == 'CLOSED' %}bi-x-circle{% endif %}">
+                                </i>
+                                {{ ticket.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if ticket.replied_by %}
+                            <div class="reply-status replied">
+                                <i class="bi bi-check-circle"></i>
+                                Đã reply
+                                {% if ticket.replied_at %}
+                                <div class="reply-time">
+                                    {{ ticket.replied_at|timesince }} trước
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="reply-status pending">
+                                <i class="bi bi-clock"></i>
+                                Chờ reply
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">
+                            {{ ticket.created_at|date:"d/m/Y" }}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" 
+                                   class="action-btn btn-view" title="Xem chi tiết">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if not ticket.is_read %}
+                                <button type="button" class="action-btn btn-mark-read" 
+                                        onclick="markAsRead({{ ticket.id }})" title="Đánh dấu đã đọc">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-lightbulb me-2"></i> Hướng dẫn nhanh
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <ul class="mb-0 ps-3">
-                        <li class="mb-2">Phản hồi trong vòng 24 giờ</li>
-                        <li class="mb-2">Đánh dấu "Đang xử lý" khi bắt đầu</li>
-                        <li class="mb-2">Cung cấp giải pháp rõ ràng, cụ thể</li>
-                        <li>Đóng ticket khi vấn đề đã giải quyết</li>
-                    </ul>
-                </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-inbox"></i>
             </div>
+            <h4 class="empty-title">Hộp thư trống</h4>
+            <p class="empty-desc">
+                Hiện chưa có yêu cầu hỗ trợ nào từ học sinh
+            </p>
+            <a href="{% url 'quiz:support_dashboard' %}" class="action-btn btn-view">
+                <i class="bi bi-arrow-left me-2"></i> Quay lại trang hỗ trợ
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ADDITIONAL STATS & GUIDES -->
+    {% if ticket_type_stats %}
+    <div class="stats-info">
+        <div class="type-stats">
+            <h5 class="type-stats-title">
+                <i class="bi bi-bar-chart"></i> Phân loại yêu cầu
+            </h5>
+            
+            {% for type_name, count in ticket_type_stats.items %}
+            <div class="type-item">
+                <span class="type-name">{{ type_name }}</span>
+                <span class="type-count">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="guide-card">
+            <h5 class="guide-title">
+                <i class="bi bi-lightbulb"></i> Hướng dẫn nhanh
+            </h5>
+            
+            <ul class="guide-list">
+                <li>Phản hồi trong vòng 24 giờ</li>
+                <li>Đánh dấu "Đang xử lý" khi bắt đầu</li>
+                <li>Cung cấp giải pháp rõ ràng, cụ thể</li>
+                <li>Đóng ticket khi vấn đề đã giải quyết</li>
+                <li>Luôn lịch sự và tôn trọng học sinh</li>
+                <li>Cập nhật trạng thái thường xuyên</li>
+            </ul>
         </div>
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats cards on load
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // View button animation
+    const viewBtns = document.querySelectorAll('.btn-view');
+    viewBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.querySelector('i').style.transform = 'scale(1.2)';
+            this.querySelector('i').style.transition = 'transform 0.3s ease';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.querySelector('i').style.transform = 'scale(1)';
+        });
+    });
+    
+    // Ticket row click
+    const ticketRows = document.querySelectorAll('tbody tr');
+    ticketRows.forEach(row => {
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function(e) {
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                const link = this.querySelector('a.btn-view');
+                if (link) link.click();
+            }
+        });
+    });
+});
+
+function markAsRead(ticketId) {
+    fetch(`/quiz/support/ticket/${ticketId}/mark-read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const ticketRow = document.getElementById(`ticket-${ticketId}`);
+            if (ticketRow) {
+                ticketRow.classList.remove('unread');
+                const unreadDot = ticketRow.querySelector('.badge.bg-primary');
+                if (unreadDot) {
+                    unreadDot.remove();
+                }
+            }
+            // Update unread count badge
+            updateUnreadCount();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function markAllAsRead() {
+    if (confirm('Bạn có chắc muốn đánh dấu tất cả ticket là đã đọc?')) {
+        fetch('/quiz/support/mark-all-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Remove unread styling from all tickets
+                document.querySelectorAll('.unread').forEach(row => {
+                    row.classList.remove('unread');
+                    const unreadDot = row.querySelector('.badge.bg-primary');
+                    if (unreadDot) unreadDot.remove();
+                });
+                updateUnreadCount();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
+function updateUnreadCount() {
+    // You can implement this to update the unread badge count
+    // For now, just remove the badge if no unread tickets
+    const unreadCount = document.querySelectorAll('.unread').length;
+    const unreadBadge = document.querySelector('.unread-badge');
+    if (unreadCount === 0 && unreadBadge) {
+        unreadBadge.style.display = 'none';
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %}
-[file content end]

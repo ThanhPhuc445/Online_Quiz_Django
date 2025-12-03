@@ -3,18 +3,87 @@
 
 {% block title %}Liên hệ quản trị viên{% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(136, 0, 0, 0.1);
+    }
+    .header-section {
+        background: linear-gradient(135deg, #f8f9fa, #f1f3f4);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+    .header-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--primary-color);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .info-card {
+        border-left: 4px solid var(--primary-color);
+        padding-left: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Header -->
-            <div class="d-flex align-items-center mb-4">
-                <a href="{% url 'quiz:support_dashboard' %}" class="text-decoration-none me-3">
-                    <i class="bi bi-arrow-left fs-4"></i>
-                </a>
-                <div>
-                    <h2 class="fw-bold mb-1">Liên hệ quản trị viên</h2>
-                    <p class="text-muted mb-0">Gửi yêu cầu về vấn đề kỹ thuật, tài khoản, hoặc đề xuất cải thiện hệ thống</p>
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <div class="header-icon">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2">Liên hệ quản trị viên</h2>
+                        <p class="text-muted mb-0">Gửi yêu cầu về vấn đề kỹ thuật, tài khoản, hoặc đề xuất cải thiện hệ thống</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'quiz:my_support_tickets' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-clock-history me-1"></i> Lịch sử ticket
+                        </a>
+                        <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Info Cards -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <h6 class="fw-bold mb-1">Thời gian phản hồi</h6>
+                            <p class="text-muted mb-0">24-48 giờ làm việc</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <h6 class="fw-bold mb-1">Email hỗ trợ</h6>
+                            <p class="text-muted mb-0">support@examify.edu.vn</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-card">
+                            <h6 class="fw-bold mb-1">Ticket đang mở</h6>
+                            <p class="text-muted mb-0">{{ open_tickets_count|default:"0" }} ticket</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -30,9 +99,13 @@
             </div>
             {% endif %}
 
-            <!-- Form -->
-            <div class="card border-0 shadow-sm">
+            <!-- Form Section -->
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-plus-circle me-2"></i> Tạo ticket hỗ trợ mới
+                    </h5>
+                    
                     <form method="post">
                         {% csrf_token %}
                         
@@ -45,83 +118,165 @@
                                 <option value="{{ type_code }}">{{ type_name }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="form-text">Chọn loại yêu cầu phù hợp để được hỗ trợ nhanh nhất</div>
                         </div>
 
                         <!-- Tiêu đề -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Tiêu đề *</label>
                             <input type="text" name="subject" class="form-control" 
-                                   placeholder="Nhập tiêu đề yêu cầu" 
+                                   placeholder="Mô tả ngắn gọn vấn đề của bạn (tối đa 200 ký tự)" 
                                    maxlength="200" required>
+                            <div class="form-text">Ví dụ: "Lỗi không thể nộp bài" hoặc "Yêu cầu reset mật khẩu"</div>
                         </div>
 
                         <!-- Nội dung -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Nội dung chi tiết *</label>
                             <textarea name="message" class="form-control" rows="8" 
-                                      placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
+                                      placeholder="Mô tả chi tiết vấn đề bạn gặp phải. Càng chi tiết càng tốt để chúng tôi có thể hỗ trợ bạn nhanh chóng." 
+                                      required></textarea>
                             <div class="form-text">
-                                Vui lòng mô tả chi tiết vấn đề bạn gặp phải. Nếu là lỗi hệ thống, hãy cung cấp các bước tái hiện lỗi.
+                                Vui lòng mô tả chi tiết vấn đề bạn gặp phải. Nếu là lỗi hệ thống, hãy cung cấp:
+                                <ul class="mb-0">
+                                    <li>Các bước tái hiện lỗi</li>
+                                    <li>Thông báo lỗi cụ thể (nếu có)</li>
+                                    <li>Thời điểm xảy ra lỗi</li>
+                                </ul>
                             </div>
                         </div>
 
-                        <!-- Thông tin tài khoản (tự động) -->
-                        <div class="alert alert-light mb-4">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-person-circle me-2 fs-4"></i>
-                                <div>
-                                    <strong>Thông tin tài khoản:</strong>
-                                    <ul class="mb-0 mt-2">
-                                        <li>Tài khoản: {{ user.username }}</li>
-                                        <li>Email: {{ user.email }}</li>
-                                        <li>Vai trò: {{ user.get_role_display }}</li>
-                                    </ul>
+                        <!-- Priority (Optional) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Mức độ ưu tiên</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="priority" id="low" value="low" checked>
+                                <label class="form-check-label" for="low">Thấp</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="priority" id="medium" value="medium">
+                                <label class="form-check-label" for="medium">Trung bình</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="priority" id="high" value="high">
+                                <label class="form-check-label" for="high">Cao</label>
+                            </div>
+                            <div class="form-text">Chỉ chọn "Cao" nếu vấn đề ảnh hưởng nghiêm trọng đến việc học tập của bạn</div>
+                        </div>
+
+                        <!-- File đính kèm -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">File đính kèm (tùy chọn)</label>
+                            <input type="file" name="attachment" class="form-control" id="fileInput">
+                            <div class="form-text">
+                                Có thể đính kèm ảnh chụp màn hình hoặc file liên quan. 
+                                <br>Định dạng hỗ trợ: JPG, PNG, PDF, DOC, DOCX. Kích thước tối đa: 10MB
+                            </div>
+                            <div id="filePreview" class="mt-2" style="display: none;">
+                                <div class="alert alert-info p-2">
+                                    <i class="bi bi-paperclip me-2"></i>
+                                    <span id="fileName"></span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeFile()">
+                                        <i class="bi bi-x"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3 text-center">
-    <a href="{% url 'quiz:my_support_tickets' %}" class="text-decoration-none small">
-        <i class="bi bi-clock-history me-1"></i> Xem lịch sử yêu cầu của bạn
-    </a>
-</div>
+
+                        <!-- Contact Info -->
+                        <div class="alert alert-light mb-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="bi bi-person-circle me-2"></i> Thông tin liên hệ
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <strong>Tài khoản:</strong> {{ user.username }}
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>Email:</strong> {{ user.email }}
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>Vai trò:</strong> {{ user.get_role_display }}
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>Ngày tạo:</strong> {% now "d/m/Y" %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="bi bi-lightning me-2"></i> Hành động nhanh
+                            </h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'quiz:my_support_tickets' %}" class="btn btn-outline-info btn-sm">
+                                    <i class="bi bi-list-check me-1"></i> Xem tất cả ticket
+                                </a>
+                                <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-house me-1"></i> Trang hỗ trợ
+                                </a>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="clearForm()">
+                                    <i class="bi bi-eraser me-1"></i> Xóa form
+                                </button>
+                            </div>
+                        </div>
 
                         <!-- Buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-lg me-1"></i> Hủy
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send me-1"></i> Gửi đến Admin
-                            </button>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Ticket sẽ được gán mã #{{ next_ticket_id|default:"000000" }}
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="reset" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Làm mới
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send me-1"></i> Tạo ticket mới
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Thông tin liên hệ khác -->
-            <div class="mt-4">
-                <div class="card border-0 bg-light">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3">
-                            <i class="bi bi-info-circle me-2"></i> Thông tin hỗ trợ khác:
-                        </h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-envelope me-2 text-primary"></i>
-                                    <div>
-                                        <strong>Email hỗ trợ:</strong>
-                                        <div class="text-muted">support@examify.edu.vn</div>
-                                    </div>
+            <!-- Quick Links -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-link me-2"></i> Liên kết nhanh
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card border h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-question-circle fs-4 text-primary mb-2"></i>
+                                    <h6 class="fw-bold">FAQ - Câu hỏi thường gặp</h6>
+                                    <p class="text-muted small mb-2">Giải đáp các thắc mắc phổ biến</p>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Xem ngay</a>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-clock me-2 text-primary"></i>
-                                    <div>
-                                        <strong>Thời gian phản hồi:</strong>
-                                        <div class="text-muted">24-48 giờ làm việc</div>
-                                    </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-journal-text fs-4 text-success mb-2"></i>
+                                    <h6 class="fw-bold">Hướng dẫn sử dụng</h6>
+                                    <p class="text-muted small mb-2">Tài liệu hướng dẫn chi tiết</p>
+                                    <a href="#" class="btn btn-sm btn-outline-success">Truy cập</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border h-100">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-megaphone fs-4 text-warning mb-2"></i>
+                                    <h6 class="fw-bold">Thông báo hệ thống</h6>
+                                    <p class="text-muted small mb-2">Cập nhật bảo trì, nâng cấp</p>
+                                    <a href="#" class="btn btn-sm btn-outline-warning">Kiểm tra</a>
                                 </div>
                             </div>
                         </div>
@@ -131,4 +286,50 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File preview
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+                filePreview.style.display = 'block';
+            }
+        });
+    }
+});
+
+function removeFile() {
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    
+    fileInput.value = '';
+    filePreview.style.display = 'none';
+}
+
+function clearForm() {
+    if (confirm('Bạn có chắc muốn xóa tất cả nội dung đã nhập?')) {
+        document.querySelector('form').reset();
+        removeFile();
+    }
+}
+
+// Auto-save draft (optional)
+let autoSaveTimer;
+const form = document.querySelector('form');
+if (form) {
+    form.addEventListener('input', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            console.log('Auto-saving form...');
+            // You can implement actual auto-save here
+        }, 3000);
+    });
+}
+</script>
 {% endblock %}

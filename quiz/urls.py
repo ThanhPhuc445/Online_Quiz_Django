@@ -64,4 +64,6 @@ urlpatterns = [
     path('support/my-tickets/', views.my_support_tickets, name='my_support_tickets'),
     path('support/teacher-inbox/', views.teacher_support_inbox, name='teacher_support_inbox'),
     path('support/admin-dashboard/', views.admin_support_dashboard, name='admin_support_dashboard'),
+    path('support/ticket/<int:ticket_id>/update-status/', views.update_ticket_status, name='update_ticket_status'),
+
 ]
