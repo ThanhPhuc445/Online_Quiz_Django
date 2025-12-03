@@ -1,137 +1,707 @@
 {% extends "base.html" %}
-{% block title %}Luyện tập{% endblock %}
+{% load static %}
+
+{% block title %}Chế độ luyện tập - Examify{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+        --practice-yellow: #ffd700;
+        --practice-orange: #ffa500;
+    }
+
+    /* ===== HERO SECTION ===== */
+    .practice-hero-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .practice-hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--practice-yellow), var(--practice-orange));
+    }
+
+    .practice-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--practice-yellow), var(--practice-orange));
+        color: #000;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .practice-hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--dark);
+    }
+
+    .practice-hero-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray);
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+        max-width: 800px;
+    }
+
+    .practice-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2.5rem;
+    }
+
+    .practice-feature-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--practice-yellow);
+        transition: all 0.3s ease;
+    }
+
+    .practice-feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .practice-feature-icon {
+        width: 50px;
+        height: 50px;
+        background: #fff8e1;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: #856404;
+        font-size: 1.5rem;
+    }
+
+    .practice-feature-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .practice-feature-desc {
+        color: var(--gray);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* ===== QUIZ CARDS ===== */
+    .quizzes-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--dark);
+        position: relative;
+        padding-left: 1rem;
+    }
+
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 24px;
+        background: var(--practice-yellow);
+        border-radius: 2px;
+    }
+
+    .quizzes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .quiz-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+        border: 1px solid var(--border);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quiz-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-header {
+        padding: 1.5rem 1.5rem 1rem;
+        background: #fff8e1;
+        border-bottom: 1px solid #ffeaa7;
+        position: relative;
+    }
+
+    .subject-badge {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 4px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    .quiz-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+        flex: 1;
+    }
+
+    .quiz-description {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    .quiz-meta {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .meta-item i {
+        color: var(--primary);
+    }
+
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #d4edda;
+        color: #155724;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .card-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border);
+        background: white;
+    }
+
+    .btn-start-practice {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, var(--practice-yellow), var(--practice-orange));
+        color: #000;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .btn-start-practice:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 168, 0, 0.3);
+        color: #000;
+    }
+
+    .attempt-count {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin-top: 0.5rem;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: white;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .empty-icon {
+        font-size: 5rem;
+        color: #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-title {
+        font-size: 1.8rem;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .empty-description {
+        font-size: 1.1rem;
+        color: var(--gray);
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    .btn-dashboard {
+        padding: 12px 30px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-dashboard:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .stats-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--dark);
+        position: relative;
+        display: inline-block;
+        padding-bottom: 0.5rem;
+    }
+
+    .stats-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--practice-yellow), var(--practice-orange));
+        border-radius: 1.5px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 2rem 1.5rem;
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: #fff8e1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: #856404;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    .stat-item:nth-child(1) .stat-value { color: var(--primary); }
+    .stat-item:nth-child(2) .stat-value { color: #28a745; }
+    .stat-item:nth-child(3) .stat-value { color: var(--secondary); }
+    .stat-item:nth-child(4) .stat-value { color: var(--practice-orange); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .quizzes-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+    }
+
+    @media (max-width: 992px) {
+        .practice-hero-title {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .practice-features {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .practice-hero-section {
+            padding: 2rem;
+        }
+        
+        .practice-hero-title {
+            font-size: 1.8rem;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .quizzes-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .practice-features {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .quiz-meta {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .stat-item {
+            padding: 1.5rem 1rem;
+        }
+        
+        .practice-hero-section {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">
-                <i class="bi bi-arrow-repeat me-2"></i>Chế độ luyện tập
-            </h1>
-            <p class="lead text-muted">
-                Luyện tập với các đề thi đã hoàn thành. Không giới hạn thời gian, không áp lực điểm số!
-            </p>
+<div class="container-fluid py-4">
+    <!-- HERO SECTION -->
+    <div class="practice-hero-section">
+        <span class="practice-hero-badge">
+            <i class="bi bi-arrow-repeat"></i> Luyện tập không giới hạn
+        </span>
+        
+        <h1 class="practice-hero-title">Chế Độ Luyện Tập</h1>
+        <p class="practice-hero-subtitle">
+            Luyện tập với các đề thi đã hoàn thành. Không giới hạn thời gian, không áp lực điểm số - chỉ tập trung vào việc học!
+        </p>
+        
+        <div class="practice-features">
+            <div class="practice-feature-card">
+                <div class="practice-feature-icon">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <h4 class="practice-feature-title">Không giới hạn thời gian</h4>
+                <p class="practice-feature-desc">Luyện tập thoải mái với thời gian không hạn chế, tập trung vào việc học.</p>
+            </div>
+            
+            <div class="practice-feature-card">
+                <div class="practice-feature-icon">
+                    <i class="bi bi-repeat"></i>
+                </div>
+                <h4 class="practice-feature-title">Luyện tập nhiều lần</h4>
+                <p class="practice-feature-desc">Làm đi làm lại các đề thi để nắm vững kiến thức và kỹ năng.</p>
+            </div>
+            
+            <div class="practice-feature-card">
+                <div class="practice-feature-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h4 class="practice-feature-title">Theo dõi tiến bộ</h4>
+                <p class="practice-feature-desc">Theo dõi điểm số và sự tiến bộ qua từng lần luyện tập.</p>
+            </div>
         </div>
     </div>
 
-    <!-- Danh sách đề thi có thể luyện tập -->
-    <div class="row">
-        {% for quiz in available_quizzes %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">{{ quiz.title }}</h5>
+    <!-- QUIZ CARDS SECTION -->
+    <div class="quizzes-section">
+        <div class="section-header">
+            <h2 class="section-title">Đề thi có thể luyện tập</h2>
+        </div>
+        
+        {% if available_quizzes %}
+        <div class="quizzes-grid">
+            {% for quiz in available_quizzes %}
+            <div class="quiz-card">
+                <div class="card-header">
+                    <span class="subject-badge">{{ quiz.subject.name }}</span>
+                    <h3 class="quiz-title">{{ quiz.title }}</h3>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <span class="badge bg-primary">{{ quiz.subject.name }}</span>
-                        <span class="badge bg-secondary">{{ quiz.questions.count }} câu</span>
-                        {% if quiz.duration_minutes %}
-                        <span class="badge bg-info">{{ quiz.duration_minutes }} phút</span>
-                        {% endif %}
-                    </div>
-                    
-                    <p class="card-text small text-muted">
-                        {{ quiz.description|default:"Luyện tập để nâng cao kiến thức"|truncatewords:20 }}
+                    <p class="quiz-description">
+                        {{ quiz.description|default:"Luyện tập để nâng cao kiến thức và kỹ năng làm bài thi"|truncatewords:25 }}
                     </p>
                     
-                    <div class="mb-2">
-                        <small class="text-muted">
-                            <i class="bi bi-clock me-1"></i>
-                            Thời gian: {% if quiz.duration_minutes %}{{ quiz.duration_minutes }} phút{% else %}Không giới hạn{% endif %}
-                        </small>
+                    <div class="quiz-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-question-circle"></i>
+                            <span>{{ quiz.questions.count }} câu hỏi</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span>
+                                {% if quiz.duration_minutes %}
+                                {{ quiz.duration_minutes }} phút
+                                {% else %}
+                                Không giới hạn
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if quiz.best_score %}
+                        <div class="meta-item">
+                            <i class="bi bi-trophy"></i>
+                            <span>Điểm cao: {{ quiz.best_score }}/100</span>
+                        </div>
+                        {% endif %}
                     </div>
-                    
-                    {% if quiz.best_score %}
-                    <div class="mb-2">
-                        <small class="text-success">
-                            <i class="bi bi-trophy me-1"></i>
-                            Điểm cao nhất: {{ quiz.best_score }}/100
-                        </small>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'quiz:practice_quiz' quiz.id %}" class="btn-start-practice">
+                        <i class="bi bi-play-circle"></i>Bắt đầu luyện tập
+                    </a>
+                    {% if quiz.attempt_count > 0 %}
+                    <div class="attempt-count">
+                        Đã luyện tập: {{ quiz.attempt_count }} lần
                     </div>
                     {% endif %}
                 </div>
-                <div class="card-footer bg-white">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'quiz:practice_quiz' quiz.id %}" class="btn btn-warning btn-sm">
-                            <i class="bi bi-play-circle me-1"></i>Bắt đầu luyện tập
-                        </a>
-                        {% if quiz.attempt_count > 0 %}
-                        <small class="text-center text-muted">
-                            Đã luyện tập: {{ quiz.attempt_count }} lần
-                        </small>
-                        {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- STATS SECTION -->
+        <div class="stats-section">
+            <h2 class="stats-title">Thống kê luyện tập</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-arrow-repeat"></i>
                     </div>
+                    <div class="stat-value">{{ total_attempts }}</div>
+                    <div class="stat-label">Tổng lượt luyện tập</div>
                 </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="text-center py-5">
-                <i class="bi bi-journal-x display-1 text-muted"></i>
-                <h4 class="mt-3 text-muted">Không có đề thi nào để luyện tập</h4>
-                <p class="text-muted">Hoàn thành một số đề thi trước để mở khóa chế độ luyện tập.</p>
-                <a href="{% url 'dashboard' %}" class="btn btn-primary">
-                    <i class="bi bi-arrow-left me-1"></i>Quay về Dashboard
-                </a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Thống kê luyện tập -->
-    {% if available_quizzes %}
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="bi bi-graph-up me-2"></i>Thống kê luyện tập
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <div class="border rounded p-3">
-                                <h3 class="text-primary mb-0">{{ total_attempts }}</h3>
-                                <small class="text-muted">Tổng lượt luyện tập</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="border rounded p-3">
-                                <h3 class="text-success mb-0">{{ average_score }}%</h3>
-                                <small class="text-muted">Điểm trung bình</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="border rounded p-3">
-                                <h3 class="text-info mb-0">{{ total_quizzes }}</h3>
-                                <small class="text-muted">Đề thi có sẵn</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="border rounded p-3">
-                                <h3 class="text-warning mb-0">{{ improvement }}%</h3>
-                                <small class="text-muted">Cải thiện</small>
-                            </div>
-                        </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-graph-up"></i>
                     </div>
+                    <div class="stat-value">{{ average_score }}%</div>
+                    <div class="stat-label">Điểm trung bình</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div class="stat-value">{{ total_quizzes }}</div>
+                    <div class="stat-label">Đề thi có sẵn</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-rocket"></i>
+                    </div>
+                    <div class="stat-value">{{ improvement }}%</div>
+                    <div class="stat-label">Cải thiện</div>
                 </div>
             </div>
         </div>
+        {% else %}
+        <!-- EMPTY STATE -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-journal-x"></i>
+            </div>
+            <h3 class="empty-title">Không có đề thi nào để luyện tập</h3>
+            <p class="empty-description">
+                Bạn cần hoàn thành ít nhất một bài thi trước khi có thể sử dụng chế độ luyện tập. 
+                Hãy quay lại sau khi đã hoàn thành một số đề thi!
+            </p>
+            <a href="{% url 'dashboard' %}" class="btn-dashboard">
+                <i class="bi bi-arrow-left"></i>Quay về Dashboard
+            </a>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
-<style>
-.card {
-    transition: transform 0.2s ease-in-out;
-}
-.card:hover {
-    transform: translateY(-5px);
-}
-.badge {
-    font-size: 0.7rem;
-}
-</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Card hover effects
+    const quizCards = document.querySelectorAll('.quiz-card');
+    quizCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.zIndex = '';
+        });
+    });
+    
+    // Animate stats on scroll
+    const observerOptions = {
+        threshold: 0.2,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statItems = entry.target.querySelectorAll('.stat-item');
+                statItems.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.style.opacity = '0';
+                        item.style.transform = 'translateY(30px)';
+                        item.style.transition = 'all 0.6s ease';
+                        
+                        setTimeout(() => {
+                            item.style.opacity = '1';
+                            item.style.transform = 'translateY(0)';
+                        }, 100);
+                    }, index * 200);
+                });
+            }
+        });
+    }, observerOptions);
+    
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+    
+    // Button hover animations
+    const buttons = document.querySelectorAll('.btn-start-practice, .btn-dashboard');
+    buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'scale(1.2)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'scale(1)';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

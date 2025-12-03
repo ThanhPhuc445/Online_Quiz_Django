@@ -1,7 +1,405 @@
 {% extends "base.html" %}
-{% block title %}Luyện tập: {{ quiz.title }}{% endblock %}
+{% load static %}
 
-{% block extra_head %}
+{% block title %}Luyện tập: {{ quiz.title }} - Examify{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+        --practice-yellow: #ffd700;
+        --practice-orange: #ffa500;
+    }
+
+    /* HEADER SECTION */
+    .practice-header-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .practice-header-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--practice-yellow), var(--practice-orange));
+    }
+
+    .practice-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--practice-yellow), var(--practice-orange));
+        color: #000;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .practice-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .practice-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .timer-container {
+        background: linear-gradient(135deg, #fff8e1, #fff3cd);
+        border: 2px solid #ffeaa7;
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #856404;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+
+    .quiz-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--gray);
+        font-size: 0.95rem;
+    }
+
+    .meta-item i {
+        color: var(--primary);
+    }
+
+    /* QUESTION CARDS */
+    .question-section {
+        margin-bottom: 3rem;
+    }
+
+    .question-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--practice-yellow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .question-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-header {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .question-number {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .question-number::before {
+        content: 'Câu';
+        font-weight: 600;
+        color: var(--gray);
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .question-content {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: var(--radius-md);
+        border-left: 3px solid var(--primary);
+    }
+
+    .math-formula {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--dark);
+    }
+
+    .math-formula p {
+        margin-bottom: 0;
+    }
+
+    /* ANSWER STYLES */
+    .answer-section {
+        margin-top: 1.5rem;
+    }
+
+    .answer-label {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        display: block;
+    }
+
+    .answer-option {
+        margin-bottom: 0.75rem;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .answer-option:hover {
+        border-color: var(--primary);
+        background: #ffefef;
+    }
+
+    .answer-option.selected {
+        border-color: var(--primary);
+        background: #ffefef;
+        box-shadow: 0 0 0 2px rgba(136, 0, 0, 0.1);
+    }
+
+    .form-check-input {
+        margin-right: 1rem;
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        width: 100%;
+        font-size: 1rem;
+        color: var(--dark);
+    }
+
+    .form-check-label:hover {
+        color: var(--primary);
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        border-radius: var(--radius-md);
+        border: 2px solid var(--border);
+        padding: 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    textarea.form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(136, 0, 0, 0.1);
+    }
+
+    /* PROGRESS BAR */
+    .progress-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 2px solid var(--border);
+        padding: 1rem 0;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .progress-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-stats {
+        font-size: 0.9rem;
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    .progress-bar-container {
+        height: 8px;
+        background: #eef2f7;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--practice-yellow), var(--practice-orange));
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .submit-section {
+        text-align: right;
+    }
+
+    .btn-submit {
+        padding: 12px 40px;
+        background: linear-gradient(135deg, var(--practice-yellow), var(--practice-orange));
+        color: #000;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 168, 0, 0.3);
+    }
+
+    /* QUESTION TYPES */
+    .true-false-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .true-false-option {
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        border: 2px solid var(--border);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .true-false-option:hover {
+        border-color: var(--primary);
+        background: #ffefef;
+    }
+
+    .true-false-option.selected {
+        border-color: var(--primary);
+        background: #ffefef;
+    }
+
+    .true-false-label {
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .practice-header-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .practice-title {
+            font-size: 1.8rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .question-content {
+            padding: 1rem;
+        }
+        
+        .progress-content {
+            padding: 0 1rem;
+        }
+        
+        .progress-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .submit-section {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .true-false-group {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .practice-title {
+            font-size: 1.6rem;
+        }
+        
+        .practice-subtitle {
+            font-size: 1rem;
+        }
+        
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        .quiz-meta {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+    }
+</style>
+
+<!-- MathJax Configuration -->
 <script>
 window.MathJax = {
   tex: {
@@ -11,74 +409,76 @@ window.MathJax = {
   svg: { fontCache: 'global' }
 };
 </script>
-<script id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-<style>
-    .practice-header {
-        background: linear-gradient(135deg, #ffd700, #ffa500);
-        color: #000;
-    }
-    .question-card {
-        border-left: 4px solid #ffc107;
-    }
-    .timer-practice {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        color: #856404;
-    }
-</style>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="practice-header rounded-3 p-4 mb-4 shadow">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="h3 mb-2">
-                    <i class="bi bi-arrow-repeat me-2"></i>Chế độ luyện tập
-                </h1>
-                <h2 class="h4 mb-0">{{ quiz.title }}</h2>
-                <p class="mb-0 mt-2">
-                    <i class="bi bi-book me-1"></i>{{ quiz.subject.name }} | 
-                    <i class="bi bi-question-circle me-1"></i>{{ questions|length }} câu hỏi
-                </p>
+    <!-- HEADER -->
+    <div class="practice-header-section">
+        <span class="practice-badge">
+            <i class="bi bi-arrow-repeat"></i> Chế độ luyện tập
+        </span>
+        
+        <h1 class="practice-title">{{ quiz.title }}</h1>
+        <p class="practice-subtitle">
+            Luyện tập không giới hạn thời gian. Hãy tập trung và làm bài cẩn thận.
+        </p>
+        
+        <div class="quiz-meta">
+            <div class="meta-item">
+                <i class="bi bi-book"></i>
+                <span>{{ quiz.subject.name }}</span>
             </div>
-            <div class="col-md-4 text-end">
-                <div class="timer-practice rounded-pill px-4 py-2 d-inline-block">
-                    <i class="bi bi-clock me-2"></i>
-                    <span id="practice-timer">Không giới hạn thời gian</span>
-                </div>
+            <div class="meta-item">
+                <i class="bi bi-question-circle"></i>
+                <span>{{ questions|length }} câu hỏi</span>
             </div>
+            <div class="meta-item">
+                <i class="bi bi-person-circle"></i>
+                <span>{{ quiz.author.username }}</span>
+            </div>
+        </div>
+        
+        <div class="timer-container">
+            <i class="bi bi-clock"></i>
+            <span id="practice-timer">Không giới hạn thời gian</span>
         </div>
     </div>
 
-    <!-- Form làm bài -->
-    <form method="post" action="{% url 'quiz:submit_practice_quiz' quiz.id %}" id="practice-form">
+    <!-- QUESTION FORM -->
+    <form method="post" action="{% url 'quiz:submit_practice_quiz' quiz.id %}" id="practice-form" class="question-section">
         {% csrf_token %}
         
         {% for item in shuffled_questions %}
-        <div class="card question-card mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">Câu {{ forloop.counter }}</h5>
+        <div class="question-card">
+            <div class="card-header">
+                <div class="question-number">
+                    {{ forloop.counter }}
+                </div>
             </div>
+            
             <div class="card-body">
-                <!-- Hiển thị câu hỏi -->
-                <div class="question-content mb-4">
+                <!-- Question Content -->
+                <div class="question-content">
                     {% if '$' in item.question.text or '\\(' in item.question.text or '$$' in item.question.text %}
-                    <div class="math-formula p-3 bg-light rounded">
+                    <div class="math-formula">
                         {{ item.question.text|linebreaksbr }}
                     </div>
                     {% else %}
-                    <p class="fs-5">{{ item.question.text|linebreaksbr }}</p>
+                    <div class="math-formula">
+                        {{ item.question.text|linebreaksbr }}
+                    </div>
                     {% endif %}
                 </div>
 
-                <!-- Hiển thị đáp án tùy theo loại câu hỏi -->
+                <!-- Answers Based on Question Type -->
                 {% if item.question_type == 'SHORT_ANSWER' %}
-                <!-- Câu hỏi tự luận -->
-                <div class="mb-3">
-                    <label for="question_{{ item.question.id }}" class="form-label fw-bold">Câu trả lời của bạn:</label>
+                <!-- Short Answer -->
+                <div class="answer-section">
+                    <label for="question_{{ item.question.id }}" class="answer-label">
+                        Câu trả lời của bạn:
+                    </label>
                     <textarea name="question_{{ item.question.id }}" 
                               id="question_{{ item.question.id }}" 
                               class="form-control" 
@@ -87,34 +487,42 @@ window.MathJax = {
                 </div>
                 
                 {% elif item.question_type == 'TRUE_FALSE' %}
-                <!-- Câu hỏi Đúng/Sai -->
-                <div class="btn-group-vertical w-100" role="group">
-                    {% for answer in item.answers %}
-                    <div class="form-check py-2 border-bottom">
-                        <input class="form-check-input" 
-                               type="radio" 
-                               name="question_{{ item.question.id }}" 
-                               id="answer_{{ answer.id }}" 
-                               value="{{ answer.id }}">
-                        <label class="form-check-label fs-6 w-100" for="answer_{{ answer.id }}">
-                            {{ answer.text }}
-                        </label>
+                <!-- True/False -->
+                <div class="answer-section">
+                    <label class="answer-label">Chọn đáp án:</label>
+                    <div class="true-false-group">
+                        {% for answer in item.answers %}
+                        <div class="answer-option true-false-option" onclick="selectTrueFalse(this, {{ item.question.id }}, {{ answer.id }})">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="question_{{ item.question.id }}" 
+                                       id="answer_{{ answer.id }}" 
+                                       value="{{ answer.id }}"
+                                       style="display: none;">
+                                <div class="true-false-label">
+                                    {{ answer.text }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
 
                 {% elif item.question_type == 'SINGLE_CHOICE' %}
-                <!-- Câu hỏi một lựa chọn -->
-                <div class="list-group list-group-flush">
+                <!-- Single Choice -->
+                <div class="answer-section">
+                    <label class="answer-label">Chọn một đáp án đúng:</label>
                     {% for answer in item.answers %}
-                    <div class="list-group-item border-0 px-0">
+                    <div class="answer-option" onclick="selectSingleChoice(this, {{ item.question.id }}, {{ answer.id }})">
                         <div class="form-check">
                             <input class="form-check-input" 
                                    type="radio" 
                                    name="question_{{ item.question.id }}" 
                                    id="answer_{{ answer.id }}" 
-                                   value="{{ answer.id }}">
-                            <label class="form-check-label w-100" for="answer_{{ answer.id }}">
+                                   value="{{ answer.id }}"
+                                   style="display: none;">
+                            <label class="form-check-label">
                                 {% if '$' in answer.text or '\\(' in answer.text %}
                                 <div class="math-formula small">{{ answer.text }}</div>
                                 {% else %}
@@ -127,17 +535,19 @@ window.MathJax = {
                 </div>
 
                 {% elif item.question_type == 'MULTIPLE_CHOICE' %}
-                <!-- Câu hỏi nhiều lựa chọn -->
-                <div class="list-group list-group-flush">
+                <!-- Multiple Choice -->
+                <div class="answer-section">
+                    <label class="answer-label">Chọn tất cả đáp án đúng:</label>
                     {% for answer in item.answers %}
-                    <div class="list-group-item border-0 px-0">
+                    <div class="answer-option" onclick="toggleMultipleChoice(this, {{ item.question.id }}, {{ answer.id }})">
                         <div class="form-check">
                             <input class="form-check-input" 
                                    type="checkbox" 
                                    name="question_{{ item.question.id }}" 
                                    id="answer_{{ answer.id }}" 
-                                   value="{{ answer.id }}">
-                            <label class="form-check-label w-100" for="answer_{{ answer.id }}">
+                                   value="{{ answer.id }}"
+                                   style="display: none;">
+                            <label class="form-check-label">
                                 {% if '$' in answer.text or '\\(' in answer.text %}
                                 <div class="math-formula small">{{ answer.text }}</div>
                                 {% else %}
@@ -153,74 +563,122 @@ window.MathJax = {
         </div>
         {% endfor %}
 
-        <!-- Nút nộp bài -->
-        <div class="fixed-bottom bg-white border-top py-3">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" role="progressbar" 
-                                 style="width: {% widthratio forloop.counter questions|length 100 %}%"
-                                 aria-valuenow="{% widthratio forloop.counter questions|length 100 %}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
-                            </div>
-                        </div>
-                        <small class="text-muted">Tiến độ làm bài</small>
+        <!-- PROGRESS & SUBMIT -->
+        <div class="progress-container">
+            <div class="progress-content">
+                <div class="progress-info">
+                    <div class="progress-stats">
+                        <span id="progress-text">0/{{ shuffled_questions|length }} câu đã trả lời</span>
                     </div>
-                    <div class="col-md-6 text-end">
-                        <button type="submit" class="btn btn-warning btn-lg px-5">
-                            <i class="bi bi-send-check me-2"></i>Kết thúc luyện tập
+                    <div class="submit-section">
+                        <button type="submit" class="btn-submit">
+                            <i class="bi bi-send-check"></i>Kết thúc luyện tập
                         </button>
                     </div>
+                </div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progress-bar"></div>
                 </div>
             </div>
         </div>
     </form>
 </div>
 
-<!-- MathJax -->
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Cấu hình MathJax
-    window.MathJax = {
-        tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: true
-        }
-    };
+    // Initialize MathJax
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
 
-    // Hiển thị cảnh báo khi rời trang
+    // Prevent page leave warning
     window.addEventListener('beforeunload', function(e) {
         e.preventDefault();
         e.returnValue = '';
     });
 
-    // Theo dõi tiến độ
+    // Progress tracking
     function updateProgress() {
         const totalQuestions = {{ shuffled_questions|length }};
-        const answeredQuestions = document.querySelectorAll('input:checked, textarea').length;
-        const progress = (answeredQuestions / totalQuestions) * 100;
+        let answered = 0;
         
-        const progressBar = document.querySelector('.progress-bar');
+        // Count answered questions
+        document.querySelectorAll('input:checked, textarea').forEach(element => {
+            if (element.type === 'checkbox' || element.type === 'radio') {
+                if (element.checked) answered++;
+            } else if (element.tagName === 'TEXTAREA' && element.value.trim()) {
+                answered++;
+            }
+        });
+        
+        // Update progress bar
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progress = (answered / totalQuestions) * 100;
+        
         if (progressBar) {
             progressBar.style.width = progress + '%';
-            progressBar.setAttribute('aria-valuenow', progress);
+        }
+        
+        if (progressText) {
+            progressText.textContent = `${answered}/${totalQuestions} câu đã trả lời`;
         }
     }
 
-    // Lắng nghe sự kiện thay đổi
-    document.querySelectorAll('input, textarea').forEach(element => {
-        element.addEventListener('change', updateProgress);
-        element.addEventListener('input', updateProgress);
-    });
+    // Answer selection functions
+    window.selectTrueFalse = function(element, questionId, answerId) {
+        const radio = document.getElementById(`answer_${answerId}`);
+        if (radio) {
+            radio.checked = true;
+            
+            // Remove selected class from all options
+            element.parentElement.querySelectorAll('.true-false-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            updateProgress();
+        }
+    };
 
-    // Khởi tạo progress
+    window.selectSingleChoice = function(element, questionId, answerId) {
+        const radio = document.getElementById(`answer_${answerId}`);
+        if (radio) {
+            radio.checked = true;
+            
+            // Remove selected class from all options in this question
+            const card = element.closest('.card-body');
+            card.querySelectorAll('.answer-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            updateProgress();
+        }
+    };
+
+    window.toggleMultipleChoice = function(element, questionId, answerId) {
+        const checkbox = document.getElementById(`answer_${answerId}`);
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('selected', checkbox.checked);
+            updateProgress();
+        }
+    };
+
+    // Initialize progress
     updateProgress();
+
+    // Add event listeners for text areas
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.addEventListener('input', updateProgress);
+    });
 });
 </script>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 {% endblock %}

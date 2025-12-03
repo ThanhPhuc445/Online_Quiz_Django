@@ -1,39 +1,469 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lịch sử bài thi - Examify{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+    }
+
+    .history-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 3rem 2rem;
+        margin: 2rem 0;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .history-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        position: relative;
+        padding-left: 1.2rem;
+    }
+
+    .page-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 5px;
+        height: 30px;
+        background: var(--primary);
+        border-radius: 2px;
+    }
+
+    .history-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--primary);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .custom-table thead {
+        background: linear-gradient(135deg, var(--dark), var(--darker));
+    }
+
+    .custom-table th {
+        padding: 1.2rem 1rem;
+        text-align: left;
+        color: white;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .custom-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .custom-table tbody tr:hover {
+        background: #f9fafc;
+        transform: scale(1.01);
+    }
+
+    .custom-table td {
+        padding: 1.2rem 1rem;
+        color: var(--dark);
+        font-size: 0.95rem;
+    }
+
+    .custom-table td:first-child {
+        font-weight: 600;
+    }
+
+    .score-cell {
+        font-weight: 700 !important;
+        color: var(--primary) !important;
+        font-size: 1.1rem !important;
+    }
+
+    .date-cell {
+        color: var(--gray) !important;
+        font-size: 0.9rem !important;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-view {
+        padding: 8px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .btn-view:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    .btn-retry {
+        padding: 8px 20px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    .btn-retry:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--border);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .empty-description {
+        font-size: 1rem;
+        color: var(--gray);
+        margin-bottom: 2rem;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .btn-explore {
+        padding: 12px 30px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-explore:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(136, 0, 0, 0.2);
+        color: white;
+    }
+
+    .btn-dashboard {
+        padding: 12px 30px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-dashboard:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .cta-section {
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .history-section {
+            padding: 2rem 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .history-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .custom-table {
+            display: block;
+            overflow-x: auto;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-view, .btn-retry {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-explore, .btn-dashboard {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .history-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .custom-table th,
+        .custom-table td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .page-title {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Lịch sử các bài thi đã làm</h1>
-<div class="card">
-    <div class="card-body">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Tên bài thi</th>
-                    <th scope="col">Môn học</th>
-                    <th scope="col">Điểm số</th>
-                    <th scope="col">Ngày làm</th>
-                    <th scope="col">Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for result in results %}
-                <tr>
-                    <td>{{ result.quiz.title }}</td>
-                    <td>{{ result.quiz.subject.name }}</td>
-                    <td><strong>{{ result.score }}</strong></td>
-                    <td>{{ result.completed_at|date:"H:i, d/m/Y" }}</td>
-                    <td>
-                        <a href="{% url 'quiz:view_result' pk=result.pk %}" class="btn btn-sm btn-info">Xem chi tiết</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center p-4">Bạn chưa hoàn thành bài thi nào.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container-fluid py-4">
+    <div class="history-section">
+        <h1 class="page-title">Lịch sử bài thi đã làm</h1>
+        
+        <!-- Statistics -->
+        
+        <!-- Results Table -->
+        <div class="table-container">
+            {% if results %}
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Tên bài thi</th>
+                        <th>Môn học</th>
+                        <th>Điểm số</th>
+                        <th>Ngày làm</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.quiz.title }}</td>
+                        <td>{{ result.quiz.subject.name }}</td>
+                        <td class="score-cell">{{ result.score }}</td>
+                        <td class="date-cell">{{ result.completed_at|date:"H:i, d/m/Y" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'quiz:view_result' pk=result.pk %}" class="btn-view">
+                                    <i class="bi bi-eye"></i>Xem chi tiết
+                                </a>
+                                <a href="{% url 'quiz:take_quiz' pk=result.quiz.pk %}" class="btn-retry">
+                                    <i class="bi bi-arrow-clockwise"></i>Làm lại
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-journal-x"></i>
+                </div>
+                <h3 class="empty-title">Chưa có bài thi nào</h3>
+                <p class="empty-description">
+                    Bạn chưa hoàn thành bài thi nào. Hãy bắt đầu luyện tập ngay để xem lịch sử của bạn tại đây!
+                </p>
+                <a href="{% url 'quiz:explore' %}" class="btn-explore">
+                    <i class="bi bi-compass"></i>Khám phá đề thi
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- CTA Buttons -->
+        <div class="cta-section">
+            <div class="cta-buttons">
+                <a href="{% url 'dashboard' %}" class="btn-dashboard">
+                    <i class="bi bi-house-door"></i>Quay về Dashboard
+                </a>
+                <a href="{% url 'quiz:explore' %}" class="btn-explore">
+                    <i class="bi bi-search"></i>Tiếp tục học tập
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- SỬA LỖI Ở ĐÂY: Thay 'home' bằng 'dashboard' -->
-<a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">Quay về Dashboard</a>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Table row hover effects
+    const tableRows = document.querySelectorAll('.custom-table tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Button hover animations
+    const buttons = document.querySelectorAll('.btn-view, .btn-retry, .btn-explore, .btn-dashboard');
+    buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'scale(1.2)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'scale(1)';
+            }
+        });
+    });
+    
+    // Animate stat cards on load
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 200);
+    });
+});
+</script>
 {% endblock %}

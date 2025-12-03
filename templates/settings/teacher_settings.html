@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cài đặt - Giáo viên | Examify{% endblock %}
+
+{% block extra_head %}
+<style>
+    .settings-nav {
+        position: sticky;
+        top: 20px;
+    }
+    .nav-pills .nav-link {
+        color: #334155;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #880000;
+        color: white;
+        box-shadow: 0 4px 12px rgba(136, 0, 0, 0.15);
+    }
+    .nav-pills .nav-link:hover:not(.active) {
+        background-color: #f8fafc;
+        color: #880000;
+    }
+    .settings-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #eef2f6;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .settings-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        border-color: transparent;
+    }
+    .avatar-upload {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+    }
+    .avatar-upload img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .avatar-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #880000;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .avatar-overlay:hover {
+        background: #660000;
+        transform: scale(1.1);
+    }
+    .theme-preview {
+        width: 100%;
+        height: 120px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.3s;
+        overflow: hidden;
+    }
+    .theme-preview:hover {
+        border-color: #880000;
+        transform: translateY(-2px);
+    }
+    .theme-preview.active {
+        border-color: #880000;
+        box-shadow: 0 8px 20px rgba(136, 0, 0, 0.15);
+    }
+    .badge-stat {
+        background: rgba(136, 0, 0, 0.08);
+        color: #880000;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h5 class="text-muted fw-normal mb-1">Quản lý tài khoản</h5>
+            <h2 class="fw-bold text-dark mb-0">Cài đặt cá nhân <i class="bi bi-gear-fill ms-2 text-danger"></i></h2>
+        </div>
+        <div class="text-end">
+            <div class="badge-stat">
+                <i class="bi bi-shield-check me-1"></i> Tài khoản giáo viên
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="settings-card p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="avatar-upload me-3">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="Avatar">
+                        {% else %}
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #880000, #ff6b6b); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                                {{ user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                        <small class="text-muted">{{ user.email }}</small>
+                    </div>
+                </div>
+
+                <nav class="nav flex-column nav-pills">
+                    <a class="nav-link active" href="#profile" data-bs-toggle="tab">
+                        <i class="bi bi-person me-2"></i> Thông tin cá nhân
+                    </a>
+                    <a class="nav-link" href="#account" data-bs-toggle="tab">
+                        <i class="bi bi-shield-lock me-2"></i> Bảo mật & Mật khẩu
+                    </a>
+                    <a class="nav-link" href="#notifications" data-bs-toggle="tab">
+                        <i class="bi bi-bell me-2"></i> Thông báo
+                    </a>
+                    <a class="nav-link" href="#appearance" data-bs-toggle="tab">
+                        <i class="bi bi-palette me-2"></i> Giao diện
+                    </a>
+                    <a class="nav-link" href="#help" data-bs-toggle="tab">
+                        <i class="bi bi-question-circle me-2"></i> Trợ giúp
+                    </a>
+                </nav>
+
+                <div class="mt-4 pt-4 border-top">
+                    <a href="{% url 'quiz:teacher_dashboard' %}" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard
+                    </a>
+                    <a href="{% url 'quiz:contact_support' %}" class="btn btn-danger w-100">
+                        <i class="bi bi-headset me-1"></i> Liên hệ hỗ trợ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Tab 1: Profile -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="settings-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="fw-bold mb-0">Thông tin cá nhân</h4>
+                            <span class="badge bg-light text-dark">
+                                <i class="bi bi-info-circle me-1"></i> Cập nhật lần cuối: {% now "d/m/Y" %}
+                            </span>
+                        </div>
+
+                        <form method="POST" action="{% url 'quiz:update_profile' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-4 text-center">
+                                    <div class="avatar-upload mb-3">
+                                        {% if user.avatar %}
+                                            <img src="{{ user.avatar.url }}" alt="Avatar" id="avatar-preview">
+                                        {% else %}
+                                            <img src="{% static 'images/default-avatar-teacher.png' %}" alt="Avatar" id="avatar-preview">
+                                        {% endif %}
+                                        <div class="avatar-overlay" onclick="document.getElementById('avatar-input').click()">
+                                            <i class="bi bi-camera"></i>
+                                        </div>
+                                        <input type="file" name="avatar" id="avatar-input" accept="image/*" class="d-none" onchange="previewAvatar(event)">
+                                    </div>
+                                    <small class="text-muted">Nhấn vào biểu tượng camera để thay đổi ảnh</small>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-medium">Họ</label>
+                                            <input type="text" name="last_name" class="form-control" value="{{ user.last_name|default:'' }}" placeholder="Nhập họ">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-medium">Tên</label>
+                                            <input type="text" name="first_name" class="form-control" value="{{ user.first_name|default:'' }}" placeholder="Nhập tên">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-medium">Email</label>
+                                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-medium">Mã giáo viên</label>
+                                            <input type="text" name="teacher_id" class="form-control" value="{{ user.teacher_id|default:'' }}" placeholder="GV001">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-medium">Bộ môn</label>
+                                            <input type="text" name="department" class="form-control" value="{{ user.department|default:'' }}" placeholder="Khoa Toán">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between border-top pt-4">
+                                <a href="#" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-1"></i> Hủy
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-save me-1"></i> Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Account Security -->
+                <div class="tab-pane fade" id="account">
+                    <div class="settings-card p-4">
+                        <h4 class="fw-bold mb-4">Bảo mật & Mật khẩu</h4>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-danger bg-opacity-10 p-3 rounded-circle me-3">
+                                                <i class="bi bi-key text-danger" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">Đổi mật khẩu</h6>
+                                                <small class="text-muted">Cập nhật mật khẩu định kỳ để bảo vệ tài khoản</small>
+                                            </div>
+                                        </div>
+                                        <form method="POST" action="{% url 'quiz:change_password' %}">
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label class="form-label">Mật khẩu hiện tại</label>
+                                                <input type="password" name="current_password" class="form-control" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Mật khẩu mới</label>
+                                                <input type="password" name="new_password" class="form-control" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Xác nhận mật khẩu mới</label>
+                                                <input type="password" name="confirm_password" class="form-control" required>
+                                            </div>
+                                            <button type="submit" class="btn btn-danger w-100">
+                                                <i class="bi bi-key me-1"></i> Cập nhật mật khẩu
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                                                <i class="bi bi-shield-check text-warning" style="font-size: 1.5rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">Xác thực 2 lớp</h6>
+                                                <small class="text-muted">Thêm lớp bảo mật cho tài khoản</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-center py-3">
+                                            <p class="text-muted mb-3">Bảo vệ tài khoản của bạn bằng xác thực 2 lớp</p>
+                                            <button class="btn btn-outline-warning w-100" disabled>
+                                                <i class="bi bi-phone me-1"></i> Kích hoạt SMS
+                                            </button>
+                                            <small class="text-muted mt-2 d-block">Tính năng đang phát triển</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Notifications -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="settings-card p-4">
+                        <h4 class="fw-bold mb-4">Cài đặt thông báo</h4>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Thông báo hệ thống</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notifyQuiz" checked>
+                                    <label class="form-check-label" for="notifyQuiz">
+                                        Thông báo khi có học sinh nộp bài
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notifyNewStudent" checked>
+                                    <label class="form-check-label" for="notifyNewStudent">
+                                        Thông báo học sinh mới tham gia
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notifyMessages">
+                                    <label class="form-check-label" for="notifyMessages">
+                                        Thông báo tin nhắn từ học sinh
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Thông báo qua email</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailWeeklyReport">
+                                    <label class="form-check-label" for="emailWeeklyReport">
+                                        Báo cáo tuần qua email
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailUpdates" checked>
+                                    <label class="form-check-label" for="emailUpdates">
+                                        Cập nhật tính năng mới
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailPromotions">
+                                    <label class="form-check-label" for="emailPromotions">
+                                        Khuyến mãi và ưu đãi
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-4 mt-4">
+                            <button class="btn btn-danger">
+                                <i class="bi bi-save me-1"></i> Lưu cài đặt thông báo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Appearance -->
+                <div class="tab-pane fade" id="appearance">
+                    <div class="settings-card p-4">
+                        <h4 class="fw-bold mb-4">Tùy chỉnh giao diện</h4>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Chủ đề màu sắc</h6>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="theme-preview active" data-theme="light" onclick="selectTheme('light')">
+                                            <div style="height: 60%; background: linear-gradient(135deg, #880000, #ff6b6b);"></div>
+                                            <div style="height: 40%; background: #f8f9fa; padding: 10px;">
+                                                <div style="width: 60%; height: 8px; background: #e9ecef; margin-bottom: 5px;"></div>
+                                                <div style="width: 40%; height: 8px; background: #e9ecef;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <small class="fw-medium">Nền sáng</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="theme-preview" data-theme="dark" onclick="selectTheme('dark')">
+                                            <div style="height: 60%; background: linear-gradient(135deg, #222, #880000);"></div>
+                                            <div style="height: 40%; background: #1a1a1a; padding: 10px;">
+                                                <div style="width: 60%; height: 8px; background: #333; margin-bottom: 5px;"></div>
+                                                <div style="width: 40%; height: 8px; background: #333;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <small class="fw-medium">Nền tối</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Kích thước chữ</h6>
+                                <div class="btn-group w-100 mb-3" role="group">
+                                    <input type="radio" class="btn-check" name="fontSize" id="fontSmall" autocomplete="off">
+                                    <label class="btn btn-outline-secondary" for="fontSmall">Nhỏ</label>
+                                    
+                                    <input type="radio" class="btn-check" name="fontSize" id="fontMedium" autocomplete="off" checked>
+                                    <label class="btn btn-outline-secondary" for="fontMedium">Trung bình</label>
+                                    
+                                    <input type="radio" class="btn-check" name="fontSize" id="fontLarge" autocomplete="off">
+                                    <label class="btn btn-outline-secondary" for="fontLarge">Lớn</label>
+                                </div>
+                                
+                                <h6 class="fw-bold mb-3">Mật độ hiển thị</h6>
+                                <select class="form-select">
+                                    <option value="comfortable">Thoải mái</option>
+                                    <option value="normal" selected>Bình thường</option>
+                                    <option value="compact">Dày đặc</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-4 mt-4">
+                            <button class="btn btn-danger" onclick="applyAppearanceSettings()">
+                                <i class="bi bi-check-circle me-1"></i> Áp dụng thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: Help -->
+                <div class="tab-pane fade" id="help">
+                    <div class="settings-card p-4">
+                        <h4 class="fw-bold mb-4">Trợ giúp & Hỗ trợ</h4>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body text-center">
+                                        <div class="bg-danger bg-opacity-10 p-4 rounded-circle d-inline-block mb-3">
+                                            <i class="bi bi-question-circle text-danger" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-2">Hướng dẫn sử dụng</h5>
+                                        <p class="text-muted mb-3">Tìm hiểu cách sử dụng tất cả tính năng của Examify</p>
+                                        <a href="{% url 'quiz:teacher_help' %}" class="btn btn-outline-danger w-100">
+                                            <i class="bi bi-book me-1"></i> Xem hướng dẫn
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body text-center">
+                                        <div class="bg-primary bg-opacity-10 p-4 rounded-circle d-inline-block mb-3">
+                                            <i class="bi bi-headset text-primary" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-2">Liên hệ hỗ trợ</h5>
+                                        <p class="text-muted mb-3">Cần hỗ trợ trực tiếp? Liên hệ đội ngũ của chúng tôi</p>
+                                        <a href="{% url 'quiz:contact_support' %}" class="btn btn-primary w-100">
+                                            <i class="bi bi-chat-dots me-1"></i> Liên hệ ngay
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-4 mt-4">
+                            <h6 class="fw-bold mb-3">Câu hỏi thường gặp</h6>
+                            <div class="accordion" id="faqAccordion">
+                                <div class="accordion-item border-0 mb-3">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                            Làm thế nào để import câu hỏi từ Excel?
+                                        </button>
+                                    </h2>
+                                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            Truy cập "Ngân hàng câu hỏi" → "Import Excel" → Tải file mẫu và điền theo cấu trúc.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item border-0 mb-3">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                            Cách chấm điểm tự luận?
+                                        </button>
+                                    </h2>
+                                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            Vào "Chấm điểm" → Chọn bài thi → Chấm điểm từng câu tự luận và nhận xét.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Avatar preview
+function previewAvatar(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const output = document.getElementById('avatar-preview');
+        output.src = reader.result;
+    };
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+// Theme selection
+function selectTheme(theme) {
+    document.querySelectorAll('.theme-preview').forEach(preview => {
+        preview.classList.remove('active');
+    });
+    document.querySelector(`.theme-preview[data-theme="${theme}"]`).classList.add('active');
+    localStorage.setItem('theme', theme);
+}
+
+// Apply appearance settings
+function applyAppearanceSettings() {
+    const theme = localStorage.getItem('theme') || 'light';
+    document.body.className = '';
+    document.body.classList.add(`theme-${theme}`);
+    
+    // Show success message
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-4';
+    alert.style.zIndex = '9999';
+    alert.innerHTML = `
+        <i class="bi bi-check-circle me-2"></i>
+        Đã áp dụng cài đặt giao diện thành công!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.classList.remove('show');
+        setTimeout(() => alert.remove(), 300);
+    }, 3000);
+}
+
+// Initialize tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle tab clicks
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        selectTheme(savedTheme);
+    }
+});
+</script>
+{% endblock %}
