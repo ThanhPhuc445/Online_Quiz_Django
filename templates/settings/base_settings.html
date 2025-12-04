@@ -1,5 +1,3 @@
-[file name]: base_settings.html
-[file content begin]
 <!-- templates/settings/base_settings.html -->
 {% extends "base.html" %}
 
@@ -7,295 +5,855 @@
 
 {% block extra_css %}
 <style>
-    .settings-card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
     }
-    .form-control, .form-select {
-        border-radius: 8px;
-        padding: 10px 15px;
-        border: 1px solid #dee2e6;
-        transition: all 0.3s;
+
+    /* ===== PAGE HEADER ===== */
+    .settings-header {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
     }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(136, 0, 0, 0.1);
+
+    .settings-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
     }
-    .form-check-input:checked {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-    .user-badge {
+
+    .page-title-section h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-title-section p {
+        font-size: 1rem;
+        color: var(--gray);
+        margin: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .role-badge {
+        padding: 8px 20px;
+        background: rgba(136, 0, 0, 0.1);
+        color: var(--primary);
+        border-radius: 50px;
+        font-weight: 600;
         font-size: 0.9rem;
-        padding: 5px 15px;
+        border: 1px solid rgba(136, 0, 0, 0.2);
+    }
+
+    .back-button {
+        padding: 10px 24px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-button:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ===== NOTIFICATIONS ===== */
+    .notifications-container {
+        margin-bottom: 2rem;
+    }
+
+    .alert-custom {
+        border: none;
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
+        border-left: 4px solid transparent;
+    }
+
+    .alert-custom.alert-success {
+        background: rgba(0, 184, 148, 0.1);
+        border-left-color: #00b894;
+    }
+
+    .alert-custom.alert-warning {
+        background: rgba(255, 193, 7, 0.1);
+        border-left-color: #ffc107;
+    }
+
+    .alert-custom.alert-error,
+    .alert-custom.alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border-left-color: #ef4444;
+    }
+
+    .alert-custom.alert-info {
+        background: rgba(13, 202, 240, 0.1);
+        border-left-color: #0dcaf0;
+    }
+
+    /* ===== TABS NAVIGATION ===== */
+    .tabs-navigation {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .nav-tabs-custom {
+        border: none;
+        gap: 1rem;
+    }
+
+    .nav-tabs-custom .nav-link {
+        padding: 12px 24px;
+        border: none;
+        border-radius: var(--radius-md);
+        color: var(--gray);
+        font-weight: 600;
+        background: transparent;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .nav-tabs-custom .nav-link:hover {
+        color: var(--primary);
+        background: rgba(136, 0, 0, 0.05);
+    }
+
+    .nav-tabs-custom .nav-link.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(136, 0, 0, 0.15);
+    }
+
+    /* ===== SETTINGS CARDS ===== */
+    .settings-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+    }
+
+    .settings-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-header-custom {
+        padding: 1.5rem 2rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .card-header-custom::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-body-custom {
+        padding: 2rem;
+    }
+
+    /* ===== FORM STYLES ===== */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .form-label .required {
+        color: #ef4444;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        color: var(--dark);
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(136, 0, 0, 0.1);
+        outline: none;
+    }
+
+    .form-control-custom::placeholder {
+        color: #94a3b8;
+    }
+
+    .form-text-custom {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin-top: 0.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* ===== BUTTONS ===== */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-reset {
+        padding: 12px 28px;
+        background: white;
+        color: var(--gray);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-reset:hover {
+        background: #f8f9fa;
+        border-color: var(--gray);
+    }
+
+    .btn-submit {
+        padding: 12px 32px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-submit:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(136, 0, 0, 0.2);
+    }
+
+    /* ===== SECURITY TIPS ===== */
+    .security-tips {
+        background: linear-gradient(135deg, rgba(136, 0, 0, 0.03), rgba(74, 108, 247, 0.03));
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border: 1px solid var(--border);
+    }
+
+    .tips-header {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .tips-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .tips-list li::before {
+        content: '✓';
+        color: var(--primary);
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    /* ===== ACCOUNT INFO ===== */
+    .account-info-card {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        margin-top: 2rem;
+    }
+
+    .info-header {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: var(--dark);
+        text-align: right;
+    }
+
+    .info-value code {
+        background: #ffefef;
+        color: var(--primary);
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        font-family: monospace;
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        background: rgba(0, 184, 148, 0.1);
+        color: #00b894;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .role-badge-info {
+        padding: 6px 16px;
+        background: rgba(13, 202, 240, 0.1);
+        color: #0dcaf0;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .role-badge-warning {
+        padding: 6px 16px;
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* ===== SUPPORT SECTION ===== */
+    .support-section {
+        text-align: center;
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .support-text {
+        color: var(--gray);
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .btn-support {
+        padding: 12px 32px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-support:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 992px) {
+        .settings-header {
+            padding: 2rem;
+        }
+        
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
+        
+        .header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .card-body-custom {
+            padding: 1.5rem;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .nav-tabs-custom .nav-link {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-reset,
+        .btn-submit {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .settings-header {
+            padding: 1.5rem;
+        }
+        
+        .page-title-section h1 {
+            font-size: 1.75rem;
+        }
+        
+        .nav-tabs-custom {
+            flex-direction: column;
+        }
+        
+        .nav-tabs-custom .nav-link {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .header-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .role-badge,
+        .back-button {
+            width: 100%;
+            text-align: center;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="fw-bold text-dark mb-1">
-                        <i class="bi bi-gear me-2"></i>Cài đặt
-                    </h2>
-                    <p class="text-muted mb-0">Quản lý thông tin tài khoản của bạn</p>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary user-badge">
-                        {{ user.get_role_display }}
-                    </span>
-                    <a href="{% url 'quiz:dashboard' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Quay lại
-                    </a>
-                </div>
+    <!-- PAGE HEADER -->
+    <div class="settings-header">
+        <div class="header-content">
+            <div class="page-title-section">
+                <h1>
+                    <i class="bi bi-gear"></i>Cài đặt
+                </h1>
+                <p>Quản lý thông tin tài khoản của bạn</p>
             </div>
-
-            <!-- Thông báo -->
-            {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
-                    <div class="d-flex align-items-center">
-                        <i class="bi 
-                            {% if message.tags == 'success' %}bi-check-circle-fill text-success
-                            {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
-                            {% elif message.tags == 'error' %}bi-x-circle-fill text-danger
-                            {% else %}bi-info-circle-fill text-info{% endif %} 
-                            me-2 fs-5"></i>
-                        <div class="fw-medium">{{ message }}</div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs mb-4" id="settingsTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link {% if active_tab == 'profile' or not active_tab %}active{% endif %}" 
-                            id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
-                        <i class="bi bi-person me-2"></i> Thông tin cá nhân
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link {% if active_tab == 'account' %}active{% endif %}" 
-                            id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button">
-                        <i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu
-                    </button>
-                </li>
-            </ul>
-
-            <!-- Tab Content -->
-            <div class="tab-content" id="settingsTabContent">
-                <!-- Tab 1: Thông tin cá nhân -->
-                <div class="tab-pane fade {% if active_tab == 'profile' or not active_tab %}show active{% endif %}" 
-                     id="profile" role="tabpanel">
-                    <div class="card settings-card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-4">
-                                <i class="bi bi-person me-2"></i> Cập nhật thông tin cá nhân
-                            </h5>
-                            
-                            <form method="post" action="{% url 'quiz:update_profile' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="tab" value="profile">
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Họ <span class="text-danger">*</span></label>
-                                        <input type="text" name="first_name" class="form-control" 
-                                               value="{{ user.first_name|default:'' }}" required
-                                               placeholder="Nhập họ của bạn">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Tên <span class="text-danger">*</span></label>
-                                        <input type="text" name="last_name" class="form-control" 
-                                               value="{{ user.last_name|default:'' }}" required
-                                               placeholder="Nhập tên của bạn">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Email <span class="text-danger">*</span></label>
-                                    <input type="email" name="email" class="form-control" 
-                                           value="{{ user.email|default:'' }}" required
-                                           placeholder="example@email.com">
-                                </div>
-                                
-                                {% if user.role == 'STUDENT' %}
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Mã học sinh</label>
-                                        <input type="text" name="student_id" class="form-control" 
-                                               value="{{ user.student_id|default:'' }}"
-                                               placeholder="HS001">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Lớp</label>
-                                        <input type="text" name="class_name" class="form-control" 
-                                               value="{{ user.class_name|default:'' }}"
-                                               placeholder="12A1">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Trường</label>
-                                    <input type="text" name="school" class="form-control" 
-                                           value="{{ user.school|default:'' }}"
-                                           placeholder="Tên trường học">
-                                </div>
-                                {% endif %}
-                                
-                                {% if user.role == 'TEACHER' %}
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Mã giáo viên</label>
-                                        <input type="text" name="teacher_id" class="form-control" 
-                                               value="{{ user.teacher_id|default:'' }}"
-                                               placeholder="GV001">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Bộ môn</label>
-                                        <input type="text" name="department" class="form-control" 
-                                               value="{{ user.department|default:'' }}"
-                                               placeholder="Toán, Lý, Hóa...">
-                                    </div>
-                                </div>
-                                {% endif %}
-                                
-                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                                    <button type="reset" class="btn btn-outline-secondary">Đặt lại</button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-check-circle me-1"></i> Lưu thay đổi
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab 2: Đổi mật khẩu -->
-                <div class="tab-pane fade {% if active_tab == 'account' %}show active{% endif %}" 
-                     id="account" role="tabpanel">
-                    <div class="card settings-card">
-                        <div class="card-body p-4">
-                            <h5 class="fw-bold mb-4">
-                                <i class="bi bi-shield-lock me-2"></i> Thay đổi mật khẩu
-                            </h5>
-                            
-                            <form method="post" action="{% url 'quiz:change_password' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="tab" value="account">
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Mật khẩu hiện tại <span class="text-danger">*</span></label>
-                                    <input type="password" name="current_password" class="form-control" required
-                                           placeholder="Nhập mật khẩu hiện tại">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Mật khẩu mới <span class="text-danger">*</span></label>
-                                    <input type="password" name="new_password" class="form-control" required
-                                           placeholder="Tối thiểu 6 ký tự">
-                                    <div class="form-text text-muted">Mật khẩu phải có ít nhất 6 ký tự</div>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label class="form-label">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
-                                    <input type="password" name="confirm_password" class="form-control" required
-                                           placeholder="Nhập lại mật khẩu mới">
-                                </div>
-                                
-                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                                    <button type="reset" class="btn btn-outline-secondary">Đặt lại</button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-key me-1"></i> Đổi mật khẩu
-                                    </button>
-                                </div>
-                            </form>
-                            
-                            <!-- Mẹo bảo mật -->
-                            <div class="alert alert-light mt-4">
-                                <h6 class="fw-bold mb-2">
-                                    <i class="bi bi-lightbulb me-2"></i> Mẹo bảo mật
-                                </h6>
-                                <ul class="mb-0 small ps-3">
-                                    <li>Không sử dụng mật khẩu quá đơn giản như "123456"</li>
-                                    <li>Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</li>
-                                    <li>Không chia sẻ mật khẩu với bất kỳ ai</li>
-                                    <li>Nên thay đổi mật khẩu định kỳ 3-6 tháng</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Thông tin tài khoản -->
-            <div class="card settings-card mt-4">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3">
-                        <i class="bi bi-info-circle me-2"></i> Thông tin tài khoản
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td width="40%"><strong>Tên đăng nhập:</strong></td>
-                                    <td><code>{{ user.username }}</code></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Vai trò:</strong></td>
-                                    <td>
-                                        <span class="badge {% if user.role == 'STUDENT' %}bg-info{% elif user.role == 'TEACHER' %}bg-warning{% else %}bg-success{% endif %}">
-                                            {{ user.get_role_display }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Ngày tham gia:</strong></td>
-                                    <td>{{ user.date_joined|date:"d/m/Y" }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td width="40%"><strong>Đăng nhập cuối:</strong></td>
-                                    <td>{{ user.last_login|date:"H:i d/m/Y" }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Trạng thái:</strong></td>
-                                    <td>
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle me-1"></i> Hoạt động
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Thời gian hiện tại:</strong></td>
-                                    <td>{{ current_date|date:"H:i d/m/Y" }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Link hỗ trợ -->
-            <div class="text-center mt-4">
-                <p class="text-muted mb-2">Cần hỗ trợ thêm?</p>
-                <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-headset me-1"></i> Truy cập trang hỗ trợ
+            <div class="header-actions">
+                <span class="role-badge">{{ user.get_role_display }}</span>
+                <a href="{% url 'quiz:dashboard' %}" class="back-button">
+                    <i class="bi bi-arrow-left"></i>Quay lại
                 </a>
             </div>
         </div>
+    </div>
+
+    <!-- THÔNG BÁO -->
+    {% if messages %}
+    <div class="notifications-container">
+        {% for message in messages %}
+        <div class="alert alert-custom alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi 
+                    {% if message.tags == 'success' %}bi-check-circle-fill text-success
+                    {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}bi-x-circle-fill text-danger
+                    {% else %}bi-info-circle-fill text-info{% endif %} 
+                    me-3 fs-4"></i>
+                <div>
+                    <div class="fw-bold mb-1">
+                        {% if message.tags == 'success' %}Thành công!
+                        {% elif message.tags == 'warning' %}Cảnh báo!
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}Lỗi!
+                        {% else %}Thông tin!{% endif %}
+                    </div>
+                    <div>{{ message }}</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- TAB NAVIGATION -->
+    <div class="tabs-navigation">
+        <ul class="nav nav-tabs-custom" id="settingsTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'profile' or not active_tab %}active{% endif %}" 
+                        id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
+                    <i class="bi bi-person"></i>Thông tin cá nhân
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'account' %}active{% endif %}" 
+                        id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button">
+                    <i class="bi bi-shield-lock"></i>Đổi mật khẩu
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content" id="settingsTabContent">
+        <!-- Tab 1: Thông tin cá nhân -->
+        <div class="tab-pane fade {% if active_tab == 'profile' or not active_tab %}show active{% endif %}" 
+             id="profile" role="tabpanel">
+            <div class="settings-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="bi bi-person"></i>Cập nhật thông tin cá nhân
+                    </h5>
+                </div>
+                <div class="card-body-custom">
+                    <form method="post" action="{% url 'quiz:update_profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="tab" value="profile">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Họ <span class="required">*</span>
+                                </label>
+                                <input type="text" name="first_name" class="form-control-custom" 
+                                       value="{{ user.first_name|default:'' }}" required
+                                       placeholder="Nhập họ của bạn">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Tên <span class="required">*</span>
+                                </label>
+                                <input type="text" name="last_name" class="form-control-custom" 
+                                       value="{{ user.last_name|default:'' }}" required
+                                       placeholder="Nhập tên của bạn">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Email <span class="required">*</span>
+                            </label>
+                            <input type="email" name="email" class="form-control-custom" 
+                                   value="{{ user.email|default:'' }}" required
+                                   placeholder="example@email.com">
+                        </div>
+                        
+                        {% if user.role == 'STUDENT' %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Mã học sinh</label>
+                                <input type="text" name="student_id" class="form-control-custom" 
+                                       value="{{ user.student_id|default:'' }}"
+                                       placeholder="HS001">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Lớp</label>
+                                <input type="text" name="class_name" class="form-control-custom" 
+                                       value="{{ user.class_name|default:'' }}"
+                                       placeholder="12A1">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Trường</label>
+                            <input type="text" name="school" class="form-control-custom" 
+                                   value="{{ user.school|default:'' }}"
+                                   placeholder="Tên trường học">
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.role == 'TEACHER' %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Mã giáo viên</label>
+                                <input type="text" name="teacher_id" class="form-control-custom" 
+                                       value="{{ user.teacher_id|default:'' }}"
+                                       placeholder="GV001">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Bộ môn</label>
+                                <input type="text" name="department" class="form-control-custom" 
+                                       value="{{ user.department|default:'' }}"
+                                       placeholder="Toán, Lý, Hóa...">
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-actions">
+                            <button type="reset" class="btn-reset">Đặt lại</button>
+                            <button type="submit" class="btn-submit">
+                                <i class="bi bi-check-circle"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 2: Đổi mật khẩu -->
+        <div class="tab-pane fade {% if active_tab == 'account' %}show active{% endif %}" 
+             id="account" role="tabpanel">
+            <div class="settings-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">
+                        <i class="bi bi-shield-lock"></i>Thay đổi mật khẩu
+                    </h5>
+                </div>
+                <div class="card-body-custom">
+                    <form method="post" action="{% url 'quiz:change_password' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="tab" value="account">
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Mật khẩu hiện tại <span class="required">*</span>
+                            </label>
+                            <input type="password" name="current_password" class="form-control-custom" required
+                                   placeholder="Nhập mật khẩu hiện tại">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Mật khẩu mới <span class="required">*</span>
+                            </label>
+                            <input type="password" name="new_password" class="form-control-custom" required
+                                   placeholder="Tối thiểu 6 ký tự">
+                            <div class="form-text-custom">Mật khẩu phải có ít nhất 6 ký tự</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Xác nhận mật khẩu mới <span class="required">*</span>
+                            </label>
+                            <input type="password" name="confirm_password" class="form-control-custom" required
+                                   placeholder="Nhập lại mật khẩu mới">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="reset" class="btn-reset">Đặt lại</button>
+                            <button type="submit" class="btn-submit">
+                                <i class="bi bi-key"></i>Đổi mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Mẹo bảo mật -->
+                    <div class="security-tips">
+                        <h6 class="tips-header">
+                            <i class="bi bi-lightbulb"></i>Mẹo bảo mật
+                        </h6>
+                        <ul class="tips-list">
+                            <li>Không sử dụng mật khẩu quá đơn giản như "123456"</li>
+                            <li>Kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt</li>
+                            <li>Không chia sẻ mật khẩu với bất kỳ ai</li>
+                            <li>Nên thay đổi mật khẩu định kỳ 3-6 tháng</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- THÔNG TIN TÀI KHOẢN -->
+    <div class="account-info-card">
+        <h5 class="info-header">
+            <i class="bi bi-info-circle"></i>Thông tin tài khoản
+        </h5>
+        
+        <div class="info-grid">
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">Tên đăng nhập:</span>
+                    <span class="info-value"><code>{{ user.username }}</code></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vai trò:</span>
+                    <span class="info-value">
+                        <span class="{% if user.role == 'STUDENT' %}role-badge-info{% elif user.role == 'TEACHER' %}role-badge-warning{% else %}status-badge{% endif %}">
+                            {{ user.get_role_display }}
+                        </span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày tham gia:</span>
+                    <span class="info-value">{{ user.date_joined|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">Đăng nhập cuối:</span>
+                    <span class="info-value">{{ user.last_login|date:"H:i d/m/Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Trạng thái:</span>
+                    <span class="info-value">
+                        <span class="status-badge">
+                            <i class="bi bi-check-circle"></i>Hoạt động
+                        </span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Thời gian hiện tại:</span>
+                    <span class="info-value">{{ current_date|date:"H:i d/m/Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- LINK HỖ TRỢ -->
+    <div class="support-section">
+        <p class="support-text">Cần hỗ trợ thêm?</p>
+        <a href="{% url 'quiz:support_dashboard' %}" class="btn-support">
+            <i class="bi bi-headset"></i>Truy cập trang hỗ trợ
+        </a>
     </div>
 </div>
 
@@ -335,4 +893,3 @@
     });
 </script>
 {% endblock %}
-[file content end]

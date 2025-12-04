@@ -235,12 +235,7 @@
                 </a>
                 
                 <!-- Hộp thư hỗ trợ (chỉ giáo viên thấy) -->
-                {% if user.role == 'TEACHER' %}
-                <a href="{% url 'quiz:teacher_support_inbox' %}" 
-                   class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'teacher_support_inbox' %}active{% endif %}">
-                    <i class="bi bi-inbox-fill"></i> Hộp thư hỗ trợ
-                </a>
-                {% endif %}
+               
                 
                 <!-- Quản lý hỗ trợ (chỉ admin thấy) -->
                 {% if user.role == 'ADMIN' %}

@@ -1,152 +1,656 @@
-<!-- support/contact_teacher.html -->
 {% extends "base.html" %}
 
-{% block title %}Liên hệ giáo viên{% endblock %}
+{% block title %}Liên hệ giáo viên - Examify{% endblock %}
 
-{% block extra_head %}
+{% block extra_css %}
 <style>
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        padding: 10px 15px;
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --primary-soft: #fff0f0;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
     }
+
+    /* ===== HEADER SECTION ===== */
+    .header-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        background: var(--primary-soft);
+        width: fit-content;
+    }
+
+    .back-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateX(-5px);
+    }
+
+    .header-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .header-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray);
+        line-height: 1.6;
+    }
+
+    /* ===== RECIPIENT INFO ===== */
+    .recipient-info {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 2px solid #e0f2fe;
+        border-left: 4px solid var(--secondary);
+    }
+
+    .recipient-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .recipient-icon {
+        width: 40px;
+        height: 40px;
+        background: #eff6ff;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary);
+        font-size: 1.25rem;
+    }
+
+    .recipient-title {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .recipient-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        padding: 0 0 0 52px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--gray);
+    }
+
+    .detail-item i {
+        color: var(--primary);
+        font-size: 1rem;
+    }
+
+    /* ===== FORM SECTION ===== */
+    .form-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-label i {
+        color: var(--primary);
+    }
+
+    .form-control, .form-select {
+        border-radius: var(--radius-md);
+        border: 2px solid var(--border);
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
     .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(136, 0, 0, 0.1);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(136, 0, 0, 0.1);
+        outline: none;
+    }
+
+    .form-text {
+        color: var(--gray);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .required::after {
+        content: ' *';
+        color: #ef4444;
+    }
+
+    /* ===== FILE UPLOAD ===== */
+    .file-upload {
+        position: relative;
+        border: 2px dashed #cbd5e1;
+        border-radius: var(--radius-md);
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .file-upload:hover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+    }
+
+    .file-upload i {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .file-upload-text {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .file-upload-subtext {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    /* ===== FORM ACTIONS ===== */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 2rem;
+        margin-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-secondary {
+        padding: 12px 24px;
+        background: white;
+        color: var(--gray);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        background: #f1f5f9;
+        color: var(--dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .btn-primary {
+        padding: 12px 32px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-primary:hover {
+        background: #660000;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(136, 0, 0, 0.2);
+    }
+
+    /* ===== HISTORY LINK ===== */
+    .history-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        background: var(--primary-soft);
+        width: fit-content;
+        margin: 2rem auto 0;
+    }
+
+    .history-link:hover {
+        background: var(--primary);
+        color: white;
+        gap: 12px;
+    }
+
+    /* ===== TIPS SECTION ===== */
+    .tips-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+    }
+
+    .tips-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .tips-icon {
+        width: 40px;
+        height: 40px;
+        background: #f0fdf4;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        font-size: 1.25rem;
+    }
+
+    .tips-title {
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 0.75rem 0;
+        color: var(--gray);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .tips-list li:last-child {
+        border-bottom: none;
+    }
+
+    .tips-list i {
+        color: var(--accent);
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .header-section {
+            padding: 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 1.8rem;
+        }
+        
+        .form-section {
+            padding: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .btn-secondary, .btn-primary {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .recipient-details {
+            grid-template-columns: 1fr;
+            padding-left: 0;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .header-title {
+            font-size: 1.6rem;
+        }
+        
+        .form-control, .form-select {
+            padding: 10px 14px;
+        }
+        
+        .tips-section {
+            padding: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Header -->
-            <div class="d-flex align-items-center mb-4">
-                <a href="{% url 'quiz:support_dashboard' %}" class="text-decoration-none me-3">
-                    <i class="bi bi-arrow-left fs-4"></i>
-                </a>
-                <div>
-                    <h2 class="fw-bold mb-1">Liên hệ giáo viên</h2>
-                    <p class="text-muted mb-0">
-                        {% if teacher %}
-                        Gửi yêu cầu đến {{ teacher.get_full_name|default:teacher.username }}
-                        {% elif quiz %}
-                        Gửi yêu cầu về đề thi "{{ quiz.title }}"
-                        {% else %}
-                        Gửi yêu cầu hỗ trợ đến giáo viên
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+<div class="container-fluid py-4">
+    <!-- HEADER SECTION -->
+    <div class="header-section">
+        <a href="{% url 'quiz:support_dashboard' %}" class="back-btn">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+        
+        <h1 class="header-title">Liên hệ giáo viên</h1>
+        <p class="header-subtitle">
+            {% if teacher %}
+            Gửi yêu cầu đến {{ teacher.get_full_name|default:teacher.username }}
+            {% elif quiz %}
+            Gửi yêu cầu về đề thi "{{ quiz.title }}"
+            {% else %}
+            Gửi yêu cầu hỗ trợ đến giáo viên
+            {% endif %}
+        </p>
+    </div>
 
-            <!-- Thông báo -->
-            {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
+    <!-- Thông báo -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi 
+                    {% if message.tags == 'success' %}bi-check-circle-fill text-success
+                    {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
+                    {% elif message.tags == 'error' %}bi-x-circle-fill text-danger
+                    {% else %}bi-info-circle-fill text-info{% endif %} 
+                    me-2"></i>
+                <div class="fw-medium">{{ message }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- THÔNG TIN NGƯỜI NHẬN -->
+    {% if teacher or quiz %}
+    <div class="recipient-info">
+        <div class="recipient-header">
+            <div class="recipient-icon">
+                <i class="bi bi-info-circle-fill"></i>
+            </div>
+            <h3 class="recipient-title">Yêu cầu sẽ được gửi đến:</h3>
+        </div>
+        <div class="recipient-details">
+            {% if teacher %}
+            <div class="detail-item">
+                <i class="bi bi-person-badge"></i>
+                <span><strong>Giáo viên:</strong> {{ teacher.get_full_name|default:teacher.username }}</span>
             </div>
             {% endif %}
-
-            <!-- Form -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <!-- Thông tin người nhận -->
-                        {% if teacher or quiz %}
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-info-circle-fill me-2 fs-4"></i>
-                                <div>
-                                    <strong>Yêu cầu sẽ được gửi đến:</strong>
-                                    <ul class="mb-0 mt-2">
-                                        {% if teacher %}
-                                        <li>Giáo viên: {{ teacher.get_full_name|default:teacher.username }}</li>
-                                        {% endif %}
-                                        {% if quiz %}
-                                        <li>Đề thi: {{ quiz.title }} ({{ quiz.subject.name }})</li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Loại yêu cầu -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Loại yêu cầu *</label>
-                            <select name="ticket_type" class="form-select" required>
-                                <option value="" disabled selected>Chọn loại yêu cầu</option>
-                                {% for type_code, type_name in ticket_types %}
-                                <option value="{{ type_code }}">{{ type_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Tiêu đề -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Tiêu đề *</label>
-                            <input type="text" name="subject" class="form-control" 
-                                   placeholder="Nhập tiêu đề yêu cầu (tối đa 200 ký tự)" 
-                                   maxlength="200" required>
-                        </div>
-
-                        <!-- Nội dung -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Nội dung chi tiết *</label>
-                            <textarea name="message" class="form-control" rows="6" 
-                                      placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
-                            <div class="form-text">Hãy mô tả càng chi tiết càng tốt để giáo viên có thể hỗ trợ bạn nhanh chóng.</div>
-                        </div>
-
-                        <!-- File đính kèm (optional) -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">File đính kèm (tùy chọn)</label>
-                            <input type="file" name="attachment" class="form-control">
-                            <div class="form-text">Có thể đính kèm ảnh chụp màn hình hoặc file liên quan. Kích thước tối đa: 5MB</div>
-                        </div>
-                        <div class="mt-3 text-center">
-    <a href="{% url 'quiz:my_support_tickets' %}" class="text-decoration-none small">
-        <i class="bi bi-clock-history me-1"></i> Xem lịch sử yêu cầu của bạn
-    </a>
-</div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-lg me-1"></i> Hủy
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send me-1"></i> Gửi yêu cầu
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            {% if quiz %}
+            <div class="detail-item">
+                <i class="bi bi-file-text"></i>
+                <span><strong>Đề thi:</strong> {{ quiz.title }} ({{ quiz.subject.name }})</span>
             </div>
-
-            <!-- Hướng dẫn -->
-            <div class="mt-4">
-                <div class="card border-0 bg-light">
-                    <div class="card-body">
-                        <h6 class="fw-bold mb-3">
-                            <i class="bi bi-lightbulb me-2"></i> Mẹo để nhận được phản hồi nhanh chóng:
-                        </h6>
-                        <ul class="mb-0">
-                            <li class="mb-2">Mô tả rõ ràng vấn đề bạn gặp phải</li>
-                            <li class="mb-2">Chọn đúng loại yêu cầu để giáo viên dễ phân loại</li>
-                            <li class="mb-2">Nếu liên quan đến bài tập, hãy ghi rõ tên bài và trang số</li>
-                            <li>Thông thường bạn sẽ nhận được phản hồi trong vòng 24-48 giờ</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
     </div>
+    {% endif %}
+
+    <!-- FORM SECTION -->
+    <div class="form-section">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Loại yêu cầu -->
+            <div class="mb-4">
+                <label class="form-label required">
+                    <i class="bi bi-tag"></i> Loại yêu cầu
+                </label>
+                <select name="ticket_type" class="form-select" required>
+                    <option value="" disabled selected>Chọn loại yêu cầu</option>
+                    {% for type_code, type_name in ticket_types %}
+                    <option value="{{ type_code }}">{{ type_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tiêu đề -->
+            <div class="mb-4">
+                <label class="form-label required">
+                    <i class="bi bi-card-heading"></i> Tiêu đề
+                </label>
+                <input type="text" name="subject" class="form-control" 
+                       placeholder="Nhập tiêu đề yêu cầu (tối đa 200 ký tự)" 
+                       maxlength="200" required>
+                <div class="form-text">Hãy đặt tiêu đề rõ ràng và mô tả ngắn gọn yêu cầu của bạn</div>
+            </div>
+
+            <!-- Nội dung -->
+            <div class="mb-4">
+                <label class="form-label required">
+                    <i class="bi bi-chat-left-text"></i> Nội dung chi tiết
+                </label>
+                <textarea name="message" class="form-control" rows="6" 
+                          placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
+                <div class="form-text">Hãy mô tả càng chi tiết càng tốt để giáo viên có thể hỗ tr trợ bạn nhanh chóng</div>
+            </div>
+
+            <!-- File đính kèm -->
+            <div class="mb-4">
+                <label class="form-label">
+                    <i class="bi bi-paperclip"></i> File đính kèm (tùy chọn)
+                </label>
+                <div class="file-upload">
+                    <i class="bi bi-cloud-upload"></i>
+                    <div class="file-upload-text">Kéo thả file hoặc click để chọn</div>
+                    <div class="file-upload-subtext">Hỗ trợ: .jpg, .png, .pdf, .docx (tối đa 5MB)</div>
+                    <input type="file" name="attachment" class="form-control mt-3" style="display: none;">
+                </div>
+            </div>
+
+            <!-- FORM ACTIONS -->
+            <div class="form-actions">
+                <a href="{% url 'quiz:support_dashboard' %}" class="btn-secondary">
+                    <i class="bi bi-x-lg"></i> Hủy bỏ
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-send"></i> Gửi yêu cầu
+                </button>
+            </div>
+        </form>
+
+        <!-- HISTORY LINK -->
+        <a href="{% url 'quiz:my_support_tickets' %}" class="history-link">
+            <i class="bi bi-clock-history"></i> Xem lịch sử yêu cầu của bạn
+        </a>
+    </div>
+
+    <!-- TIPS SECTION -->
+    <div class="tips-section">
+        <div class="tips-header">
+            <div class="tips-icon">
+                <i class="bi bi-lightbulb"></i>
+            </div>
+            <h3 class="tips-title">Mẹo để nhận được phản hồi nhanh chóng</h3>
+        </div>
+        <ul class="tips-list">
+            <li>
+                <i class="bi bi-check-circle"></i>
+                <span>Mô tả rõ ràng vấn đề bạn gặp phải</span>
+            </li>
+            <li>
+                <i class="bi bi-check-circle"></i>
+                <span>Chọn đúng loại yêu cầu để giáo viên dễ phân loại</span>
+            </li>
+            <li>
+                <i class="bi bi-check-circle"></i>
+                <span>Nếu liên quan đến bài tập, hãy ghi rõ tên bài và trang số</span>
+            </li>
+            <li>
+                <i class="bi bi-check-circle"></i>
+                <span>Thông thường bạn sẽ nhận được phản hồi trong vòng 24-48 giờ</span>
+            </li>
+        </ul>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload interaction
+    const fileUpload = document.querySelector('.file-upload');
+    const fileInput = document.querySelector('input[name="attachment"]');
+    
+    if (fileUpload && fileInput) {
+        fileUpload.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const fileName = this.files[0].name;
+                fileUpload.innerHTML = `
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <div class="file-upload-text">${fileName}</div>
+                    <div class="file-upload-subtext">File đã được chọn</div>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="remove-file">
+                            <i class="bi bi-trash"></i> Xóa file
+                        </button>
+                    </div>
+                `;
+                
+                // Add remove file button functionality
+                document.getElementById('remove-file')?.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    fileInput.value = '';
+                    fileUpload.innerHTML = `
+                        <i class="bi bi-cloud-upload"></i>
+                        <div class="file-upload-text">Kéo thả file hoặc click để chọn</div>
+                        <div class="file-upload-subtext">Hỗ trợ: .jpg, .png, .pdf, .docx (tối đa 5MB)</div>
+                    `;
+                });
+            }
+        });
+    }
+    
+    // Form validation animation
+    const form = document.querySelector('form');
+    const requiredFields = form?.querySelectorAll('[required]');
+    
+    form?.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        requiredFields?.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+                
+                // Add error animation
+                field.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    field.style.animation = '';
+                }, 500);
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            
+            // Show error message
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+            errorAlert.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>Vui lòng điền đầy đủ các thông tin bắt buộc</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const existingAlert = document.querySelector('.alert-danger');
+            if (!existingAlert) {
+                form.insertBefore(errorAlert, form.firstChild);
+            }
+        }
+    });
+    
+    // Remove error class when user starts typing
+    requiredFields?.forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

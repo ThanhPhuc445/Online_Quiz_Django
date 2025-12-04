@@ -1,4 +1,4 @@
-<!-- support/teacher_inbox.html -->
+<!-- support/teacher_inbox.html - Phần TABLE sau khi bỏ cột Trạng thái -->
 {% extends "base.html" %}
 {% load static %}
 
@@ -24,16 +24,25 @@
         --radius-xl: 24px;
     }
 
+    /* Layout Container */
+    .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
     /* ===== HERO SECTION ===== */
     .hero-section {
         background: white;
         border-radius: var(--radius-xl);
-        padding: 2.5rem 2rem;
-        margin-bottom: 2rem;
+        padding: 2rem 2rem;
+        margin-bottom: 1.5rem;
         box-shadow: var(--shadow);
         border: 1px solid var(--border);
         position: relative;
         overflow: hidden;
+        width: 100%;
     }
 
     .hero-section::before {
@@ -47,52 +56,60 @@
     }
 
     .hero-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         color: var(--dark);
+        line-height: 1.3;
     }
 
     .hero-subtitle {
-        font-size: 1rem;
+        font-size: 0.95rem;
         color: var(--gray);
         line-height: 1.6;
         max-width: 800px;
+        margin-bottom: 0;
     }
 
     .unread-badge {
         background: var(--primary);
         color: white;
-        padding: 8px 20px;
+        padding: 8px 16px;
         border-radius: 50px;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+        white-space: nowrap;
     }
 
     /* ===== STATS CARDS ===== */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
         margin-bottom: 2rem;
+        width: 100%;
     }
 
     .stat-card {
         background: white;
         border-radius: var(--radius-lg);
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
         box-shadow: var(--shadow);
         border: 1px solid var(--border);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         box-shadow: var(--shadow-lg);
     }
 
@@ -107,29 +124,89 @@
     }
 
     .stat-icon {
-        width: 60px;
-        height: 60px;
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+        color: var(--primary);
+        font-size: 1.5rem;
+        background: rgba(136, 0, 0, 0.08);
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: var(--gray);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+        width: 100%;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        text-decoration: none !important;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .action-icon {
+        width: 50px;
+        height: 50px;
         border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1rem;
-        color: var(--primary);
-        font-size: 1.8rem;
-        background: rgba(136, 0, 0, 0.1);
+        font-size: 1.4rem;
+        color: white;
     }
 
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
+    .action-card:nth-child(1) .action-icon { background: var(--primary); }
+    .action-card:nth-child(2) .action-icon { background: var(--secondary); }
+    .action-card:nth-child(3) .action-icon { background: var(--accent); }
+
+    .action-card h6 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
         color: var(--dark);
-        margin-bottom: 0.25rem;
     }
 
-    .stat-label {
+    .action-card p {
+        font-size: 0.875rem;
         color: var(--gray);
-        font-size: 0.95rem;
-        font-weight: 500;
+        margin-bottom: 0;
+        line-height: 1.5;
     }
 
     /* ===== FILTERS SECTION ===== */
@@ -140,6 +217,7 @@
         box-shadow: var(--shadow);
         border: 1px solid var(--border);
         margin-bottom: 2rem;
+        width: 100%;
     }
 
     .filter-title {
@@ -164,15 +242,19 @@
         border: 1px solid var(--border);
         overflow: hidden;
         margin-bottom: 2rem;
+        width: 100%;
+        max-width: 100%;
     }
 
     .table-header {
         background: linear-gradient(135deg, #f8f9fa, #f1f3f4);
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
         border-bottom: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
 
     .table-header h5 {
@@ -182,19 +264,29 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        font-size: 1.1rem;
     }
 
     .table-header h5 i {
         color: var(--primary);
     }
 
+    .table-header span {
+        font-size: 0.9rem;
+        color: var(--gray);
+    }
+
     .table-responsive {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
     }
 
     .table {
         margin: 0;
-        min-width: 1200px;
+        width: 100%;
+        min-width: 900px;
+        table-layout: fixed;
     }
 
     .table thead th {
@@ -202,19 +294,36 @@
         border-bottom: 2px solid var(--border);
         font-weight: 600;
         color: var(--dark);
-        padding: 1rem 1.5rem;
+        padding: 1rem 1.25rem;
         white-space: nowrap;
+        font-size: 0.9rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
 
+    /* Điều chỉnh độ rộng cột sau khi bỏ cột Trạng thái */
+    .table thead th:nth-child(1) { width: 95px; } /* Mã ticket */
+    .table thead th:nth-child(2) { width: 250px; } /* Học sinh */
+    .table thead th:nth-child(3) { min-width: 80px; } /* Thông tin yêu cầu */
+    .table thead th:nth-child(4) { width: 150px; } /* Loại */
+    .table thead th:nth-child(5) { width: 150px; } /* Đề thi */
+    .table thead th:nth-child(6) { width: 150px; } /* Phản hồi */
+    .table thead th:nth-child(7) { width: 200px; } /* Ngày gửi */
+    .table thead th:nth-child(8) { width: 200px; } /* Hành động */
+
     .table tbody td {
-        padding: 1.25rem 1.5rem;
+        padding: 1rem 1.25rem;
         vertical-align: middle;
         border-bottom: 1px solid var(--border);
-        transition: background 0.3s ease;
+        transition: background 0.2s ease;
+        font-size: 0.9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .table tbody tr.unread {
-        background: rgba(136, 0, 0, 0.02);
+        background: rgba(136, 0, 0, 0.03);
         border-left: 3px solid var(--primary);
     }
 
@@ -229,18 +338,20 @@
     /* ===== TICKET STYLES ===== */
     .ticket-code {
         font-family: 'SF Mono', Monaco, 'Cascadia Mono', monospace;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--gray);
         background: #f8f9fa;
         padding: 4px 10px;
         border-radius: var(--radius-sm);
         font-weight: 500;
+        white-space: nowrap;
     }
 
     .student-info {
         display: flex;
         align-items: center;
         gap: 12px;
+        min-width: 180px;
     }
 
     .student-avatar {
@@ -249,34 +360,66 @@
         border-radius: 50%;
         overflow: hidden;
         border: 2px solid white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #4a6cf7, #6a11cb);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .student-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .student-details {
         flex: 1;
+        min-width: 0;
     }
 
     .student-name {
         font-weight: 600;
         color: var(--dark);
         margin-bottom: 2px;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .student-email {
         color: var(--gray);
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .ticket-subject {
         font-weight: 600;
         color: var(--dark);
-        margin-bottom: 4px;
+        margin-bottom: 6px;
         line-height: 1.4;
+        font-size: 0.95rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-height: 2.8em;
     }
 
     .ticket-time {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .ticket-quiz {
@@ -284,6 +427,11 @@
         text-decoration: none;
         font-weight: 500;
         transition: color 0.3s ease;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
     }
 
     .ticket-quiz:hover {
@@ -295,9 +443,11 @@
     .ticket-badge {
         padding: 6px 12px;
         border-radius: 20px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 500;
         display: inline-block;
+        white-space: nowrap;
+        text-align: center;
     }
 
     .badge-QUESTION { background: #e3f2fd; color: #1976d2; }
@@ -306,69 +456,42 @@
     .badge-FEEDBACK { background: #f3e5f5; color: #7b1fa2; }
     .badge-OTHER { background: #f5f5f5; color: #616161; }
 
-    /* ===== STATUS BADGES ===== */
-    .status-badge {
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border: 1px solid transparent;
-    }
-
-    .status-OPEN { 
-        background: rgba(25, 118, 210, 0.1); 
-        color: #1976d2;
-        border-color: rgba(25, 118, 210, 0.3);
-    }
-
-    .status-IN_PROGRESS { 
-        background: rgba(255, 152, 0, 0.1); 
-        color: #f57c00;
-        border-color: rgba(255, 152, 0, 0.3);
-    }
-
-    .status-RESOLVED { 
-        background: rgba(56, 142, 60, 0.1); 
-        color: #388e3c;
-        border-color: rgba(56, 142, 60, 0.3);
-    }
-
-    .status-CLOSED { 
-        background: rgba(158, 158, 158, 0.1); 
-        color: #616161;
-        border-color: rgba(158, 158, 158, 0.3);
-    }
-
     /* ===== REPLY STATUS ===== */
     .reply-status {
-        padding: 6px 12px;
-        border-radius: 20px;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
         font-size: 0.85rem;
         font-weight: 500;
-        display: inline-flex;
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        gap: 4px;
+        text-align: center;
+        min-height: 60px;
     }
 
     .reply-status.replied {
         background: rgba(56, 142, 60, 0.1);
         color: #388e3c;
-        border: 1px solid rgba(56, 142, 60, 0.3);
+        border: 1px solid rgba(56, 142, 60, 0.2);
     }
 
     .reply-status.pending {
         background: rgba(255, 152, 0, 0.1);
         color: #f57c00;
-        border: 1px solid rgba(255, 152, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+
+    .reply-status .status-icon {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
     }
 
     .reply-time {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: var(--gray);
-        margin-top: 4px;
+        white-space: nowrap;
     }
 
     /* ===== ACTION BUTTONS ===== */
@@ -376,34 +499,38 @@
         padding: 8px 16px;
         border-radius: var(--radius-md);
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         text-decoration: none;
         transition: all 0.3s ease;
+        white-space: nowrap;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-view {
         background: var(--primary);
         color: white;
-        border: none;
+        border: 1px solid var(--primary);
     }
 
     .btn-view:hover {
         background: #660000;
+        border-color: #660000;
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(136, 0, 0, 0.2);
         color: white;
     }
 
-    .btn-mark-read {
+    .btn-mark-resolved {
         background: #f8f9fa;
-        color: var(--gray);
+        color: var(--primary);
         border: 1px solid var(--border);
     }
 
-    .btn-mark-read:hover {
+    .btn-mark-resolved:hover {
         background: var(--primary);
         color: white;
         border-color: var(--primary);
@@ -412,12 +539,12 @@
     /* ===== EMPTY STATE ===== */
     .empty-state {
         text-align: center;
-        padding: 4rem 2rem;
+        padding: 3rem 1.5rem;
     }
 
     .empty-icon {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
         background: #f8f9fa;
         border-radius: 50%;
         display: flex;
@@ -425,11 +552,11 @@
         justify-content: center;
         margin: 0 auto 1.5rem;
         color: var(--gray);
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .empty-title {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
         color: var(--dark);
@@ -441,220 +568,236 @@
         max-width: 400px;
         margin-left: auto;
         margin-right: auto;
+        font-size: 0.95rem;
+        line-height: 1.6;
     }
 
-    /* ===== STATS INFO ===== */
-    .stats-info {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 2rem;
-        margin-top: 2rem;
+    /* ===== PAGINATION ===== */
+    .pagination-container {
+        background: #f8f9fa;
+        border-top: 1px solid var(--border);
+        padding: 1rem;
     }
 
-    .type-stats {
-        background: white;
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
-    }
-
-    .type-stats-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: var(--dark);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .type-stats-title i {
+    .page-link {
         color: var(--primary);
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
     }
 
-    .type-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .type-item:last-child {
-        border-bottom: none;
-    }
-
-    .type-name {
-        color: var(--gray);
-        font-weight: 500;
-    }
-
-    .type-count {
-        background: var(--primary);
+    .page-link:hover {
         color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
+        background-color: var(--primary);
+        border-color: var(--primary);
     }
 
-    .guide-card {
-        background: white;
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
-    }
-
-    .guide-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: var(--dark);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .guide-title i {
-        color: var(--primary);
-    }
-
-    .guide-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .guide-list li {
-        padding: 0.5rem 0 0.5rem 1.5rem;
-        position: relative;
-        color: var(--gray);
-    }
-
-    .guide-list li::before {
-        content: '✓';
-        position: absolute;
-        left: 0;
-        color: var(--primary);
-        font-weight: bold;
-    }
-
-    /* ===== QUICK ACTIONS ===== */
-    .quick-actions {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-    }
-
-    .action-card {
-        flex: 1;
-        min-width: 200px;
-        background: white;
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
-        transition: all 0.3s ease;
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .action-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-lg);
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .action-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        font-size: 1.5rem;
+    .page-item.active .page-link {
+        background-color: var(--primary);
+        border-color: var(--primary);
         color: white;
     }
 
-    .action-card:nth-child(1) .action-icon { background: var(--primary); }
-    .action-card:nth-child(2) .action-icon { background: var(--secondary); }
-    .action-card:nth-child(3) .action-icon { background: var(--accent); }
+    .page-item.disabled .page-link {
+        color: var(--gray);
+        background-color: #f8f9fa;
+        border-color: var(--border);
+    }
 
-    /* ===== RESPONSIVE ===== */
+    /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 1200px) {
-        .table {
-            min-width: 1000px;
+        .container-fluid {
+            padding-left: 15px;
+            padding-right: 15px;
         }
         
-        .stats-info {
-            grid-template-columns: 1fr;
+        .table {
+            min-width: 800px;
         }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         .hero-section {
-            padding: 2rem 1.5rem;
+            padding: 1.5rem;
         }
         
         .hero-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
         }
         
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
         }
         
-        .filter-section .row {
-            gap: 1rem;
-        }
-        
-        .action-btn {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-        }
-        
-        .status-badge, .reply-status {
-            font-size: 0.8rem;
-            padding: 4px 10px;
-        }
-        
         .quick-actions {
-            flex-direction: column;
+            grid-template-columns: 1fr;
         }
         
-        .action-card {
-            min-width: 100%;
+        .table-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
         }
     }
 
-    @media (max-width: 576px) {
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        
+        .hero-section {
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
         .hero-title {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 0.9rem;
         }
         
         .stats-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .stat-card {
+            padding: 1rem 1.25rem;
+            min-height: 100px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .filter-section {
+            padding: 1.25rem;
+        }
+        
+        .filter-section .row {
+            gap: 1rem;
+        }
+        
+        .filter-section .col-md-3,
+        .filter-section .col-md-4,
+        .filter-section .col-md-2 {
+            width: 100%;
+            margin-bottom: 0.5rem;
         }
         
         .table tbody td {
-            padding: 1rem;
+            padding: 0.75rem 1rem;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        
+        .reply-status {
+            padding: 6px 8px;
+            font-size: 0.75rem;
+            min-height: 50px;
+        }
+        
+        .ticket-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-section {
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 1.2rem;
+        }
+        
+        .unread-badge {
+            margin-top: 1rem;
+            width: 100%;
+            justify-content: center;
         }
         
         .student-info {
             flex-direction: column;
             align-items: flex-start;
-            gap: 5px;
+            gap: 8px;
         }
         
         .student-avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
+            font-size: 0.9rem;
         }
+        
+        .table tbody td {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .empty-state {
+            padding: 2rem 1rem;
+        }
+        
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .empty-title {
+            font-size: 1.1rem;
+        }
+        
+        /* Compact view for mobile */
+        .table thead th:nth-child(4), /* Loại */
+        .table thead th:nth-child(6) { /* Ngày gửi */
+            width: 80px;
+        }
+        
+        .table thead th:nth-child(5) { /* Đề thi */
+            width: 100px;
+        }
+        
+        .student-name,
+        .student-email {
+            max-width: 120px;
+        }
+        
+        .ticket-subject {
+            -webkit-line-clamp: 1;
+            max-height: 1.4em;
+        }
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    /* Spinner */
+    .spinner-border {
+        vertical-align: middle;
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
     }
 </style>
 {% endblock %}
@@ -662,10 +805,10 @@
 {% block content %}
 <div class="container-fluid py-4">
     <!-- HERO SECTION -->
-    <div class="hero-section">
-        <div class="d-flex justify-content-between align-items-start">
+    <div class="hero-section animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="d-flex justify-content-between align-items-start flex-wrap">
             <div>
-                <h1 class="hero-title">Hộp thư hỗ trợ</h1>
+                <h1 class="hero-title">Hộp thư hỗ trợ - Giáo viên</h1>
                 <p class="hero-subtitle">Quản lý các yêu cầu hỗ trợ từ học sinh và cung cấp phản hồi kịp thời</p>
             </div>
             {% if unread_tickets > 0 %}
@@ -673,42 +816,39 @@
                 <i class="bi bi-envelope-fill"></i> {{ unread_tickets }} yêu cầu chưa đọc
             </span>
             {% endif %}
-            <a href="{% url 'quiz:contact_admin' %}" class="btn btn-danger shadow-sm fw-bold" style="background-color: #880000; border: none;">
-            <i class="bi bi-shield-exclamation me-2"></i>Liên hệ Admin
-        </a>
         </div>
     </div>
 
     <!-- QUICK ACTIONS -->
     <div class="quick-actions">
-        <a href="{% url 'quiz:support_dashboard' %}" class="action-card">
+        <a href="{% url 'quiz:support_dashboard' %}" class="action-card animate-fade-in-up" style="animation-delay: 0.2s;">
             <div class="action-icon">
                 <i class="bi bi-house"></i>
             </div>
-            <h6 class="fw-bold mb-2">Trang chủ hỗ trợ</h6>
-            <p class="text-muted small mb-0">Quay lại trang hỗ trợ chính</p>
+            <h6>Trang chủ hỗ trợ</h6>
+            <p>Quay lại trang hỗ trợ chính</p>
         </a>
         
-        <a href="{% url 'quiz:my_support_tickets' %}" class="action-card">
+        <a href="{% url 'quiz:my_support_tickets' %}" class="action-card animate-fade-in-up" style="animation-delay: 0.3s;">
             <div class="action-icon">
                 <i class="bi bi-ticket-detailed"></i>
             </div>
-            <h6 class="fw-bold mb-2">Ticket của tôi</h6>
-            <p class="text-muted small mb-0">Xem ticket bạn đã gửi</p>
+            <h6>Ticket của tôi</h6>
+            <p>Xem ticket bạn đã gửi</p>
         </a>
         
-        <a href="#" class="action-card">
+        <a href="{% url 'quiz:contact_admin' %}" class="action-card animate-fade-in-up" style="animation-delay: 0.4s;">
             <div class="action-icon">
-                <i class="bi bi-bar-chart"></i>
+                <i class="bi bi-shield-exclamation"></i>
             </div>
-            <h6 class="fw-bold mb-2">Thống kê</h6>
-            <p class="text-muted small mb-0">Xem báo cáo hiệu suất</p>
+            <h6>Liên hệ Admin</h6>
+            <p>Cần hỗ trợ từ quản trị viên</p>
         </a>
     </div>
 
     <!-- STATS CARDS -->
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.5s;">
             <div class="stat-icon">
                 <i class="bi bi-inbox"></i>
             </div>
@@ -716,43 +856,43 @@
             <p class="stat-label">Tổng số yêu cầu</p>
         </div>
         
-        <div class="stat-card">
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.6s;">
             <div class="stat-icon">
-                <i class="bi bi-clock"></i>
+                <i class="bi bi-envelope-open"></i>
             </div>
             <h3 class="stat-value">{{ open_tickets }}</h3>
             <p class="stat-label">Đang chờ xử lý</p>
         </div>
         
-        <div class="stat-card">
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.7s;">
             <div class="stat-icon">
-                <i class="bi bi-gear"></i>
+                <i class="bi bi-clock-history"></i>
             </div>
-            <h3 class="stat-value">{{ in_progress_tickets|default:0 }}</h3>
+            <h3 class="stat-value">{{ in_progress_tickets }}</h3>
             <p class="stat-label">Đang xử lý</p>
         </div>
         
-        <div class="stat-card">
+        <div class="stat-card animate-fade-in-up" style="animation-delay: 0.8s;">
             <div class="stat-icon">
                 <i class="bi bi-check-circle"></i>
             </div>
-            <h3 class="stat-value">{{ resolved_tickets|default:0 }}</h3>
+            <h3 class="stat-value">{{ resolved_tickets }}</h3>
             <p class="stat-label">Đã giải quyết</p>
         </div>
     </div>
 
     <!-- FILTERS SECTION -->
-    <div class="filter-section">
+    <div class="filter-section animate-fade-in-up" style="animation-delay: 0.9s;">
         <h5 class="filter-title">
             <i class="bi bi-funnel"></i> Lọc yêu cầu hỗ trợ
         </h5>
         
-        <form method="get" class="row g-3">
+        <form method="get" class="row g-3" id="filterForm">
             <div class="col-md-3">
                 <label class="form-label fw-medium">Trạng thái</label>
                 <select name="status" class="form-select">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Mở</option>
+                    <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Đang chờ xử lý</option>
                     <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>Đang xử lý</option>
                     <option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Đã giải quyết</option>
                     <option value="CLOSED" {% if request.GET.status == 'CLOSED' %}selected{% endif %}>Đã đóng</option>
@@ -778,138 +918,148 @@
                         <i class="bi bi-search text-muted"></i>
                     </span>
                     <input type="text" name="search" class="form-control border-start-0" 
-                           placeholder="Tìm theo học sinh hoặc tiêu đề..."
+                           placeholder="Tìm theo học sinh, tiêu đề..."
                            value="{{ request.GET.search|default:'' }}">
                 </div>
             </div>
             
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100" style="height: 46px;">
+                <button type="submit" class="btn btn-primary w-100" style="height: 46px;" id="filterBtn">
                     <i class="bi bi-funnel me-2"></i> Lọc
                 </button>
             </div>
+            
+            {% if request.GET.status or request.GET.ticket_type or request.GET.search %}
+            <div class="col-12 mt-2 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearFilters()">
+                    <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+                </button>
+                <small class="text-muted ms-2">Đang áp dụng bộ lọc</small>
+            </div>
+            {% endif %}
         </form>
     </div>
 
     <!-- TICKETS TABLE -->
-    <div class="table-container">
+    <div class="table-container animate-fade-in-up" style="animation-delay: 1s;">
         <div class="table-header">
             <h5><i class="bi bi-ticket-detailed"></i> Danh sách yêu cầu từ học sinh</h5>
-            <div class="d-flex gap-2">
-                <a href="{% url 'quiz:support_dashboard' %}" class="action-btn btn-view">
-                    <i class="bi bi-arrow-left me-2"></i> Quay lại
-                </a>
-                <button type="button" class="action-btn btn-mark-read" onclick="markAllAsRead()">
-                    <i class="bi bi-check-all me-2"></i> Đánh dấu tất cả đã đọc
-                </button>
-            </div>
+            <span class="text-muted small">Tổng cộng: {{ page_obj.paginator.count }} yêu cầu</span>
         </div>
         
-        {% if tickets %}
+        {% if page_obj %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Mã ticket</th>
-                        <th style="min-width: 200px;">Học sinh</th>
-                        <th style="min-width: 250px;">Thông tin yêu cầu</th>
-                        <th style="width: 120px;">Loại</th>
-                        <th style="width: 150px;">Đề thi</th>
-                        <th style="width: 120px;">Trạng thái</th>
-                        <th style="width: 120px;">Phản hồi</th>
-                        <th style="width: 100px;">Ngày gửi</th>
-                        <th style="width: 100px;" class="text-end">Hành động</th>
+                        <th>Mã ticket</th>
+                        <th>Học sinh</th>
+                        <th>Thông tin yêu cầu</th>
+                        <th>Loại</th>
+                        <th>Đề thi</th>
+                        <th>Phản hồi</th>
+                        <th>Ngày gửi</th>
+                        <th class="text-end">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for ticket in tickets %}
+                    {% for ticket in page_obj %}
                     <tr class="{% if not ticket.is_read %}unread{% endif %}" id="ticket-{{ ticket.id }}">
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 {% if not ticket.is_read %}
                                 <span class="badge rounded-circle bg-primary p-1" 
                                       title="Chưa đọc"
-                                      style="width: 10px; height: 10px;"></span>
+                                      style="width: 8px; height: 8px;"></span>
                                 {% endif %}
-                                <span class="ticket-code">#{{ ticket.id|stringformat:"06d" }}</span>
+                                <span class="ticket-code" title="Ticket #{{ ticket.id }}">
+                                    #{{ ticket.id|stringformat:"06d" }}
+                                </span>
                             </div>
                         </td>
                         <td>
                             <div class="student-info">
-                                <img src="https://ui-avatars.com/api/?name={{ ticket.user.username }}&background=4a6cf7&color=fff&size=128" 
+                                {% if ticket.user.avatar %}
+                                <img src="{{ ticket.user.avatar.url }}" 
                                      class="student-avatar" 
                                      alt="{{ ticket.user.username }}">
+                                {% else %}
+                                <div class="student-avatar" title="{{ ticket.user.get_full_name|default:ticket.user.username }}">
+                                    {{ ticket.user.get_full_name|default:ticket.user.username|first|upper }}
+                                </div>
+                                {% endif %}
                                 <div class="student-details">
-                                    <div class="student-name">{{ ticket.user.get_full_name|default:ticket.user.username }}</div>
-                                    <div class="student-email">{{ ticket.user.email|truncatechars:20 }}</div>
+                                    <div class="student-name" title="{{ ticket.user.get_full_name|default:ticket.user.username }}">
+                                        {{ ticket.user.get_full_name|default:ticket.user.username|truncatechars:18 }}
+                                    </div>
+                                    <div class="student-email" title="{{ ticket.user.email|default:'Không có email' }}">
+                                        <small>{{ ticket.user.email|default:"Không có email"|truncatechars:20 }}</small>
+                                    </div>
                                 </div>
                             </div>
                         </td>
                         <td>
                             <div>
-                                <div class="ticket-subject">{{ ticket.subject|truncatechars:40 }}</div>
+                                <div class="ticket-subject" title="{{ ticket.subject }}">
+                                    {{ ticket.subject|truncatechars:40 }}
+                                </div>
                                 <div class="ticket-time">
-                                    <i class="bi bi-clock text-muted" style="font-size: 0.8rem;"></i>
-                                    <small class="text-muted ms-1">{{ ticket.created_at|timesince }} trước</small>
+                                    <i class="bi bi-clock text-muted" style="font-size: 0.75rem;"></i>
+                                    <small>{{ ticket.created_at|timesince }} trước</small>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="ticket-badge badge-{{ ticket.ticket_type }}">
-                                {{ ticket.get_ticket_type_display }}
+                            <span class="ticket-badge badge-{{ ticket.ticket_type }}" title="{{ ticket.get_ticket_type_display }}">
+                                {{ ticket.get_ticket_type_display|truncatechars:12 }}
                             </span>
                         </td>
                         <td>
                             {% if ticket.quiz %}
                             <a href="{% url 'quiz:quiz_results' ticket.quiz.id %}" 
-                               class="ticket-quiz">
+                               class="ticket-quiz text-decoration-none" title="{{ ticket.quiz.title }}">
                                 {{ ticket.quiz.title|truncatechars:20 }}
                             </a>
                             {% else %}
-                            <span class="text-muted fst-italic">-</span>
+                            <span class="text-muted fst-italic small">-</span>
                             {% endif %}
                         </td>
                         <td>
-                            <span class="status-badge status-{{ ticket.status }}">
-                                <i class="bi {% if ticket.status == 'OPEN' %}bi-circle
-                                          {% elif ticket.status == 'IN_PROGRESS' %}bi-clock
-                                          {% elif ticket.status == 'RESOLVED' %}bi-check-circle
-                                          {% elif ticket.status == 'CLOSED' %}bi-x-circle{% endif %}">
-                                </i>
-                                {{ ticket.get_status_display }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if ticket.replied_by %}
-                            <div class="reply-status replied">
-                                <i class="bi bi-check-circle"></i>
-                                Đã reply
+                            {% if ticket.admin_response %}
+                            <div class="reply-status replied" title="Đã phản hồi vào {{ ticket.replied_at|date:'d/m/Y H:i' }}">
+                                <div class="status-icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div>Đã reply</div>
                                 {% if ticket.replied_at %}
                                 <div class="reply-time">
-                                    {{ ticket.replied_at|timesince }} trước
+                                    {{ ticket.replied_at|date:"d/m/Y" }}
                                 </div>
                                 {% endif %}
                             </div>
                             {% else %}
-                            <div class="reply-status pending">
-                                <i class="bi bi-clock"></i>
-                                Chờ reply
+                            <div class="reply-status pending" title="Đang chờ phản hồi">
+                                <div class="status-icon">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <div>Chờ reply</div>
                             </div>
                             {% endif %}
                         </td>
-                        <td class="text-muted">
+                        <td class="text-muted small" title="{{ ticket.created_at|date:'d/m/Y H:i' }}">
                             {{ ticket.created_at|date:"d/m/Y" }}
                         </td>
                         <td class="text-end">
-                            <div class="d-flex gap-2 justify-content-end">
+                            <div class="d-flex gap-1 justify-content-end">
                                 <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" 
                                    class="action-btn btn-view" title="Xem chi tiết">
-                                    <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye me-1"></i>
+                                    <span>Xem</span>
                                 </a>
-                                {% if not ticket.is_read %}
-                                <button type="button" class="action-btn btn-mark-read" 
-                                        onclick="markAsRead({{ ticket.id }})" title="Đánh dấu đã đọc">
-                                    <i class="bi bi-check"></i>
+                                {% if ticket.admin_response and ticket.status != 'RESOLVED' and ticket.status != 'CLOSED' %}
+                                <button type="button" class="action-btn btn-mark-resolved" 
+                                        onclick="markAsResolved({{ ticket.id }})" title="Đánh dấu đã giải quyết">
+                                    <i class="bi bi-check2-circle"></i>
                                 </button>
                                 {% endif %}
                             </div>
@@ -927,12 +1077,12 @@
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.ticket_type %}&ticket_type={{ request.GET.ticket_type }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                             <i class="bi bi-chevron-double-left"></i>
                         </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.ticket_type %}&ticket_type={{ request.GET.ticket_type }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
@@ -945,24 +1095,27 @@
                         </li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.ticket_type %}&ticket_type={{ request.GET.ticket_type }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
                         </li>
                         {% endif %}
                     {% endfor %}
                     
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.ticket_type %}&ticket_type={{ request.GET.ticket_type }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.ticket_type %}&ticket_type={{ request.GET.ticket_type }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
                             <i class="bi bi-chevron-double-right"></i>
                         </a>
                     </li>
                     {% endif %}
                 </ul>
+                <div class="text-center mt-2 text-muted small">
+                    Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                </div>
             </nav>
         </div>
         {% endif %}
@@ -983,145 +1136,10 @@
         </div>
         {% endif %}
     </div>
-
-    <!-- ADDITIONAL STATS & GUIDES -->
-    {% if ticket_type_stats %}
-    <div class="stats-info">
-        <div class="type-stats">
-            <h5 class="type-stats-title">
-                <i class="bi bi-bar-chart"></i> Phân loại yêu cầu
-            </h5>
-            
-            {% for type_name, count in ticket_type_stats.items %}
-            <div class="type-item">
-                <span class="type-name">{{ type_name }}</span>
-                <span class="type-count">{{ count }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <div class="guide-card">
-            <h5 class="guide-title">
-                <i class="bi bi-lightbulb"></i> Hướng dẫn nhanh
-            </h5>
-            
-            <ul class="guide-list">
-                <li>Phản hồi trong vòng 24 giờ</li>
-                <li>Đánh dấu "Đang xử lý" khi bắt đầu</li>
-                <li>Cung cấp giải pháp rõ ràng, cụ thể</li>
-                <li>Đóng ticket khi vấn đề đã giải quyết</li>
-                <li>Luôn lịch sự và tôn trọng học sinh</li>
-                <li>Cập nhật trạng thái thường xuyên</li>
-            </ul>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate stats cards on load
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            card.style.transition = 'all 0.5s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-    
-    // View button animation
-    const viewBtns = document.querySelectorAll('.btn-view');
-    viewBtns.forEach(btn => {
-        btn.addEventListener('mouseenter', function() {
-            this.querySelector('i').style.transform = 'scale(1.2)';
-            this.querySelector('i').style.transition = 'transform 0.3s ease';
-        });
-        
-        btn.addEventListener('mouseleave', function() {
-            this.querySelector('i').style.transform = 'scale(1)';
-        });
-    });
-    
-    // Ticket row click
-    const ticketRows = document.querySelectorAll('tbody tr');
-    ticketRows.forEach(row => {
-        row.style.cursor = 'pointer';
-        row.addEventListener('click', function(e) {
-            if (!e.target.closest('a') && !e.target.closest('button')) {
-                const link = this.querySelector('a.btn-view');
-                if (link) link.click();
-            }
-        });
-    });
-});
-
-function markAsRead(ticketId) {
-    fetch(`/quiz/support/ticket/${ticketId}/mark-read/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({})
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            const ticketRow = document.getElementById(`ticket-${ticketId}`);
-            if (ticketRow) {
-                ticketRow.classList.remove('unread');
-                const unreadDot = ticketRow.querySelector('.badge.bg-primary');
-                if (unreadDot) {
-                    unreadDot.remove();
-                }
-            }
-            // Update unread count badge
-            updateUnreadCount();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-function markAllAsRead() {
-    if (confirm('Bạn có chắc muốn đánh dấu tất cả ticket là đã đọc?')) {
-        fetch('/quiz/support/mark-all-read/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Remove unread styling from all tickets
-                document.querySelectorAll('.unread').forEach(row => {
-                    row.classList.remove('unread');
-                    const unreadDot = row.querySelector('.badge.bg-primary');
-                    if (unreadDot) unreadDot.remove();
-                });
-                updateUnreadCount();
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-}
-
-function updateUnreadCount() {
-    // You can implement this to update the unread badge count
-    // For now, just remove the badge if no unread tickets
-    const unreadCount = document.querySelectorAll('.unread').length;
-    const unreadBadge = document.querySelector('.unread-badge');
-    if (unreadCount === 0 && unreadBadge) {
-        unreadBadge.style.display = 'none';
-    }
-}
-
+// Helper function to get CSRF token
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -1136,5 +1154,180 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Clear all filters
+function clearFilters() {
+    window.location.href = window.location.pathname;
+}
+
+// Mark ticket as resolved
+function markAsResolved(ticketId) {
+    if (confirm('Bạn có chắc muốn đánh dấu ticket này là "Đã giải quyết"? Sau khi đánh dấu, học sinh sẽ không thể gửi thêm tin nhắn.')) {
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch(`/quiz/support/ticket/${ticketId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'status=RESOLVED'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update reply status to show resolved
+                const replyStatus = document.querySelector(`#ticket-${ticketId} .reply-status`);
+                if (replyStatus) {
+                    replyStatus.className = 'reply-status replied';
+                    replyStatus.innerHTML = `
+                        <div class="status-icon">
+                            <i class="bi bi-check2-circle"></i>
+                        </div>
+                        <div>Đã giải quyết</div>
+                        <div class="reply-time">Vừa xong</div>
+                    `;
+                    replyStatus.title = 'Đã giải quyết';
+                }
+                
+                // Remove mark as resolved button
+                const markBtn = document.querySelector(`#ticket-${ticketId} .btn-mark-resolved`);
+                if (markBtn) {
+                    markBtn.remove();
+                }
+                
+                // Show success message
+                showToast('success', 'Đã đánh dấu ticket là "Đã giải quyết"');
+                
+                // Update stats (optional - reload page for accurate stats)
+                setTimeout(() => {
+                    updateStats();
+                }, 1000);
+            } else {
+                showToast('error', data.message || 'Có lỗi xảy ra');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('error', 'Lỗi kết nối mạng');
+        });
+    }
+}
+
+// Update stats (simple version - just reload page)
+function updateStats() {
+    // Reload page after 1 second to get updated stats
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// Show toast notification
+function showToast(type, message) {
+    // Create toast container if not exists
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.style.minWidth = '300px';
+    toast.style.marginBottom = '10px';
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Initialize and show toast
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    
+    // Remove toast after hiding
+    toast.addEventListener('hidden.bs.toast', function () {
+        toast.remove();
+    });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission with loading
+    const filterForm = document.getElementById('filterForm');
+    const filterBtn = document.getElementById('filterBtn');
+    
+    if (filterForm && filterBtn) {
+        filterForm.addEventListener('submit', function(e) {
+            const originalHtml = filterBtn.innerHTML;
+            filterBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang lọc...';
+            filterBtn.disabled = true;
+            
+            // Restore button after 3 seconds (in case of error)
+            setTimeout(() => {
+                filterBtn.innerHTML = originalHtml;
+                filterBtn.disabled = false;
+            }, 3000);
+        });
+    }
+    
+    // Ticket row click to view details
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function(e) {
+            // Don't trigger if clicking on buttons or links
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                const viewLink = this.querySelector('a.btn-view');
+                if (viewLink) {
+                    window.location.href = viewLink.href;
+                }
+            }
+        });
+        
+        // Add hover effect
+        row.addEventListener('mouseenter', function() {
+            if (!this.style.backgroundColor) {
+                this.style.backgroundColor = 'rgba(136, 0, 0, 0.02)';
+            }
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('unread')) {
+                this.style.backgroundColor = '';
+            }
+        });
+    });
+    
+    // Auto-refresh every 2 minutes if there are unread tickets
+    {% if unread_tickets > 0 %}
+    setTimeout(() => {
+        if (confirm('Có ticket mới chưa đọc. Bạn có muốn tải lại trang?')) {
+            window.location.reload();
+        }
+    }, 120000); // 2 minutes
+    {% endif %}
+    
+    // Trigger animations
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fade-in-up').forEach((el, index) => {
+            el.style.animationDelay = (0.1 + index * 0.1) + 's';
+        });
+    }, 100);
+});
 </script>
 {% endblock %}

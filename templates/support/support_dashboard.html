@@ -1,231 +1,819 @@
-<!-- support/support_dashboard.html -->
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Hệ thống hỗ trợ{% endblock %}
+{% block title %}Hệ thống hỗ trợ - Examify{% endblock %}
 
-{% block extra_head %}
+{% block extra_css %}
 <style>
-    .support-card {
-        border: 1px solid #eef2f6;
-        border-radius: 12px;
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --primary-soft: #fff0f0;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+    }
+
+    /* ===== HEADER SECTION ===== */
+    .header-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .header-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .header-subtitle {
+        font-size: 1.1rem;
+        color: var(--gray);
+        line-height: 1.6;
+    }
+
+    .header-action {
+        padding: 10px 20px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
         transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
-    .support-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+
+    .header-action:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.1);
     }
-    .ticket-status {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
+
+    /* ===== TEACHERS GRID ===== */
+    .teachers-section {
+        margin-bottom: 2rem;
     }
-    .status-open { background-color: #e3f2fd; color: #1976d2; }
-    .status-in-progress { background-color: #fff3e0; color: #f57c00; }
-    .status-resolved { background-color: #e8f5e9; color: #388e3c; }
-    .status-closed { background-color: #f5f5f5; color: #616161; }
-    .feature-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--dark);
+        position: relative;
+        padding-left: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 20px;
+        background: var(--primary);
+        border-radius: 2px;
+    }
+
+    .teachers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .teacher-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .teacher-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .teacher-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .teacher-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .teacher-avatar i {
+        font-size: 2.5rem;
+        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 15px;
+        width: 100%;
+        height: 100%;
+    }
+
+    .teacher-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .teacher-email {
+        font-size: 0.9rem;
+        color: var(--gray);
+        margin-bottom: 1rem;
+    }
+
+    .contact-btn {
+        padding: 8px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .contact-btn:hover {
+        background: #660000;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(136, 0, 0, 0.2);
+    }
+
+    /* ===== ACTION CARDS ===== */
+    .action-cards {
+        margin-bottom: 2rem;
+    }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .action-card:nth-child(1) { border-top: 4px solid var(--primary); }
+    .action-card:nth-child(2) { border-top: 4px solid var(--secondary); }
+
+    .action-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+    }
+
+    .action-card:nth-child(1) .action-icon {
+        background: var(--primary-soft);
+        color: var(--primary);
+    }
+
+    .action-card:nth-child(2) .action-icon {
+        background: rgba(74, 108, 247, 0.1);
+        color: var(--secondary);
+    }
+
+    .action-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+    }
+
+    .action-desc {
+        color: var(--gray);
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    /* ===== TICKETS TABLE ===== */
+    .tickets-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .section-header {
+        padding: 1.5rem 2rem;
+        background: #f8f9fa;
+        border-bottom: 2px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .view-all-btn {
+        padding: 8px 20px;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+
+    .view-all-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .tickets-table {
+        padding: 0;
+    }
+
+    .table-container {
+        padding: 0 2rem;
+    }
+
+    .table-responsive {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead {
+        background: #f8fafc;
+    }
+
+    .table th {
+        font-weight: 600;
+        color: var(--gray);
+        padding: 1rem 1.5rem;
+        border-bottom: 2px solid var(--border);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Status badges */
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-open {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .status-in-progress {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-resolved {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-closed {
+        background: rgba(107, 114, 128, 0.1);
+        color: #6b7280;
+        border: 1px solid rgba(107, 114, 128, 0.2);
+    }
+
+    .type-badge {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 12px;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
+        font-size: 0.85rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .view-btn {
+        padding: 6px 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+    }
+
+    .view-btn:hover {
+        background: #660000;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(136, 0, 0, 0.2);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        color: var(--gray);
+        font-size: 2rem;
+    }
+
+    .empty-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-text {
+        color: var(--gray);
+        font-size: 0.95rem;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    /* ===== MESSAGES ===== */
+    .messages-container {
+        margin-bottom: 2rem;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .teachers-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+    }
+
+    @media (max-width: 992px) {
+        .header-section {
+            padding: 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 1.8rem;
+        }
+        
+        .action-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .teachers-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.25rem;
+        }
+        
+        .table-container {
+            padding: 0 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .header-title {
+            font-size: 1.6rem;
+        }
+        
+        .teacher-card {
+            padding: 1.25rem;
+        }
+        
+        .table {
+            display: block;
+        }
+        
+        .table thead {
+            display: none;
+        }
+        
+        .table tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+        
+        .table td {
+            display: block;
+            text-align: right;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .table td:before {
+            content: attr(data-label);
+            float: left;
+            font-weight: 600;
+            color: var(--dark);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        
+        .table td:last-child {
+            border-bottom: none;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .header-section {
+            padding: 1.25rem;
+        }
+        
+        .action-card {
+            padding: 1.5rem;
+        }
+        
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .teacher-avatar {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .teacher-avatar i {
+            font-size: 1.8rem;
+        }
+        
+        .empty-state {
+            padding: 3rem 1rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Hệ thống hỗ trợ</h2>
-            <p class="text-muted mb-0">Liên hệ giáo viên, quản trị viên và quản lý yêu cầu hỗ trợ</p>
+    <!-- HEADER SECTION -->
+    <div class="header-section">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="header-title">Hệ thống hỗ trợ</h1>
+                <p class="header-subtitle">Liên hệ giáo viên, quản trị viên và quản lý yêu cầu hỗ trợ</p>
+            </div>
+            {% if user.role == 'TEACHER' %}
+            <a href="{% url 'quiz:teacher_support_inbox' %}" class="header-action">
+                <i class="bi bi-inbox"></i> Hộp thư đến
+            </a>
+            {% elif user.role == 'ADMIN' %}
+            <a href="{% url 'quiz:admin_support_dashboard' %}" class="header-action">
+                <i class="bi bi-speedometer2"></i> Quản lý hỗ trợ
+            </a>
+            {% endif %}
         </div>
-        {% if user.role == 'TEACHER' %}
-        <a href="{% url 'quiz:teacher_support_inbox' %}" class="btn btn-outline-primary">
-            <i class="bi bi-inbox me-1"></i> Hộp thư đến
-        </a>
-        {% elif user.role == 'ADMIN' %}
-        <a href="{% url 'quiz:admin_support_dashboard' %}" class="btn btn-outline-primary">
-            <i class="bi bi-speedometer2 me-1"></i> Quản lý hỗ trợ
-        </a>
-        {% endif %}
     </div>
 
-    <!-- Thông báo -->
+    <!-- MESSAGES -->
     {% if messages %}
-    <div class="row mb-4">
-        <div class="col-12">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi 
+                    {% if message.tags == 'success' %}bi-check-circle-fill text-success
+                    {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
+                    {% elif message.tags == 'error' %}bi-x-circle-fill text-danger
+                    {% else %}bi-info-circle-fill text-info{% endif %} 
+                    me-2"></i>
+                <div class="fw-medium">{{ message }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- HỌC SINH VIEW -->
+    {% if user.role == 'STUDENT' %}
+    
+    <!-- TEACHERS SECTION -->
+    {% if teachers %}
+    <div class="teachers-section">
+        <h3 class="section-title">Giáo viên có thể liên hệ</h3>
+        <div class="teachers-grid">
+            {% for teacher in teachers %}
+            <div class="teacher-card">
+                <div class="d-flex align-items-center">
+                    <div class="teacher-avatar me-3">
+                        {% if teacher.avatar %}
+                        <img src="{{ teacher.avatar.url }}" alt="{{ teacher.username }}">
+                        {% else %}
+                        <i class="bi bi-person-fill"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h4 class="teacher-name">{{ teacher.get_full_name|default:teacher.username }}</h4>
+                        <p class="teacher-email">{{ teacher.email }}</p>
+                        <a href="{% url 'quiz:contact_teacher_with_id' teacher_id=teacher.id %}" class="contact-btn">
+                            <i class="bi bi-chat-left-text"></i> Liên hệ
+                        </a>
+                    </div>
+                </div>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
 
-    <!-- Học sinh view -->
-    {% if user.role == 'STUDENT' %}
-    <div class="row mb-4">
-        <!-- Danh sách giáo viên -->
-        {% if teachers %}
-        <div class="col-lg-8">
-            <div class="card support-card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0">
-                    <h5 class="fw-bold mb-0">
-                        <i class="bi bi-person-video2 me-2"></i> Giáo viên có thể liên hệ
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        {% for teacher in teachers %}
-                        <div class="col-md-6">
-                            <div class="card border h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-start">
-                                        <div class="me-3">
-                                            {% if teacher.avatar %}
-                                            <img src="{{ teacher.avatar.url }}" class="rounded-circle" width="50" height="50" alt="{{ teacher.username }}">
-                                            {% else %}
-                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                                <i class="bi bi-person-fill text-muted"></i>
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-1">{{ teacher.get_full_name|default:teacher.username }}</h6>
-                                            <p class="text-muted small mb-2">{{ teacher.email }}</p>
-                                            <a href="{% url 'quiz:contact_teacher_with_id' teacher_id=teacher.id %}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-chat-left-text me-1"></i> Liên hệ
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Actions sidebar -->
-        <div class="col-lg-4">
+    <!-- ACTION CARDS -->
+    <div class="action-cards">
+        <div class="action-grid">
             <!-- Liên hệ giáo viên -->
-            <div class="card support-card border-0 shadow-sm mb-4">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto mb-3" style="background-color: rgba(136, 0, 0, 0.1); color: var(--primary-color);">
-                        <i class="bi bi-chat-left-text"></i>
-                    </div>
-                    <h6 class="fw-bold mb-2">Liên hệ giáo viên</h6>
-                    <p class="text-muted small mb-3">Gửi câu hỏi về bài học, đề thi</p>
-                    <a href="{% url 'quiz:contact_teacher' %}" class="btn btn-primary w-100">
-                        <i class="bi bi-send me-2"></i> Liên hệ ngay
-                    </a>
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="bi bi-chat-left-text"></i>
                 </div>
+                <h3 class="action-title">Liên hệ giáo viên</h3>
+                <p class="action-desc">Gửi câu hỏi về bài học, đề thi và nhận hỗ trợ từ giáo viên phụ trách</p>
+                <a href="{% url 'quiz:contact_teacher' %}" class="contact-btn">
+                    <i class="bi bi-send me-2"></i> Liên hệ ngay
+                </a>
             </div>
 
             <!-- Liên hệ admin -->
-            <div class="card support-card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="feature-icon mx-auto mb-3" style="background-color: rgba(23, 162, 184, 0.1); color: #17a2b8;">
-                        <i class="bi bi-headset"></i>
-                    </div>
-                    <h6 class="fw-bold mb-2">Liên hệ quản trị viên</h6>
-                    <p class="text-muted small mb-3">Vấn đề kỹ thuật, tài khoản</p>
-                    <a href="{% url 'quiz:contact_admin' %}" class="btn btn-info w-100">
-                        <i class="bi bi-shield-check me-2"></i> Liên hệ Admin
-                    </a>
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="bi bi-headset"></i>
                 </div>
+                <h3 class="action-title">Liên hệ quản trị viên</h3>
+                <p class="action-desc">Hỗ trợ các vấn đề kỹ thuật, tài khoản và hệ thống</p>
+                <a href="{% url 'quiz:contact_admin' %}" class="contact-btn" style="background: var(--secondary);">
+                    <i class="bi bi-shield-check me-2"></i> Liên hệ Admin
+                </a>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- Yêu cầu đã gửi -->
-    <div class="card support-card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0">
-                <i class="bi bi-clock-history me-2"></i> Yêu cầu hỗ trợ đã gửi
-            </h5>
-            <a href="{% url 'quiz:my_support_tickets' %}" class="btn btn-sm btn-outline-secondary">
-                Xem tất cả
+    <!-- TICKETS SECTION -->
+    <div class="tickets-section">
+        <div class="section-header">
+            <h3 class="section-title" style="padding-left: 0; margin-bottom: 0;">
+                Yêu cầu hỗ trợ đã gửi
+            </h3>
+            <a href="{% url 'quiz:my_support_tickets' %}" class="view-all-btn">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
             </a>
         </div>
-        <div class="card-body">
+        
+        <div class="tickets-table">
             {% if sent_tickets %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Mã ticket</th>
-                            <th>Tiêu đề</th>
-                            <th>Loại</th>
-                            <th>Gửi đến</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày tạo</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ticket in sent_tickets %}
-                        <tr>
-                            <td><code>#{{ ticket.id|stringformat:"06d" }}</code></td>
-                            <td>{{ ticket.subject|truncatechars:30 }}</td>
-                            <td>
-                                <span class="badge bg-light text-dark">
-                                    {{ ticket.get_ticket_type_display }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if ticket.teacher %}
-                                <span class="text-primary">{{ ticket.teacher.username }}</span>
-                                {% elif ticket.admin %}
-                                <span class="text-success">Admin</span>
-                                {% else %}
-                                <span class="text-muted">Hỗ trợ chung</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if ticket.status == 'OPEN' %}
-                                <span class="ticket-status status-open">Mở</span>
-                                {% elif ticket.status == 'IN_PROGRESS' %}
-                                <span class="ticket-status status-in-progress">Đang xử lý</span>
-                                {% elif ticket.status == 'RESOLVED' %}
-                                <span class="ticket-status status-resolved">Đã giải quyết</span>
-                                {% elif ticket.status == 'CLOSED' %}
-                                <span class="ticket-status status-closed">Đã đóng</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ ticket.created_at|date:"d/m/Y" }}</td>
-                            <td>
-                                <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã ticket</th>
+                                <th>Tiêu đề</th>
+                                <th>Loại</th>
+                                <th>Gửi đến</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in sent_tickets %}
+                            <tr>
+                                <td data-label="Mã ticket"><code>#{{ ticket.id|stringformat:"06d" }}</code></td>
+                                <td data-label="Tiêu đề">{{ ticket.subject|truncatechars:30 }}</td>
+                                <td data-label="Loại">
+                                    <span class="type-badge">{{ ticket.get_ticket_type_display }}</span>
+                                </td>
+                                <td data-label="Gửi đến">
+                                    {% if ticket.teacher %}
+                                    <span class="text-primary">{{ ticket.teacher.username }}</span>
+                                    {% elif ticket.admin %}
+                                    <span class="text-success">Admin</span>
+                                    {% else %}
+                                    <span class="text-muted">Hỗ trợ chung</span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Trạng thái">
+                                    {% if ticket.status == 'OPEN' %}
+                                    <span class="status-badge status-open">
+                                        <i class="bi bi-clock"></i> Mở
+                                    </span>
+                                    {% elif ticket.status == 'IN_PROGRESS' %}
+                                    <span class="status-badge status-in-progress">
+                                        <i class="bi bi-arrow-repeat"></i> Đang xử lý
+                                    </span>
+                                    {% elif ticket.status == 'RESOLVED' %}
+                                    <span class="status-badge status-resolved">
+                                        <i class="bi bi-check-circle"></i> Đã giải quyết
+                                    </span>
+                                    {% elif ticket.status == 'CLOSED' %}
+                                    <span class="status-badge status-closed">
+                                        <i class="bi bi-x-circle"></i> Đã đóng
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Ngày tạo">{{ ticket.created_at|date:"d/m/Y" }}</td>
+                                <td data-label="Hành động">
+                                    <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" class="view-btn">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             {% else %}
-            <div class="text-center py-5">
-                <div class="feature-icon bg-light text-muted mx-auto mb-3">
+            <div class="empty-state">
+                <div class="empty-icon">
                     <i class="bi bi-inbox"></i>
                 </div>
-                <h6 class="text-muted">Chưa có yêu cầu hỗ trợ nào</h6>
-                <p class="text-muted small">Khi bạn gửi yêu cầu hỗ trợ, chúng sẽ xuất hiện ở đây</p>
+                <h4 class="empty-title">Chưa có yêu cầu hỗ trợ nào</h4>
+                <p class="empty-text">Khi bạn gửi yêu cầu hỗ trợ, chúng sẽ xuất hiện ở đây</p>
+                {% if user.role == 'STUDENT' %}
+                <div class="mt-4">
+                    <a href="{% url 'quiz:contact_teacher' %}" class="contact-btn">
+                        <i class="bi bi-plus-lg me-2"></i> Tạo yêu cầu đầu tiên
+                    </a>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Card hover effects
+    const cards = document.querySelectorAll('.teacher-card, .action-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.zIndex = '';
+        });
+    });
+    
+    // Table row hover effects
+    const tableRows = document.querySelectorAll('.table tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // View all button animation
+    const viewAllBtn = document.querySelector('.view-all-btn');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('mouseenter', function() {
+            this.querySelector('i').style.transform = 'translateX(5px)';
+        });
+        
+        viewAllBtn.addEventListener('mouseleave', function() {
+            this.querySelector('i').style.transform = 'translateX(0)';
+        });
+    }
+    
+    // Contact button animations
+    const contactBtns = document.querySelectorAll('.contact-btn');
+    contactBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            this.querySelector('i').style.transform = 'scale(1.1)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.querySelector('i').style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
 {% endblock %}

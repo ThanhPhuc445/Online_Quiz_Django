@@ -1,25 +1,101 @@
 <!-- support/ticket_detail.html -->
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Chi tiết yêu cầu #{{ ticket.id }}{% endblock %}
 
 {% block extra_head %}
 <style>
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --dark: #1a1a2e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+    }
+    
     .ticket-message {
         border-left: 4px solid #dee2e6;
-        padding-left: 1rem;
+        padding-left: 1.5rem;
         margin-bottom: 1.5rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
     }
+    
     .admin-response {
-        border-left: 4px solid var(--primary-color);
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
+        border-left: 4px solid var(--primary);
+        background-color: #fff9f9;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
     }
+    
     .status-badge {
-        padding: 6px 12px;
+        padding: 6px 16px;
         border-radius: 20px;
         font-weight: 500;
+        font-size: 0.9rem;
+        border: 1px solid transparent;
+    }
+    
+    .badge-open { 
+        background: rgba(25, 118, 210, 0.1); 
+        color: #1976d2;
+        border-color: rgba(25, 118, 210, 0.3);
+    }
+    
+    .badge-in_progress { 
+        background: rgba(255, 152, 0, 0.1); 
+        color: #f57c00;
+        border-color: rgba(255, 152, 0, 0.3);
+    }
+    
+    .badge-resolved { 
+        background: rgba(56, 142, 60, 0.1); 
+        color: #388e3c;
+        border-color: rgba(56, 142, 60, 0.3);
+    }
+    
+    .badge-closed { 
+        background: rgba(158, 158, 158, 0.1); 
+        color: #616161;
+        border-color: rgba(158, 158, 158, 0.3);
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .avatar-fallback {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--secondary), #6a11cb);
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 </style>
 {% endblock %}
@@ -36,28 +112,48 @@
                             <li class="breadcrumb-item">
                                 <a href="{% url 'quiz:support_dashboard' %}" class="text-decoration-none">Hỗ trợ</a>
                             </li>
+                            {% if user.role == 'TEACHER' %}
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'quiz:teacher_support_inbox' %}" class="text-decoration-none">Hộp thư hỗ trợ</a>
+                            </li>
+                            {% elif user.role == 'STUDENT' %}
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'quiz:my_support_tickets' %}" class="text-decoration-none">Yêu cầu của tôi</a>
+                            </li>
+                            {% endif %}
                             <li class="breadcrumb-item active">Ticket #{{ ticket.id|stringformat:"06d" }}</li>
                         </ol>
                     </nav>
-                    <h2 class="fw-bold mb-1">{{ ticket.subject }}</h2>
-                    <div class="d-flex align-items-center gap-2">
-                        {% if ticket.status == 'OPEN' %}
-                        <span class="status-badge bg-primary text-white">Mở</span>
-                        {% elif ticket.status == 'IN_PROGRESS' %}
-                        <span class="status-badge bg-warning text-dark">Đang xử lý</span>
-                        {% elif ticket.status == 'RESOLVED' %}
-                        <span class="status-badge bg-success text-white">Đã giải quyết</span>
-                        {% elif ticket.status == 'CLOSED' %}
-                        <span class="status-badge bg-secondary text-white">Đã đóng</span>
-                        {% endif %}
+                    <h2 class="fw-bold mb-2">{{ ticket.subject }}</h2>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="status-badge badge-{{ ticket.status|lower }}">
+                            {% if ticket.status == 'OPEN' %}
+                            <i class="bi bi-circle me-1"></i>Đang chờ xử lý
+                            {% elif ticket.status == 'IN_PROGRESS' %}
+                            <i class="bi bi-clock-history me-1"></i>Đang xử lý
+                            {% elif ticket.status == 'RESOLVED' %}
+                            <i class="bi bi-check-circle me-1"></i>Đã giải quyết
+                            {% elif ticket.status == 'CLOSED' %}
+                            <i class="bi bi-x-circle me-1"></i>Đã đóng
+                            {% endif %}
+                        </span>
                         
-                        <span class="text-muted">
+                        <span class="text-muted d-flex align-items-center">
                             <i class="bi bi-calendar me-1"></i>{{ ticket.created_at|date:"d/m/Y H:i" }}
                         </span>
+                        
+                        {% if not ticket.is_read and can_reply %}
+                        <span class="badge bg-primary">
+                            <i class="bi bi-envelope me-1"></i>Chưa đọc
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
                 <div>
-                    <a href="{% url 'quiz:support_dashboard' %}" class="btn btn-outline-secondary">
+                    <a href="{% if user.role == 'TEACHER' %}{% url 'quiz:teacher_support_inbox' %}
+                            {% elif user.role == 'STUDENT' %}{% url 'quiz:my_support_tickets' %}
+                            {% else %}{% url 'quiz:support_dashboard' %}{% endif %}" 
+                       class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Quay lại
                     </a>
                 </div>
@@ -75,188 +171,313 @@
             </div>
             {% endif %}
 
-            <!-- Thông tin ticket -->
+            <!-- Main Content -->
             <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <!-- Tin nhắn của người gửi -->
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="d-flex align-items-center">
-                                        {% if ticket.user.avatar %}
-                                        <img src="{{ ticket.user.avatar.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ ticket.user.username }}">
-                                        {% else %}
-                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                            <i class="bi bi-person text-muted"></i>
-                                        </div>
-                                        {% endif %}
-                                        <div>
-                                            <h6 class="fw-bold mb-0">{{ ticket.user.get_full_name|default:ticket.user.username }}</h6>
-                                            <small class="text-muted">Người gửi</small>
-                                        </div>
-                                    </div>
-                                    <small class="text-muted">{{ ticket.created_at|timesince }} trước</small>
+                <div class="col-lg-8">
+                    <!-- Tin nhắn của người gửi -->
+                    <div class="info-card mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if ticket.user.avatar %}
+                                <img src="{{ ticket.user.avatar.url }}" class="user-avatar" alt="{{ ticket.user.username }}">
+                                {% else %}
+                                <div class="avatar-fallback">
+                                    {{ ticket.user.get_full_name|default:ticket.user.username|first|upper }}
                                 </div>
-                                <div class="ticket-message">
-                                    <p class="mb-0">{{ ticket.message|linebreaks }}</p>
+                                {% endif %}
+                                <div>
+                                    <h5 class="fw-bold mb-1">{{ ticket.user.get_full_name|default:ticket.user.username }}</h5>
+                                    <div class="d-flex gap-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-person me-1"></i>Học sinh
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-ticket-detailed me-1"></i>{{ ticket.get_ticket_type_display }}
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
-
-                            <!-- Phản hồi từ admin/giáo viên -->
-                            {% if ticket.admin_response %}
+                            <small class="text-muted">{{ ticket.created_at|timesince }} trước</small>
+                        </div>
+                        
+                        <div class="ticket-message">
+                            <h6 class="fw-semibold mb-3">Nội dung yêu cầu:</h6>
                             <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="d-flex align-items-center">
-                                        {% if ticket.admin.avatar %}
-                                        <img src="{{ ticket.admin.avatar.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ ticket.admin.username }}">
-                                        {% elif ticket.teacher.avatar %}
-                                        <img src="{{ ticket.teacher.avatar.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ ticket.teacher.username }}">
-                                        {% else %}
-                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                            <i class="bi bi-person-check text-muted"></i>
-                                        </div>
-                                        {% endif %}
-                                        <div>
-                                            <h6 class="fw-bold mb-0">
-                                                {% if ticket.admin %}
-                                                {{ ticket.admin.get_full_name|default:ticket.admin.username }} (Admin)
-                                                {% elif ticket.teacher %}
-                                                {{ ticket.teacher.get_full_name|default:ticket.teacher.username }} (Giáo viên)
-                                                {% endif %}
-                                            </h6>
-                                            <small class="text-muted">Phản hồi</small>
-                                        </div>
+                                {{ ticket.message|linebreaks }}
+                            </div>
+                            
+                            {% if ticket.quiz %}
+                            <div class="alert alert-light border">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-file-text me-2 text-primary"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Liên quan đến đề thi:</small>
+                                        <strong>
+                                            <a href="{% url 'quiz:quiz_results' ticket.quiz.id %}" class="text-decoration-none">
+                                                {{ ticket.quiz.title }}
+                                            </a>
+                                        </strong>
                                     </div>
-                                    <small class="text-muted">{{ ticket.updated_at|timesince }} trước</small>
-                                </div>
-                                <div class="admin-response">
-                                    <p class="mb-0">{{ ticket.admin_response|linebreaks }}</p>
                                 </div>
                             </div>
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- Phản hồi từ admin/giáo viên -->
+                    {% if ticket.admin_response %}
+                    <div class="info-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if ticket.replied_by %}
+                                    {% if ticket.replied_by.avatar %}
+                                    <img src="{{ ticket.replied_by.avatar.url }}" class="user-avatar" alt="{{ ticket.replied_by.username }}">
+                                    {% else %}
+                                    <div class="avatar-fallback">
+                                        {{ ticket.replied_by.get_full_name|default:ticket.replied_by.username|first|upper }}
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="fw-bold mb-1">
+                                            {{ ticket.replied_by.get_full_name|default:ticket.replied_by.username }}
+                                            {% if ticket.replied_by.role == 'ADMIN' %}
+                                            <span class="badge bg-success ms-2">Admin</span>
+                                            {% elif ticket.replied_by.role == 'TEACHER' %}
+                                            <span class="badge bg-primary ms-2">Giáo viên</span>
+                                            {% endif %}
+                                        </h5>
+                                        <small class="text-muted">
+                                            <i class="bi bi-reply me-1"></i>Đã phản hồi
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    <div class="avatar-fallback">
+                                        <i class="bi bi-person-check"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-1">Hệ thống</h5>
+                                        <small class="text-muted">Phản hồi tự động</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if ticket.replied_at %}
+                            <small class="text-muted">{{ ticket.replied_at|timesince }} trước</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="admin-response">
+                            <h6 class="fw-semibold mb-3">Phản hồi từ hỗ trợ:</h6>
+                            <div class="mb-3">
+                                {{ ticket.admin_response|linebreaks }}
+                            </div>
+                            
+                            {% if ticket.replied_at %}
+                            <div class="text-end">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ ticket.replied_at|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Sidebar thông tin -->
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-3">Thông tin ticket</h6>
-                            
-                            <div class="mb-3">
-                                <strong class="d-block text-muted small">Mã ticket</strong>
-                                <code>#{{ ticket.id|stringformat:"06d" }}</code>
+                <div class="col-lg-4">
+                    <div class="info-card">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2">
+                            <i class="bi bi-info-circle me-2"></i>Thông tin ticket
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Mã ticket</label>
+                            <div class="fw-semibold">#{{ ticket.id|stringformat:"06d" }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Loại yêu cầu</label>
+                            <div>
+                                <span class="badge 
+                                    {% if ticket.ticket_type == 'QUESTION' %}bg-primary
+                                    {% elif ticket.ticket_type == 'TECHNICAL' %}bg-warning
+                                    {% elif ticket.ticket_type == 'ACCOUNT' %}bg-danger
+                                    {% elif ticket.ticket_type == 'FEEDBACK' %}bg-info
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ ticket.get_ticket_type_display }}
+                                </span>
                             </div>
-                            
-                            <div class="mb-3">
-                                <strong class="d-block text-muted small">Loại yêu cầu</strong>
-                                <span class="badge bg-light text-dark">{{ ticket.get_ticket_type_display }}</span>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <strong class="d-block text-muted small">Gửi đến</strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Người phụ trách</label>
+                            <div>
                                 {% if ticket.teacher %}
-                                <div class="d-flex align-items-center mt-1">
-                                    <i class="bi bi-person-video2 me-2 text-primary"></i>
-                                    <span>{{ ticket.teacher.username }}</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-person-video2 text-primary"></i>
+                                    <span>{{ ticket.teacher.get_full_name|default:ticket.teacher.username }}</span>
                                 </div>
                                 {% elif ticket.admin %}
-                                <div class="d-flex align-items-center mt-1">
-                                    <i class="bi bi-shield-check me-2 text-success"></i>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-shield-check text-success"></i>
                                     <span>Quản trị viên</span>
                                 </div>
                                 {% else %}
-                                <span class="text-muted">Hỗ trợ chung</span>
+                                <span class="text-muted">Chưa phân công</span>
                                 {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <strong class="d-block text-muted small">Đề thi liên quan</strong>
-                                {% if ticket.quiz %}
-                                <a href="{% url 'quiz:take_quiz' ticket.quiz.id %}" class="text-decoration-none">
-                                    <i class="bi bi-file-text me-1"></i>{{ ticket.quiz.title|truncatechars:20 }}
-                                </a>
-                                {% else %}
-                                <span class="text-muted">Không có</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <strong class="d-block text-muted small">Ngày tạo</strong>
-                                {{ ticket.created_at|date:"d/m/Y H:i" }}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <strong class="d-block text-muted small">Cập nhật cuối</strong>
-                                {{ ticket.updated_at|date:"d/m/Y H:i" }}
                             </div>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Ngày tạo</label>
+                            <div class="fw-semibold">{{ ticket.created_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Cập nhật cuối</label>
+                            <div class="fw-semibold">{{ ticket.updated_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small mb-1">Đã đọc</label>
+                            <div>
+                                {% if ticket.is_read %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Đã đọc
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-envelope me-1"></i>Chưa đọc
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if can_reply %}
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="fw-bold mb-3">Thay đổi trạng thái</h6>
+                            <form method="post" action="{% url 'quiz:update_ticket_status' ticket.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <select name="status" class="form-select">
+                                        {% for status_code, status_name in ticket.Status.choices %}
+                                        <option value="{{ status_code }}" {% if ticket.status == status_code %}selected{% endif %}>
+                                            {{ status_name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% if user.role == 'ADMIN' %}
+                                <div class="mb-3">
+                                    <textarea name="admin_comment" class="form-control" rows="2" 
+                                              placeholder="Ghi chú khi thay đổi trạng thái (tùy chọn)"></textarea>
+                                </div>
+                                {% endif %}
+                                <button type="submit" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Cập nhật trạng thái
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Form phản hồi/thêm tin nhắn -->
+            <!-- Form phản hồi -->
             {% if can_reply or is_owner %}
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3">
-                        {% if can_reply %}
-                        <i class="bi bi-reply me-2"></i> Phản hồi cho học sinh
-                        {% else %}
-                        <i class="bi bi-chat-left-text me-2"></i> Cập nhật yêu cầu
-                        {% endif %}
-                    </h6>
+            <div class="info-card mt-4">
+                <h6 class="fw-bold mb-3 border-bottom pb-2">
+                    <i class="bi bi-chat-left-text me-2"></i>
+                    {% if can_reply %}
+                    Phản hồi cho học sinh
+                    {% else %}
+                    Thêm tin nhắn
+                    {% endif %}
+                </h6>
+                
+                <form method="post">
+                    {% csrf_token %}
                     
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if can_reply %}
-                        <!-- Giáo viên/Admin phản hồi -->
-                        <div class="mb-3">
-                            <label class="form-label">Phản hồi *</label>
-                            <textarea name="response" class="form-control" rows="4" 
-                                      placeholder="Nhập phản hồi của bạn..." required></textarea>
+                    {% if can_reply %}
+                    <!-- Giáo viên/Admin phản hồi -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Phản hồi *</label>
+                        <textarea name="response" class="form-control" rows="5" 
+                                  placeholder="Nhập phản hồi của bạn cho học sinh..." required></textarea>
+                        <div class="form-text">Phản hồi sẽ được gửi đến học sinh và lưu vào hệ thống</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Cập nhật trạng thái</label>
+                            <select name="status" class="form-select">
+                                {% for status_code, status_name in ticket.Status.choices %}
+                                <option value="{{ status_code }}" {% if ticket.status == status_code %}selected{% endif %}>
+                                    {{ status_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Cập nhật trạng thái</label>
-                                <select name="status" class="form-select">
-                                    {% for status_code, status_name in ticket.TicketStatus.choices %}
-                                    <option value="{{ status_code }}" {% if ticket.status == status_code %}selected{% endif %}>
-                                        {{ status_name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send me-1"></i> Gửi phản hồi
-                            </button>
-                        </div>
-                        
-                        {% else %}
-                        <!-- Học sinh cập nhật -->
-                        <div class="mb-3">
-                            <label class="form-label">Thêm thông tin</label>
-                            <textarea name="new_message" class="form-control" rows="3" 
-                                      placeholder="Thêm thông tin bổ sung cho yêu cầu của bạn..."></textarea>
-                            <div class="form-text">Thông tin mới sẽ được thêm vào cuối yêu cầu ban đầu</div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-plus-circle me-1"></i> Cập nhật yêu cầu
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-send me-2"></i> Gửi phản hồi
                         </button>
-                        {% endif %}
-                    </form>
-                </div>
+                    </div>
+                    
+                    {% else %}
+                    <!-- Học sinh cập nhật -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Thêm thông tin bổ sung</label>
+                        <textarea name="response" class="form-control" rows="4" 
+                                  placeholder="Thêm thông tin bổ sung cho yêu cầu của bạn..."></textarea>
+                        <div class="form-text">Thông tin mới sẽ được thêm vào cuối yêu cầu ban đầu</div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle me-2"></i> Thêm tin nhắn
+                        </button>
+                    </div>
+                    {% endif %}
+                </form>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tự động focus vào textarea
+    const textarea = document.querySelector('textarea[name="response"]');
+    if (textarea) {
+        textarea.focus();
+        // Auto-resize textarea
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+    
+    // Xác nhận khi đóng ticket
+    const statusSelects = document.querySelectorAll('select[name="status"]');
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.value === 'CLOSED') {
+                if (!confirm('Bạn có chắc chắn muốn đóng yêu cầu này? Sau khi đóng, bạn sẽ không thể thêm thông tin mới.')) {
+                    this.value = '{{ ticket.status }}';
+                }
+            }
+        });
+    });
+    
+    // Highlight code blocks if any
+    document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+    });
+});
+</script>
 {% endblock %}

@@ -1495,14 +1495,13 @@ def update_ticket_status(request, ticket_id):
     """View cập nhật trạng thái ticket"""
     ticket = get_object_or_404(SupportTicket, id=ticket_id)
     
-    # Kiểm tra quyền: chỉ admin hoặc giáo viên được chỉ định mới được cập nhật
+    # Kiểm tra quyền
     user = request.user
     is_authorized = False
     
     if user.role == 'ADMIN':
         is_authorized = True
     elif user.role == 'TEACHER':
-        # Giáo viên chỉ được cập nhật ticket gửi cho mình
         if ticket.teacher == user:
             is_authorized = True
     
@@ -1513,12 +1512,16 @@ def update_ticket_status(request, ticket_id):
     # Lấy trạng thái mới từ form
     new_status = request.POST.get('status')
     
-    if new_status and new_status in dict(SupportTicket.STATUS_CHOICES):
+    # SỬA DÒNG NÀY: Thay STATUS_CHOICES bằng Status.choices
+    valid_statuses = [choice[0] for choice in SupportTicket.Status.choices]
+    if new_status and new_status in valid_statuses:
         old_status_display = ticket.get_status_display()
         ticket.status = new_status
         
-        # Ghi lại lịch sử cập nhật
-        ticket.status_history = f"{ticket.status_history or ''}\n{timezone.now().strftime('%d/%m/%Y %H:%M')} - {user.username} cập nhật từ {old_status_display} thành {ticket.get_status_display()}"
+        # Ghi lại lịch sử cập nhật (nếu có trường status_history)
+        # Nếu không có trường này, bỏ phần này
+        if hasattr(ticket, 'status_history'):
+            ticket.status_history = f"{ticket.status_history or ''}\n{timezone.now().strftime('%d/%m/%Y %H:%M')} - {user.username} cập nhật từ {old_status_display} thành {ticket.get_status_display()}"
         
         # Nếu là admin và có comment, thêm vào admin_response
         admin_comment = request.POST.get('admin_comment', '').strip()
@@ -1526,7 +1529,7 @@ def update_ticket_status(request, ticket_id):
             ticket.admin_response = f"{ticket.admin_response or ''}\n\n--- Cập nhật trạng thái ({timezone.now().strftime('%d/%m/%Y %H:%M')}) ---\n{admin_comment}"
             ticket.replied_by = user
             ticket.replied_at = timezone.now()
-            ticket.is_read = False  # Đánh dấu để người dùng biết có cập nhật
+            ticket.is_read = False
         
         ticket.save()
         messages.success(request, f"Đã cập nhật trạng thái thành {ticket.get_status_display()}.")
@@ -1576,8 +1579,10 @@ def teacher_support_inbox(request):
     """Hộp thư hỗ trợ của giáo viên"""
     teacher = request.user
     
-    # Lấy các ticket gửi cho giáo viên này
-    tickets = SupportTicket.objects.filter(teacher=teacher).order_by('-created_at')
+    # Lấy các ticket gửi cho giáo viên này HOẶC không có teacher (để admin phân công)
+    tickets = SupportTicket.objects.filter(
+        models.Q(teacher=teacher) | models.Q(teacher__isnull=True)
+    ).order_by('-created_at')
     
     # Thêm filter
     status_filter = request.GET.get('status')
@@ -1588,32 +1593,40 @@ def teacher_support_inbox(request):
     search_query = request.GET.get('search')
     if search_query:
         tickets = tickets.filter(
-            Q(subject__icontains=search_query) | 
-            Q(message__icontains=search_query) |
-            Q(user__username__icontains=search_query)
+            models.Q(subject__icontains=search_query) | 
+            models.Q(message__icontains=search_query) |
+            models.Q(user__username__icontains=search_query) |
+            models.Q(user__first_name__icontains=search_query) |
+            models.Q(user__last_name__icontains=search_query) |
+            models.Q(user__email__icontains=search_query)
         )
     
-    # Thống kê
+    # Thêm filter theo loại ticket
+    ticket_type_filter = request.GET.get('ticket_type')
+    if ticket_type_filter:
+        tickets = tickets.filter(ticket_type=ticket_type_filter)
+    
+    # Thống kê (phải tính trên tất cả tickets trước khi phân trang)
     total_tickets = tickets.count()
     open_tickets = tickets.filter(status='OPEN').count()
     in_progress_tickets = tickets.filter(status='IN_PROGRESS').count()
     resolved_tickets = tickets.filter(status='RESOLVED').count()
     unread_tickets = tickets.filter(is_read=False).count()
     
-    # Phân loại theo loại ticket
+    # Phân loại theo loại ticket (thống kê toàn bộ)
     ticket_type_stats = {}
     for ticket_type, display_name in SupportTicket.TicketType.choices:
         count = tickets.filter(ticket_type=ticket_type).count()
         if count > 0:
             ticket_type_stats[display_name] = count
     
-    # Pagination
+    # Pagination (QUAN TRỌNG: phải làm sau khi filter)
     paginator = Paginator(tickets, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     context = {
-        'tickets': page_obj,
+        'tickets': page_obj,  # Giữ để tương thích
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
         'total_tickets': total_tickets,
