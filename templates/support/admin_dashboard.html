@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quản trị Hỗ trợ{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Trung tâm Hỗ trợ (Admin)</h2>
+            <p class="text-muted small mb-0">Quản lý các yêu cầu từ Giáo viên và Học sinh gửi lên hệ thống.</p>
+        </div>
+        <div>
+            <span class="badge bg-danger rounded-pill px-3 py-2">
+                <i class="bi bi-shield-lock-fill me-1"></i>Administrator
+            </span>
+        </div>
+    </div>
+
+    <!-- Thống kê -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center">
+                <h3 class="fw-bold text-danger mb-0">{{ stats.open }}</h3>
+                <small class="text-muted text-uppercase fw-bold">Chờ xử lý</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center">
+                <h3 class="fw-bold text-primary mb-0">{{ stats.processing }}</h3>
+                <small class="text-muted text-uppercase fw-bold">Đang xem</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center">
+                <h3 class="fw-bold text-success mb-0">{{ stats.resolved }}</h3>
+                <small class="text-muted text-uppercase fw-bold">Đã xong</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-3 text-center bg-light">
+                <h3 class="fw-bold text-dark mb-0">{{ stats.total }}</h3>
+                <small class="text-muted text-uppercase fw-bold">Tổng cộng</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách Ticket -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3">
+            <h6 class="fw-bold mb-0">Danh sách yêu cầu cần xử lý</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3">Người gửi</th>
+                        <th>Vấn đề</th>
+                        <th>Loại</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 35px; height: 35px; font-weight: bold;">
+                                    {{ ticket.user.username|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ ticket.user.username }}</div>
+                                    <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">
+                                        {{ ticket.user.get_role_display|default:"User" }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <td style="max-width: 300px;">
+                            <div class="fw-bold text-dark text-truncate">{{ ticket.subject }}</div>
+                            <small class="text-muted text-truncate d-block">{{ ticket.message }}</small>
+                        </td>
+
+                        <td>
+                            <span class="badge bg-light text-secondary border">{{ ticket.get_ticket_type_display }}</span>
+                        </td>
+
+                        <td>
+                            {% if ticket.status == 'OPEN' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Mới</span>
+                            {% elif ticket.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Đang xử lý</span>
+                            {% elif ticket.status == 'RESOLVED' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Đã xong</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Đóng</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-muted small">{{ ticket.created_at|date:"d/m H:i" }}</td>
+
+                        <td class="text-end pe-4">
+                            <a href="{% url 'quiz:support_ticket_detail' ticket.id %}" class="btn btn-sm btn-primary fw-bold shadow-sm">
+                                <i class="bi bi-pencil-square me-1"></i>Xử lý
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="opacity-50 mb-3">
+                                <i class="bi bi-check2-circle display-3 text-success"></i>
+                            </div>
+                            <h5 class="text-muted">Tuyệt vời! Không có yêu cầu nào cần xử lý.</h5>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if tickets.has_other_pages %}
+        <div class="card-footer bg-white py-3">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if tickets.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ tickets.previous_page_number }}">‹</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ tickets.number }}</span></li>
+                    {% if tickets.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ tickets.next_page_number }}">›</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

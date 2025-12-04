@@ -1,6 +1,6 @@
 # quiz/admin.py
 from django.contrib import admin
-from .models import Subject, Question, Answer, Quiz
+from .models import Subject, Question, Answer, Quiz 
 
 # 1. Đăng ký Môn học (Quan trọng nhất để fix lỗi của bạn)
 @admin.register(Subject)
@@ -26,3 +26,4 @@ class QuizAdmin(admin.ModelAdmin):
     list_display = ('title', 'subject', 'created_by', 'start_time', 'is_public')
     list_filter = ('subject', 'is_public')
     search_fields = ('title',)
+

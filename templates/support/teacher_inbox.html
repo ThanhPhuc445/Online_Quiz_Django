@@ -673,6 +673,9 @@
                 <i class="bi bi-envelope-fill"></i> {{ unread_tickets }} yêu cầu chưa đọc
             </span>
             {% endif %}
+            <a href="{% url 'quiz:contact_admin' %}" class="btn btn-danger shadow-sm fw-bold" style="background-color: #880000; border: none;">
+            <i class="bi bi-shield-exclamation me-2"></i>Liên hệ Admin
+        </a>
         </div>
     </div>
 

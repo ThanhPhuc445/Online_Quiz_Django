@@ -1266,30 +1266,42 @@ def change_password(request):
 # VIEWS HỖ TRỢ - GỬI TIN NHẮN
 # ===========================================================================
 
+# quiz/views.py
+
 @login_required
 def support_dashboard(request):
-    """Trang chính hỗ trợ"""
+    """Trang chính hỗ trợ (Điều hướng thông minh)"""
     user = request.user
     
-    # Sửa dòng này:
+    # --- 1. NẾU LÀ ADMIN -> Chuyển sang trang Quản trị ---
+    if user.is_superuser or user.role == 'ADMIN':
+        return redirect('quiz:admin_support_dashboard')
+    
+    # --- 2. NẾU LÀ GIÁO VIÊN -> Chuyển sang Hộp thư đến ---
+    if user.role == 'TEACHER':
+        return redirect('quiz:teacher_support_inbox')
+    
+    # --- 3. NẾU LÀ HỌC SINH -> Ở lại trang Dashboard chọn ---
+    # (Phần code dưới đây chỉ chạy cho Học sinh)
+    
+    # Import User model (Nên để đầu file, nhưng để đây cũng chạy đc)
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
-    # Lấy danh sách giáo viên và đề thi (cho học sinh)
     teacher_quizzes = None
     teachers = None
     
     if user.role == 'STUDENT':
-        # Lấy đề thi mà học sinh có thể liên hệ giáo viên
+        # Lấy đề thi công khai hoặc được phép thi
         teacher_quizzes = Quiz.objects.filter(
             models.Q(is_public=True) | 
             models.Q(allowed_students=user)
         ).distinct().order_by('-created_at')[:10]
         
-        # Lấy danh sách giáo viên - SỬA DÒNG NÀY
+        # Lấy danh sách giáo viên
         teachers = User.objects.filter(role='TEACHER').order_by('username')[:10]
     
-    # Lấy yêu cầu hỗ trợ đã gửi
+    # Lấy các ticket HS đã gửi (để xem lịch sử)
     sent_tickets = SupportTicket.objects.filter(user=user).order_by('-created_at')[:5]
     
     context = {
@@ -1300,8 +1312,8 @@ def support_dashboard(request):
         'sent_tickets': sent_tickets,
     }
     
+    # Lưu ý: File HTML này nên thiết kế dành riêng cho Học sinh chọn chức năng
     return render(request, 'support/support_dashboard.html', context)
-
 @login_required
 def contact_teacher(request, teacher_id=None, quiz_id=None):
     """Liên hệ với giáo viên"""
@@ -1410,56 +1422,72 @@ def contact_admin(request):
     }
     return render(request, 'support/contact_admin.html', context)
 
+# quiz/views.py
+
 @login_required
 def support_ticket_detail(request, ticket_id):
     """Xem chi tiết ticket hỗ trợ"""
     ticket = get_object_or_404(SupportTicket, id=ticket_id)
     user = request.user
     
-    # Kiểm tra quyền truy cập
-    if ticket.user != user and user.role not in ['TEACHER', 'ADMIN']:
-        raise PermissionDenied
+    # --- SỬA LẠI LOGIC KIỂM TRA QUYỀN (QUAN TRỌNG) ---
     
-    # Kiểm tra nếu là giáo viên, chỉ được xem ticket gửi cho mình
-    if user.role == 'TEACHER' and ticket.teacher != user:
-        raise PermissionDenied
+    # 1. Người tạo ra ticket (bất kể là HS hay GV)
+    is_owner = (ticket.user == user)
     
-    # Đánh dấu là đã đọc nếu là giáo viên/admin
-    if user.role in ['TEACHER', 'ADMIN'] and not ticket.is_read:
+    # 2. Người được nhận ticket (Giáo viên được HS hỏi)
+    is_assigned_teacher = (ticket.teacher == user)
+    
+    # 3. Admin (Quyền lực tối cao)
+    is_admin = (user.role == 'ADMIN' or user.is_superuser)
+
+    # Nếu KHÔNG phải một trong 3 người trên -> Cấm cửa
+    if not (is_owner or is_assigned_teacher or is_admin):
+        raise PermissionDenied
+    # ---------------------------------------------------
+
+    # Đánh dấu là đã đọc (Nếu người xem là người xử lý)
+    if (is_assigned_teacher or is_admin) and not ticket.is_read:
         ticket.is_read = True
         ticket.save()
     
     if request.method == 'POST':
-        # Giáo viên/Admin phản hồi
-        if user.role in ['TEACHER', 'ADMIN']:
-            response = request.POST.get('response', '').strip()
-            status = request.POST.get('status', ticket.status)
-            
-            if response:
+        # Logic phản hồi (Giữ nguyên hoặc tinh chỉnh)
+        response = request.POST.get('response', '').strip()
+        new_status = request.POST.get('status')
+        
+        if response:
+            # Nếu là người xử lý (GV hoặc Admin) -> Cập nhật admin_response
+            if is_assigned_teacher or is_admin:
                 ticket.admin_response = response
-                ticket.admin = user if user.role == 'ADMIN' else None
                 ticket.replied_by = user
                 ticket.replied_at = timezone.now()
-                ticket.status = status
+                if new_status:
+                    ticket.status = new_status
                 ticket.save()
-                
                 messages.success(request, "Đã gửi phản hồi!")
-        else:
-            # Học sinh cập nhật ticket
-            new_message = request.POST.get('new_message', '').strip()
-            if new_message:
-                ticket.message += f"\n\n--- Cập nhật từ học sinh ({timezone.now().strftime('%d/%m/%Y %H:%M')}) ---\n{new_message}"
-                ticket.is_read = False  # Đánh dấu là chưa đọc để giáo viên biết có cập nhật mới
+            
+            # Nếu là người tạo ticket (HS hoặc GV gửi lên Admin) -> Chat thêm
+            elif is_owner:
+                # Nối thêm tin nhắn vào nội dung cũ (Chat nối tiếp)
+                timestamp = timezone.now().strftime('%d/%m %H:%M')
+                ticket.message += f"\n\n--- Bổ sung từ {user.username} ({timestamp}) ---\n{response}"
+                # Đổi trạng thái lại thành Open hoặc In Progress để Admin biết
+                if ticket.status in ['RESOLVED', 'CLOSED']:
+                    ticket.status = 'IN_PROGRESS'
                 ticket.save()
-                messages.success(request, "Đã cập nhật yêu cầu!")
+                messages.success(request, "Đã gửi tin nhắn bổ sung!")
+                
+        return redirect('quiz:support_ticket_detail', ticket_id=ticket.id)
     
     context = {
         'ticket': ticket,
-        'can_reply': user.role in ['TEACHER', 'ADMIN'],  # Giáo viên/Admin mới được phản hồi
-        'is_owner': ticket.user == user,  # Người tạo ticket
-        'has_replied': ticket.replied_by is not None,  # Đã có phản hồi chưa
+        'can_reply': (is_assigned_teacher or is_admin), # Chỉ người xử lý mới hiện form trả lời chính thức
+        'is_owner': is_owner,
+        'is_admin': is_admin,
     }
     return render(request, 'support/ticket_detail.html', context)
+    
 # views.py - Thêm sau view support_ticket_detail
 @login_required
 @require_POST

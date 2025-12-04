@@ -1,39 +1,696 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Ngân hàng câu hỏi{% endblock %}
+{% block title %}Ngân hàng câu hỏi - Examify{% endblock %}
 
-{% block extra_head %}
-<!-- Custom CSS cho trang này -->
+{% block extra_css %}
 <style>
-    /* Hiệu ứng Soft UI cho Badge */
-    .badge-soft-primary { background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; }
-    .badge-soft-success { background-color: rgba(25, 135, 84, 0.1); color: #198754; }
-    .badge-soft-warning { background-color: rgba(255, 193, 7, 0.15); color: #856404; }
-    .badge-soft-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
-    .badge-soft-info { background-color: rgba(13, 202, 240, 0.1); color: #055160; }
+    :root {
+        --primary: #880000;
+        --primary-light: #ff6b6b;
+        --secondary: #4a6cf7;
+        --accent: #00b894;
+        --dark: #1a1a2e;
+        --darker: #0f0f1e;
+        --light: #f8f9fa;
+        --gray: #64748b;
+        --border: #eef2f7;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+    }
 
-    /* Card Stats */
-    .card-stat {
-        transition: transform 0.2s;
+    /* ===== HERO SECTION ===== */
+    .hero-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    }
+
+    .hero-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        color: var(--dark);
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        color: var(--gray);
+        line-height: 1.6;
+        max-width: 600px;
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        margin-bottom: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .stat-info h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .stat-info p {
+        color: var(--gray);
+        margin: 0.5rem 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    /* ===== FILTER SECTION ===== */
+    .filter-section {
+        background: white;
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .filter-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--secondary), var(--accent));
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        position: relative;
+        padding-left: 1rem;
+    }
+
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 24px;
+        background: var(--secondary);
+        border-radius: 2px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .filter-group {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .filter-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 0.95rem;
+        background: white;
+        color: var(--dark);
+        transition: all 0.3s;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(136, 0, 0, 0.1);
+    }
+
+    .filter-button {
+        grid-column: span 1;
+        align-self: end;
+    }
+
+    /* ===== QUESTIONS SECTION ===== */
+    .questions-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .view-all-btn {
+        padding: 8px 20px;
+        background: transparent;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .view-all-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ===== QUESTION TABLE ===== */
+    .question-table-container {
+        background: white;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .question-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .question-table thead {
+        background: #f8f9fa;
+    }
+
+    .question-table th {
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        color: var(--dark);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .question-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .question-table tbody tr:hover {
+        background: rgba(136, 0, 0, 0.02);
+        transform: translateX(4px);
+    }
+
+    .question-table td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: top;
+    }
+
+    /* Question Content */
+    .question-content {
+        max-width: 500px;
+    }
+
+    .question-text {
+        color: var(--dark);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .question-text a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .question-text a:hover {
+        color: var(--primary);
+    }
+
+    .question-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .subject-badge {
+        padding: 0.25rem 0.75rem;
+        background: #f1f5f9;
+        color: var(--dark);
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .answer-preview {
+        font-size: 0.8rem;
+        color: #059669;
+        background: rgba(5, 150, 105, 0.1);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Type Badge */
+    .type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+    }
+
+    .type-single {
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        border-color: rgba(13, 110, 253, 0.2);
+    }
+
+    .type-multiple {
+        background: rgba(13, 202, 240, 0.1);
+        color: #055160;
+        border-color: rgba(13, 202, 240, 0.2);
+    }
+
+    .type-true-false {
+        background: rgba(255, 193, 7, 0.15);
+        color: #856404;
+        border-color: rgba(255, 193, 7, 0.3);
+    }
+
+    .type-short {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border-color: rgba(25, 135, 84, 0.2);
+    }
+
+    /* Difficulty Badge */
+    .difficulty-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+    }
+
+    .difficulty-easy {
+        background: rgba(5, 150, 105, 0.1);
+        color: #059669;
+        border-color: rgba(5, 150, 105, 0.2);
+    }
+
+    .difficulty-medium {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .difficulty-hard {
+        background: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+        border-color: rgba(220, 38, 38, 0.2);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray);
+        background: white;
+        border: 1px solid var(--border);
+        transition: all 0.3s;
+        cursor: pointer;
+        text-decoration: none;
+        position: relative;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-btn.edit:hover {
+        background: #fef3c7;
+        color: #d97706;
+        border-color: rgba(217, 119, 6, 0.2);
+    }
+
+    .action-btn.delete:hover {
+        background: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+        border-color: rgba(220, 38, 38, 0.2);
+    }
+
+    .action-btn .tooltip-text {
+        visibility: hidden;
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--dark);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 1000;
+    }
+
+    .action-btn .tooltip-text:after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 5px;
+        border-style: solid;
+        border-color: var(--dark) transparent transparent transparent;
+    }
+
+    .action-btn:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* ===== PRIMARY BUTTONS ===== */
+    .btn-primary-custom {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: white;
         border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-    }
-    .card-stat:hover { transform: translateY(-3px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); }
-    .icon-box {
-        width: 48px; height: 48px;
-        display: flex; align-items: center; justify-content: center;
-        border-radius: 10px; font-size: 1.5rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 16px rgba(136, 0, 0, 0.2);
     }
 
-    /* Table */
-    .table td { vertical-align: middle; }
-    .question-content { font-size: 0.95rem; line-height: 1.6; color: #2c3e50; }
-    .question-meta { font-size: 0.8rem; color: #6c757d; }
-    
-    /* Pagination */
-    .page-link { border: none; margin: 0 3px; border-radius: 5px !important; color: #555; }
-    .page-item.active .page-link { background-color: var(--primary-color, #0d6efd); color: white; }
+    .btn-primary-custom:hover {
+        background: #660000;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(136, 0, 0, 0.3);
+    }
+
+    .btn-secondary-custom {
+        padding: 0.75rem 1.5rem;
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary-custom:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        color: #cbd5e1;
+        font-size: 3rem;
+        border: 8px solid white;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .empty-state h4 {
+        color: var(--gray);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .empty-state p {
+        color: #94a3b8;
+        max-width: 400px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+    }
+
+    /* ===== PAGINATION ===== */
+    .pagination-container {
+        padding: 1.5rem 2rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8fafc;
+    }
+
+    .pagination-info {
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .page-item .page-link {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--gray);
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .page-item:not(.active) .page-link:hover {
+        background: rgba(136, 0, 0, 0.05);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+        .question-table {
+            display: block;
+            overflow-x: auto;
+        }
+        
+        .question-table th,
+        .question-table td {
+            min-width: 200px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .hero-title {
+            font-size: 1.8rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 1.5rem;
+        }
+        
+        .hero-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .question-table td {
+            padding: 1rem;
+        }
+        
+        .pagination-container {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .action-buttons {
+            justify-content: flex-start;
+        }
+        
+        .empty-state {
+            padding: 3rem 1rem;
+        }
+        
+        .empty-icon {
+            width: 100px;
+            height: 100px;
+            font-size: 2.5rem;
+        }
+    }
 </style>
 
 <!-- MathJax Config -->
@@ -51,78 +708,77 @@ window.MathJax = {
 
 {% block content %}
 <div class="container-fluid py-4">
-    
-    <!-- HEADER & ACTIONS -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Ngân hàng câu hỏi</h2>
-            <p class="text-muted small mb-0">Quản lý và tổ chức kho kiến thức của bạn.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'quiz:question_import' %}" class="btn btn-outline-success">
-                <i class="bi bi-file-earmark-spreadsheet me-2"></i>Import Excel
-            </a>
-            <a href="{% url 'quiz:question_create' %}" class="btn btn-primary shadow-sm">
-                <i class="bi bi-plus-lg me-2"></i>Thêm câu hỏi
-            </a>
-        </div>
-    </div>
-
-    <!-- THỐNG KÊ (STATS CARDS) - Đưa lên trên cho chuyên nghiệp -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card card-stat h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-box badge-soft-primary me-3"><i class="bi bi-stack"></i></div>
-                    <div>
-                        <h4 class="mb-0 fw-bold">{{ total_questions }}</h4>
-                        <small class="text-muted">Tổng câu hỏi</small>
-                    </div>
-                </div>
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+        <div class="hero-header">
+            <div>
+                <h1 class="hero-title">Ngân hàng câu hỏi</h1>
+                <p class="hero-subtitle">Quản lý và tổ chức kho kiến thức của bạn một cách hiệu quả</p>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-stat h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-box badge-soft-info me-3"><i class="bi bi-check2-all"></i></div>
-                    <div>
-                        <h4 class="mb-0 fw-bold">{{ multiple_choice_count }}</h4>
-                        <small class="text-muted">Nhiều lựa chọn</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-stat h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-box badge-soft-success me-3"><i class="bi bi-ui-checks"></i></div>
-                    <div>
-                        <h4 class="mb-0 fw-bold">{{ single_choice_count }}</h4>
-                        <small class="text-muted">Một lựa chọn</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-stat h-100">
-                <div class="card-body d-flex align-items-center">
-                    <div class="icon-box badge-soft-warning me-3"><i class="bi bi-question-lg"></i></div>
-                    <div>
-                        <h4 class="mb-0 fw-bold">{{ true_false_count }}</h4>
-                        <small class="text-muted">Đúng/Sai</small>
-                    </div>
-                </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'quiz:question_import' %}" class="btn-secondary-custom">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Import Excel
+                </a>
+                <a href="{% url 'quiz:question_create' %}" class="btn-primary-custom">
+                    <i class="bi bi-plus-circle"></i> Thêm câu hỏi
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- BỘ LỌC -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <form method="GET" action="{% url 'quiz:question_list' %}" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Môn học</label>
-                    <select name="subject" class="form-select bg-light border-0">
+    <!-- STATS SECTION -->
+    <div class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, rgba(136, 0, 0, 0.1) 0%, rgba(136, 0, 0, 0.15) 100%); color: #880000;">
+                    <i class="bi bi-stack"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_questions }}</h3>
+                    <p>Tổng câu hỏi</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.15) 100%); color: #0d6efd;">
+                    <i class="bi bi-check2-all"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ multiple_choice_count }}</h3>
+                    <p>Nhiều lựa chọn</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.15) 100%); color: #198754;">
+                    <i class="bi bi-ui-checks"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ single_choice_count }}</h3>
+                    <p>Một lựa chọn</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.2) 100%); color: #856404;">
+                    <i class="bi bi-question-lg"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ true_false_count }}</h3>
+                    <p>Đúng/Sai</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTER SECTION -->
+    <div class="filter-section">
+        <h2 class="section-title">Bộ lọc nâng cao</h2>
+        <form method="GET" action="{% url 'quiz:question_list' %}">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Môn học</label>
+                    <select name="subject" class="filter-select">
                         <option value="">Tất cả môn học</option>
                         {% for subject in subjects %}
                         <option value="{{ subject.id }}" {% if request.GET.subject == subject.id|stringformat:"i" %}selected{% endif %}>
@@ -131,18 +787,20 @@ window.MathJax = {
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Độ khó</label>
-                    <select name="difficulty" class="form-select bg-light border-0">
+                
+                <div class="filter-group">
+                    <label class="filter-label">Độ khó</label>
+                    <select name="difficulty" class="filter-select">
                         <option value="">Tất cả</option>
                         <option value="EASY" {% if request.GET.difficulty == "EASY" %}selected{% endif %}>Dễ</option>
                         <option value="MEDIUM" {% if request.GET.difficulty == "MEDIUM" %}selected{% endif %}>Trung bình</option>
                         <option value="HARD" {% if request.GET.difficulty == "HARD" %}selected{% endif %}>Khó</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Loại câu hỏi</label>
-                    <select name="question_type" class="form-select bg-light border-0">
+                
+                <div class="filter-group">
+                    <label class="filter-label">Loại câu hỏi</label>
+                    <select name="question_type" class="filter-select">
                         <option value="">Tất cả</option>
                         <option value="SINGLE_CHOICE" {% if request.GET.question_type == "SINGLE_CHOICE" %}selected{% endif %}>Một lựa chọn</option>
                         <option value="MULTIPLE_CHOICE" {% if request.GET.question_type == "MULTIPLE_CHOICE" %}selected{% endif %}>Nhiều lựa chọn</option>
@@ -150,75 +808,126 @@ window.MathJax = {
                         <option value="SHORT_ANSWER" {% if request.GET.question_type == "SHORT_ANSWER" %}selected{% endif %}>Tự luận</option>
                     </select>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-dark w-100 fw-bold">
-                        <i class="bi bi-filter me-2"></i>Lọc
+                
+                <div class="filter-group filter-button">
+                    <button type="submit" class="btn-primary-custom w-100">
+                        <i class="bi bi-filter me-2"></i> Áp dụng lọc
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <!-- DANH SÁCH CÂU HỎI -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+    <!-- QUESTIONS SECTION -->
+    <div class="questions-section">
+        <div class="section-header">
+            <h2 class="section-title">Danh sách câu hỏi</h2>
+            <div class="pagination-info">
+                {{ page_obj.start_index }} - {{ page_obj.end_index }} / {{ page_obj.paginator.count }} câu hỏi
+            </div>
+        </div>
+        
+        <div class="question-table-container">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
+                <table class="question-table">
+                    <thead>
                         <tr>
-                            <th class="ps-4 py-3 text-secondary text-uppercase small fw-bold" style="width: 50%;">Nội dung câu hỏi</th>
-                            <th class="py-3 text-secondary text-uppercase small fw-bold">Thuộc tính</th>
-                            <th class="py-3 text-secondary text-uppercase small fw-bold">Độ khó</th>
-                            <th class="pe-4 py-3 text-end text-secondary text-uppercase small fw-bold">Thao tác</th>
+                            <th>Nội dung câu hỏi</th>
+                            <th>Loại</th>
+                            <th>Độ khó</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for question in page_obj %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="question-content fw-medium mb-1">{{ question.text|safe }}</div>
-                                <div class="question-meta d-flex gap-2">
-                                    <span class="badge bg-light text-dark border">{{ question.subject.name }}</span>
-                                    {% if question.question_type == 'SHORT_ANSWER' and question.correct_answer_text %}
-                                        <span class="text-success small"><i class="bi bi-check-circle me-1"></i>ĐA: {{ question.correct_answer_text|truncatechars:30 }}</span>
-                                    {% endif %}
+                        <tr onclick="window.location='{% url 'quiz:question_edit' question.pk %}'" style="cursor: pointer;">
+                            <!-- Question Content -->
+                            <td>
+                                <div class="question-content">
+                                    <div class="question-text">
+                                        <a href="{% url 'quiz:question_edit' question.pk %}">
+                                            {{ question.text|safe|truncatewords:25 }}
+                                        </a>
+                                    </div>
+                                    <div class="question-meta">
+                                        <span class="subject-badge">
+                                            <i class="bi bi-book"></i> {{ question.subject.name }}
+                                        </span>
+                                        {% if question.question_type == 'SHORT_ANSWER' and question.correct_answer_text %}
+                                            <span class="answer-preview">
+                                                <i class="bi bi-check-circle"></i> {{ question.correct_answer_text|truncatechars:25 }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </td>
+
+                            <!-- Type -->
                             <td>
                                 {% if question.question_type == 'SINGLE_CHOICE' %}
-                                    <span class="badge badge-soft-primary rounded-pill">Một lựa chọn</span>
+                                    <span class="type-badge type-single">
+                                        <i class="bi bi-ui-checks"></i> Một lựa chọn
+                                    </span>
                                 {% elif question.question_type == 'MULTIPLE_CHOICE' %}
-                                    <span class="badge badge-soft-info rounded-pill">Nhiều lựa chọn</span>
+                                    <span class="type-badge type-multiple">
+                                        <i class="bi bi-check2-all"></i> Nhiều lựa chọn
+                                    </span>
                                 {% elif question.question_type == 'TRUE_FALSE' %}
-                                    <span class="badge badge-soft-warning rounded-pill">Đúng/Sai</span>
+                                    <span class="type-badge type-true-false">
+                                        <i class="bi bi-question-lg"></i> Đúng/Sai
+                                    </span>
                                 {% elif question.question_type == 'SHORT_ANSWER' %}
-                                    <span class="badge badge-soft-success rounded-pill">Tự luận</span>
+                                    <span class="type-badge type-short">
+                                        <i class="bi bi-pencil"></i> Tự luận
+                                    </span>
                                 {% endif %}
                             </td>
+
+                            <!-- Difficulty -->
                             <td>
                                 {% if question.difficulty == 'EASY' %}
-                                    <span class="badge badge-soft-success rounded-pill px-3">Dễ</span>
+                                    <span class="difficulty-badge difficulty-easy">
+                                        <i class="bi bi-emoji-smile"></i> Dễ
+                                    </span>
                                 {% elif question.difficulty == 'MEDIUM' %}
-                                    <span class="badge badge-soft-warning rounded-pill px-3">TB</span>
+                                    <span class="difficulty-badge difficulty-medium">
+                                        <i class="bi bi-emoji-neutral"></i> Trung bình
+                                    </span>
                                 {% elif question.difficulty == 'HARD' %}
-                                    <span class="badge badge-soft-danger rounded-pill px-3">Khó</span>
+                                    <span class="difficulty-badge difficulty-hard">
+                                        <i class="bi bi-emoji-frown"></i> Khó
+                                    </span>
                                 {% endif %}
                             </td>
-                            <td class="text-end pe-4">
-                                <a href="{% url 'quiz:question_edit' question.pk %}" class="btn btn-sm btn-light text-primary hover-lift" title="Chỉnh sửa">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <a href="{% url 'quiz:question_delete' question.pk %}" class="btn btn-sm btn-light text-danger hover-lift" title="Xóa">
-                                    <i class="bi bi-trash3"></i>
-                                </a>
+
+                            <!-- Actions -->
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'quiz:question_edit' question.pk %}" class="action-btn edit" 
+                                       onclick="event.stopPropagation();" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil-square"></i>
+                                        <span class="tooltip-text">Chỉnh sửa</span>
+                                    </a>
+                                    <a href="{% url 'quiz:question_delete' question.pk %}" class="action-btn delete" 
+                                       onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa câu hỏi này?');" title="Xóa">
+                                        <i class="bi bi-trash3"></i>
+                                        <span class="tooltip-text">Xóa</span>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <div class="text-muted opacity-50">
-                                    <i class="bi bi-inbox display-4 d-block mb-3"></i>
-                                    <h5>Chưa có dữ liệu</h5>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="bi bi-file-text"></i>
+                                    </div>
+                                    <h4>Chưa có câu hỏi nào</h4>
+                                    <p>Bắt đầu thêm câu hỏi để xây dựng ngân hàng đề thi của bạn.</p>
+                                    <a href="{% url 'quiz:question_create' %}" class="btn-primary-custom">
+                                        <i class="bi bi-plus-circle me-2"></i> Thêm câu hỏi đầu tiên
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -226,51 +935,113 @@ window.MathJax = {
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-        <div class="card-footer bg-white py-3">
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center mb-0">
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị {{ page_obj.start_index }} - {{ page_obj.end_index }} của {{ page_obj.paginator.count }} câu hỏi
+                </div>
+                <ul class="pagination">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
                     {% endif %}
-
+                    
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
-                            <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                             <li class="page-item">
-                                <a class="page-link shadow-sm" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                     {{ num }}
                                 </a>
                             </li>
                         {% endif %}
                     {% endfor %}
-
+                    
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
                                 <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-double-right"></i>
                             </a>
                         </li>
                     {% endif %}
                 </ul>
-            </nav>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kích hoạt MathJax
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+    
+    // Thêm hiệu ứng hover cho các hàng
+    const tableRows = document.querySelectorAll('.question-table tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(4px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // Tooltip cho action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            const tooltip = this.querySelector('.tooltip-text');
+            if (tooltip) {
+                tooltip.style.opacity = '1';
+                tooltip.style.visibility = 'visible';
+            }
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            const tooltip = this.querySelector('.tooltip-text');
+            if (tooltip) {
+                tooltip.style.opacity = '0';
+                tooltip.style.visibility = 'hidden';
+            }
+        });
+    });
+    
+    // Animation cho stat cards
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.style.animation = 'fadeInUp 0.6s ease forwards';
+        card.style.opacity = '0';
+    });
+});
+</script>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Kích hoạt MathJax mỗi khi load trang (để render công thức Toán)
+    // Kích hoạt MathJax mỗi khi load trang
     document.addEventListener("DOMContentLoaded", function() {
         if (window.MathJax) {
             MathJax.typesetPromise();
